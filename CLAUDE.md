@@ -1,7 +1,7 @@
-# RankAgent Hub — Project Context
+# ProofPilot Agency Hub — Project Context
 
 ## What This Is
-RankAgent Hub is an SEO operations dashboard UI for an AI-powered SEO agency tool. It allows agency owners to manage clients, run AI-powered SEO workflows, monitor agent tasks, and generate ad creative — all from a single dashboard.
+ProofPilot Agency Hub is an SEO operations dashboard UI for an AI-powered SEO agency tool. It allows agency owners to manage clients, run AI-powered SEO workflows, monitor agent tasks, and generate ad creative — all from a single dashboard.
 
 ## Current State
 - **Frontend only** — all data is hardcoded mock data in `script.js`
@@ -15,7 +15,7 @@ RankAgent Hub is an SEO operations dashboard UI for an AI-powered SEO agency too
 - `script.js` — data models, view routing, rendering, terminal animation
 
 ## Brand
-- **Name:** RankAgent Hub
+- **Name:** ProofPilot Agency Hub
 - **Colors:** Dark Blue `#00184D`, Electric Blue `#0051FF`, Neon Green `#C8FF00`
 - **Fonts:** Bebas Neue (display), Martian Mono (code/mono), Inter (body)
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   RANKAGENT HUB — script.js
+   PROOFPILOT AGENCY HUB — script.js
    Data models, rendering, terminal typewriter, agent toggle
 ═══════════════════════════════════════════════════════ */
 
@@ -518,9 +518,9 @@ setInterval(updateClock, 1000);
 
 /* ── TERMINAL TYPEWRITER ── */
 const TERMINAL_LINES = [
-  { cls: 'tl-d', text: '# RankAgent Claude Agent — Session 2026-02-18' },
+  { cls: 'tl-d', text: '# ProofPilot Claude Agent — Session 2026-02-18' },
   { blank: true },
-  { cls: 'tl-p', text: 'rankagent run --all-clients', isPrompt: true },
+  { cls: 'tl-p', text: 'proofpilot run --all-clients', isPrompt: true },
   { cls: 'tl-d', text: '  Connecting to Ahrefs API...', d: 700 },
   { cls: 'tl-inf', text: '  ✓ Connected · pulling keyword data', d: 1300 },
   { blank: true, d: 1700 },
@@ -555,7 +555,7 @@ function startTerminal() {
     if (!agentRunning) { setTimeout(tick, 500); return; }
     if (li >= TERMINAL_LINES.length) {
       setTimeout(() => {
-        if (tb) tb.innerHTML = '<div class="tl-d"># RankAgent Claude Agent — Session 2026-02-18</div><br>';
+        if (tb) tb.innerHTML = '<div class="tl-d"># ProofPilot Claude Agent — Session 2026-02-18</div><br>';
         li = 0; ci = 0; curDiv = null;
         setTimeout(tick, 1500);
       }, 4000);
@@ -599,7 +599,7 @@ function startTerminal() {
 
 function clearTerminal() {
   const tb = document.getElementById('terminal');
-  if (tb) tb.innerHTML = '<div class="tl-d"># RankAgent terminal cleared</div><br>';
+  if (tb) tb.innerHTML = '<div class="tl-d"># ProofPilot terminal cleared</div><br>';
 }
 
 /* ── JOB PROGRESS SIMULATION ── */
