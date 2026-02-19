@@ -31,6 +31,7 @@ const WORKFLOWS = [
   { id: 'service-page',            icon: '⚡', title: 'Service Page',                desc: 'Conversion-optimized service page targeting high-intent "[service] [city]" keywords — built to rank and convert.',              time: '~4 min',  status: 'active', skill: 'service-page' },
   { id: 'location-page',           icon: '📍', title: 'Location Page',               desc: 'Geo-targeted location page for "[service] [city]" rankings — genuinely local, not templated.',                                  time: '~4 min',  status: 'active', skill: 'location-page' },
   { id: 'seo-blog-generator',      icon: '✍️', title: 'SEO Blog Generator',          desc: 'Full SEO blog post workflow for service businesses — keyword-targeted, structured, and ready to publish.',                    time: '~6 min',  status: 'soon' },
+  { id: 'programmatic-content',    icon: '🚀', title: 'Programmatic Content Agent', desc: 'Bulk-generate unique, data-driven content at scale — location pages, service pages, or blog posts with DataForSEO research per page.', time: '~2 min/page', status: 'active', skill: 'programmatic-content' },
   { id: 'home-service-content',    icon: '🏠', title: 'Home Service SEO Content',    desc: 'SEO articles tuned for electricians, plumbers, HVAC, and other home service businesses. Built for local rank.',             time: '~5 min',  status: 'active', skill: 'home-service-seo-content' },
   { id: 'seo-strategy-sheet',      icon: '📊', title: 'SEO Strategy Spreadsheet',    desc: '14-tab SEO strategy workbook — keyword clusters, competitor gaps, content calendar, and priority matrix.',                   time: '~4 min',  status: 'soon' },
   { id: 'content-strategy-sheet',  icon: '📋', title: 'Content Strategy Spreadsheet',desc: 'Content ecosystem mapping with psychographic profiles, funnel stages, and distribution plan per channel.',                   time: '~5 min',  status: 'soon' },
@@ -348,6 +349,7 @@ function selectWorkflow(id) {
     'modalInputsSEOBlogPost':   id === 'seo-blog-post',
     'modalInputsServicePage':   id === 'service-page',
     'modalInputsLocationPage':  id === 'location-page',
+    'modalInputsProgrammatic':  id === 'programmatic-content',
   };
   Object.entries(panels).forEach(([panelId, show]) => {
     const panel = document.getElementById(panelId);
@@ -367,10 +369,17 @@ function selectWorkflow(id) {
    'wfGapDomain','wfGapService','wfGapLocation','wfGapCompetitors','wfGapNotes',
    'wfBlogBusinessType','wfBlogLocation','wfBlogKeyword','wfBlogAudience','wfBlogTone','wfBlogInternalLinks','wfBlogNotes',
    'wfSvcBusinessType','wfSvcService','wfSvcLocation','wfSvcDifferentiators','wfSvcPriceRange','wfSvcNotes',
-   'wfLocBusinessType','wfLocPrimaryService','wfLocTargetLocation','wfLocHomeBase','wfLocLocalDetails','wfLocServicesList','wfLocNotes'].forEach(fid => {
+   'wfLocBusinessType','wfLocPrimaryService','wfLocTargetLocation','wfLocHomeBase','wfLocLocalDetails','wfLocServicesList','wfLocNotes',
+   'wfProgContentType','wfProgBusinessType','wfProgPrimaryService','wfProgLocation','wfProgHomeBase','wfProgItemsList','wfProgServicesList','wfProgDifferentiators','wfProgNotes'].forEach(fid => {
     const el = document.getElementById(fid);
     if (el) el.value = '';
   });
+
+  // Reset programmatic content conditional fields
+  const progLocFields = document.getElementById('progLocFields');
+  const progSvcBlogFields = document.getElementById('progSvcBlogFields');
+  if (progLocFields) progLocFields.style.display = 'none';
+  if (progSvcBlogFields) progSvcBlogFields.style.display = 'none';
 
   checkRunReady();
 
@@ -445,6 +454,23 @@ function checkRunReady() {
       const homeBase         = document.getElementById('wfLocHomeBase')?.value.trim();
       ready = !!(businessType && primaryService && targetLocation && homeBase);
     }
+
+    if (selectedWorkflow === 'programmatic-content' && ready) {
+      const contentType  = document.getElementById('wfProgContentType')?.value;
+      const businessType = document.getElementById('wfProgBusinessType')?.value.trim();
+      const itemsList    = document.getElementById('wfProgItemsList')?.value.trim();
+
+      if (!contentType || !businessType || !itemsList) {
+        ready = false;
+      } else if (contentType === 'location-pages') {
+        const primaryService = document.getElementById('wfProgPrimaryService')?.value.trim();
+        const homeBase       = document.getElementById('wfProgHomeBase')?.value.trim();
+        ready = !!(primaryService && homeBase);
+      } else if (contentType === 'service-pages' || contentType === 'blog-posts') {
+        const location = document.getElementById('wfProgLocation')?.value.trim();
+        ready = !!location;
+      }
+    }
   }
 
   btn.disabled = !ready;
@@ -478,6 +504,46 @@ function onAuditClientChange() {
     if (homeBaseEl && client.location) homeBaseEl.value = client.location;
   }
   checkRunReady();
+}
+
+function onProgContentTypeChange() {
+  const contentType = document.getElementById('wfProgContentType')?.value;
+  const locFields = document.getElementById('progLocFields');
+  const svcBlogFields = document.getElementById('progSvcBlogFields');
+  const itemsLabel = document.getElementById('progItemsLabel');
+  const itemsTextarea = document.getElementById('wfProgItemsList');
+  const itemsHint = document.getElementById('progItemsHint');
+  const servicesWrap = document.getElementById('progServicesWrap');
+
+  if (contentType === 'location-pages') {
+    if (locFields) locFields.style.display = 'block';
+    if (svcBlogFields) svcBlogFields.style.display = 'none';
+    if (itemsLabel) itemsLabel.innerHTML = 'Locations <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One city per line, e.g.:\nMesa, AZ\nGilbert, AZ\nTempe, AZ\nScottsdale, AZ\nPhoenix, AZ';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a unique location page with its own DataForSEO research';
+    if (servicesWrap) servicesWrap.style.display = '';
+  } else if (contentType === 'service-pages') {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'block';
+    if (itemsLabel) itemsLabel.innerHTML = 'Services <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One service per line, e.g.:\npanel upgrade\nEV charger installation\nwhole-house rewiring\nelectrical inspection\ngenerator installation';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a unique service page with competitor research';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  } else if (contentType === 'blog-posts') {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'block';
+    if (itemsLabel) itemsLabel.innerHTML = 'Keywords <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One target keyword per line, e.g.:\nhow much does a panel upgrade cost\nsigns you need to rewire your house\nwhen to call an emergency electrician\nEV charger installation guide';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a unique blog post with keyword research data';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  } else {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'none';
+    if (itemsLabel) itemsLabel.innerHTML = 'Items <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'Select a content type above to see format...';
+    if (itemsHint) itemsHint.textContent = 'Enter one item per line — each becomes a unique page with its own DataForSEO research';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  }
 }
 
 async function launchWorkflow() {
@@ -586,9 +652,21 @@ async function launchWorkflow() {
       services_list:    document.getElementById('wfLocServicesList')?.value.trim() || '',
       notes:            document.getElementById('wfLocNotes')?.value.trim() || '',
     };
+  } else if (selectedWorkflow === 'programmatic-content') {
+    inputs = {
+      content_type:     document.getElementById('wfProgContentType')?.value || '',
+      business_type:    document.getElementById('wfProgBusinessType')?.value.trim() || '',
+      primary_service:  document.getElementById('wfProgPrimaryService')?.value.trim() || '',
+      location:         document.getElementById('wfProgLocation')?.value.trim() || '',
+      home_base:        document.getElementById('wfProgHomeBase')?.value.trim() || '',
+      items_list:       document.getElementById('wfProgItemsList')?.value.trim() || '',
+      services_list:    document.getElementById('wfProgServicesList')?.value.trim() || '',
+      differentiators:  document.getElementById('wfProgDifferentiators')?.value.trim() || '',
+      notes:            document.getElementById('wfProgNotes')?.value.trim() || '',
+    };
   }
 
-  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page'];
+  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page', 'programmatic-content'];
 
   if (liveWorkflows.includes(selectedWorkflow)) {
     const payload = {
@@ -1207,6 +1285,7 @@ const WF_ICONS = {
   'seo-blog-post':        '✍️',
   'service-page':         '⚡',
   'location-page':        '📍',
+  'programmatic-content': '🚀',
   'seo-strategy-sheet':   '📋',
 };
 
@@ -1219,6 +1298,7 @@ const WF_TYPE_LABELS = {
   'seo-blog-post':        'Blog Post',
   'service-page':         'Service Page',
   'location-page':        'Location Page',
+  'programmatic-content': 'Programmatic Content',
   'seo-strategy-sheet':   'Strategy',
 };
 
@@ -1703,7 +1783,8 @@ document.getElementById('wfClientSelect')?.addEventListener('change', () => {
  'wfGapDomain', 'wfGapService', 'wfGapLocation',
  'wfBlogBusinessType', 'wfBlogLocation', 'wfBlogKeyword',
  'wfSvcBusinessType', 'wfSvcService', 'wfSvcLocation',
- 'wfLocBusinessType', 'wfLocPrimaryService', 'wfLocTargetLocation', 'wfLocHomeBase'].forEach(id => {
+ 'wfLocBusinessType', 'wfLocPrimaryService', 'wfLocTargetLocation', 'wfLocHomeBase',
+ 'wfProgContentType', 'wfProgBusinessType', 'wfProgPrimaryService', 'wfProgLocation', 'wfProgHomeBase', 'wfProgItemsList'].forEach(id => {
   document.getElementById(id)?.addEventListener('input', checkRunReady);
 });
 

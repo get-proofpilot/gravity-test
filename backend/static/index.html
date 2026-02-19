@@ -526,6 +526,7 @@
             <option value="seo-blog-post">Blog Posts</option>
             <option value="service-page">Service Pages</option>
             <option value="location-page">Location Pages</option>
+            <option value="programmatic-content">Programmatic Content</option>
           </select>
         </div>
       </div>
@@ -888,6 +889,77 @@
               <label class="wf-field-label">Notes <span class="opt">optional</span></label>
               <textarea id="wfLocNotes" rows="2"
                 placeholder="Anything specific — local competitors, common problems in this area, how long they've served this city..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- programmatic-content inputs -->
+        <div id="modalInputsProgrammatic" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Content Type <span class="req">*</span></label>
+            <select id="wfProgContentType" onchange="onProgContentTypeChange(); checkRunReady();">
+              <option value="">— Select content type —</option>
+              <option value="location-pages">Location Pages — unique pages for multiple cities</option>
+              <option value="service-pages">Service Pages — conversion pages for multiple services</option>
+              <option value="blog-posts">Blog Posts — SEO posts for multiple keywords</option>
+            </select>
+            <div class="wf-field-hint">Choose what kind of content to generate at scale</div>
+          </div>
+
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Business Type <span class="req">*</span></label>
+            <input type="text" id="wfProgBusinessType" placeholder="e.g. electrician, plumber, HVAC contractor" oninput="checkRunReady()" />
+          </div>
+
+          <!-- Location Pages: Primary Service + Home Base -->
+          <div id="progLocFields" style="display:none;">
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field">
+                <label class="wf-field-label">Primary Service <span class="req">*</span></label>
+                <input type="text" id="wfProgPrimaryService" placeholder="e.g. electrical service, plumbing repair" oninput="checkRunReady()" />
+                <div class="wf-field-hint">Used in the page H1 and keywords</div>
+              </div>
+              <div class="wf-modal-field">
+                <label class="wf-field-label">Business Home Base <span class="req">*</span></label>
+                <input type="text" id="wfProgHomeBase" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+                <div class="wf-field-hint">Where the business is based — establishes proximity</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service Pages / Blog Posts: Location -->
+          <div id="progSvcBlogFields" style="display:none;">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfProgLocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+              <div class="wf-field-hint">Primary service area for all generated pages</div>
+            </div>
+          </div>
+
+          <!-- Items List (label changes by content type) -->
+          <div class="wf-modal-field">
+            <label class="wf-field-label" id="progItemsLabel">Items <span class="req">*</span></label>
+            <textarea id="wfProgItemsList" rows="8" placeholder="Select a content type above to see format..." oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint" id="progItemsHint">Enter one item per line — each becomes a unique page with its own DataForSEO research</div>
+          </div>
+
+          <!-- Optional fields -->
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — enhances content quality and uniqueness</div>
+            <div class="wf-modal-field optional" id="progServicesWrap">
+              <label class="wf-field-label">Services to Highlight <span class="opt">optional</span></label>
+              <input type="text" id="wfProgServicesList" placeholder="e.g. panel upgrade, EV charger, rewiring, generator install" />
+              <div class="wf-field-hint">Comma-separated services mentioned on each page</div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Differentiators <span class="opt">optional</span></label>
+              <input type="text" id="wfProgDifferentiators" placeholder="e.g. same-day service, licensed master electrician, 5-star rated, family-owned since 2008" />
+              <div class="wf-field-hint">What makes this business stand out — used on every page</div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes &amp; Strategy <span class="opt">optional</span></label>
+              <textarea id="wfProgNotes" rows="3"
+                placeholder="Any additional context, competitor intel, brand voice notes, emphasis areas — applied to all pages..."></textarea>
             </div>
           </div>
         </div>

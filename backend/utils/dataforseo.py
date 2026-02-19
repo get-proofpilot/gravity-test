@@ -710,6 +710,119 @@ def format_competitor_gmb_profiles(data: list[dict]) -> str:
     return "\n".join(lines)
 
 
+
+# ── State abbreviation mapping ────────────────────────────────────────────────
+
+STATE_ABBREVS = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
+}
+
+
+def build_location_name(city_state: str) -> str:
+    """
+    Convert 'Chandler, AZ' → 'Chandler,Arizona,United States'
+    for DataForSEO location_name parameter.
+    """
+    parts = [p.strip() for p in city_state.split(",")]
+    if len(parts) < 2:
+        return f"{city_state},United States"
+
+    city = parts[0]
+    state_raw = parts[1].strip().upper()
+    state_full = STATE_ABBREVS.get(state_raw, parts[1].strip())
+
+    return f"{city},{state_full},United States"
+
+
+# ── Location research for programmatic content ───────────────────────────────
+
+async def get_location_research(
+    service: str,
+    city_state: str,
+) -> dict:
+    """
+    Run parallel research for a single location — SERP competitors, Maps
+    competitors, and keyword search volumes. Used by the programmatic content
+    agent to inject real market data into each page.
+
+    Args:
+        service:    e.g. "electrician", "plumbing repair"
+        city_state: e.g. "Mesa, AZ"
+
+    Returns:
+        Dict with keys: organic, maps, volumes, keyword, location
+        Empty dict on failure (graceful fallback).
+    """
+    try:
+        location_name = build_location_name(city_state)
+        city = city_state.split(",")[0].strip()
+        keyword = f"{service} {city}"
+
+        seeds = build_service_keyword_seeds(service, city, 5)
+
+        organic, maps, volumes = await asyncio.gather(
+            get_organic_serp(keyword, location_name, 3),
+            get_local_pack(keyword, location_name, 3),
+            get_keyword_search_volumes(seeds, location_name),
+            return_exceptions=True,
+        )
+
+        if isinstance(organic, Exception):
+            organic = []
+        if isinstance(maps, Exception):
+            maps = []
+        if isinstance(volumes, Exception):
+            volumes = []
+
+        return {
+            "organic": organic,
+            "maps": maps,
+            "volumes": volumes,
+            "keyword": keyword,
+            "location": city_state,
+        }
+    except Exception:
+        return {}
+
+
+def format_location_research(research: dict, city: str) -> str:
+    """Format location research data for Claude prompt injection."""
+    if not research:
+        return f"No research data available for {city} — use your knowledge of the area to write genuinely local content."
+
+    sections = [f"## LOCAL MARKET RESEARCH — {city}\n"]
+
+    maps = research.get("maps", [])
+    organic = research.get("organic", [])
+    volumes = research.get("volumes", [])
+
+    if maps:
+        sections.append(format_maps_competitors(maps))
+
+    if organic:
+        sections.append(format_organic_competitors(organic))
+
+    if volumes:
+        sections.append(format_keyword_volumes(volumes))
+
+    if not any([maps, organic, volumes]):
+        sections.append(f"No DataForSEO data available for {city} — use your knowledge of the area.")
+
+    return "\n\n".join(sections)
+
+
 def build_service_keyword_seeds(service: str, city: str, count: int = 10) -> list[str]:
     """
     Build a seed keyword list for a service + city combination.

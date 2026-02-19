@@ -24,6 +24,7 @@ from workflows.keyword_gap import run_keyword_gap
 from workflows.seo_blog_post import run_seo_blog_post
 from workflows.service_page import run_service_page
 from workflows.location_page import run_location_page
+from workflows.programmatic_content import run_programmatic_content
 from utils.docx_generator import generate_docx
 from utils.db import init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs
 
@@ -58,6 +59,7 @@ WORKFLOW_TITLES = {
     "property-mgmt-strategy": "Property Mgmt Strategy",
     "frontend-design":        "Frontend Interface Builder",
     "lovable-prompting":      "Lovable App Builder",
+    "programmatic-content":   "Programmatic Content Agent",
 }
 
 
@@ -150,8 +152,16 @@ async def run_workflow(req: WorkflowRequest):
                     strategy_context=req.strategy_context or "",
                     client_name=req.client_name,
                 )
+            elif req.workflow_id == "programmatic-content":
+                generator = run_programmatic_content(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
             else:
-                yield f"data: {json.dumps({'type': 'error', 'message': f'Workflow \"{req.workflow_id}\" is not yet wired up.'})}\n\n"
+                msg = f'Workflow "{req.workflow_id}" is not yet wired up.'
+                yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
                 return
 
             # ── Stream tokens to the browser ──
