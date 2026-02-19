@@ -1649,6 +1649,34 @@ body {
   color: var(--amber);
 }
 
+.pill-inactive {
+  background: var(--bg3);
+  color: var(--text3);
+}
+
+.pill-toggle {
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  user-select: none;
+}
+
+.pill-toggle:hover {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+.row-inactive td {
+  opacity: 0.4;
+}
+
+.row-inactive .pill-toggle {
+  opacity: 1;
+}
+
+.roster-item.inactive {
+  opacity: 0.45;
+}
+
 /* Progress bar */
 .prog-bar {
   height: 4px;

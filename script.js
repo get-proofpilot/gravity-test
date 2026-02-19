@@ -6,21 +6,20 @@
 /* ── DATA MODELS ── */
 
 const CLIENTS = [
-  { id: 1,  name: 'SEO Templates',                domain: 'seotemplates.com',              plan: 'Agency',     score: 88, trend: '+3',  avgRank: 6.4,  lastJob: '45 min ago',  status: 'active', color: '#F59E3B', initials: 'ST' },
-  { id: 2,  name: 'All Thingz Electric',           domain: 'allthingzelectric.com',          plan: 'Starter',    score: 74, trend: '+5',  avgRank: 9.2,  lastJob: '1 hr ago',    status: 'active', color: '#7C3AED', initials: 'AE' },
-  { id: 3,  name: 'Adam Levinstein Photography',   domain: 'adamlevinstein.com',             plan: 'Starter',    score: 62, trend: '+1',  avgRank: 14.1, lastJob: '2 hr ago',    status: 'active', color: '#7C3AED', initials: 'AL' },
-  { id: 4,  name: 'Dolce Electric',                domain: 'dolceelectric.com',              plan: 'Starter',    score: 69, trend: '→0',  avgRank: 11.8, lastJob: '3 hr ago',    status: 'active', color: '#7C3AED', initials: 'DE' },
-  { id: 5,  name: 'Integrative Sports and Spine',  domain: 'integrativesportsandspine.com',  plan: 'Agency',     score: 81, trend: '+6',  avgRank: 7.3,  lastJob: '30 min ago',  status: 'active', color: '#0D9488', initials: 'IS' },
-  { id: 6,  name: 'Saiyan Electric',               domain: 'saiyanelectric.com',             plan: 'Starter',    score: 71, trend: '+2',  avgRank: 10.6, lastJob: '4 hr ago',    status: 'active', color: '#7C3AED', initials: 'SE' },
-  { id: 7,  name: 'Cedar Gold Group',              domain: 'cedargoldgroup.com',             plan: 'Agency',     score: 85, trend: '+4',  avgRank: 6.9,  lastJob: '1 hr ago',    status: 'active', color: '#0D9488', initials: 'CG' },
-  { id: 8,  name: 'Pelican Coast Electric',        domain: 'pelicancoastelectric.com',       plan: 'Starter',    score: 67, trend: '-1',  avgRank: 13.4, lastJob: '5 hr ago',    status: 'active', color: '#7C3AED', initials: 'PC' },
-  { id: 9,  name: 'ProofPilot',                    domain: 'proofpilot.com',                 plan: 'Agency',     score: 94, trend: '+8',  avgRank: 4.1,  lastJob: '12 min ago',  status: 'active', color: '#0051FF', initials: 'PP' },
-  { id: 10, name: 'Xsite Belize',                  domain: 'xsitebelize.com',                plan: 'Starter',    score: 58, trend: '+3',  avgRank: 16.2, lastJob: '1 day ago',   status: 'active', color: '#7C3AED', initials: 'XB' },
-  { id: 11, name: 'Power Route Electric',          domain: 'powerrouteelectric.com',         plan: 'Starter',    score: 73, trend: '+4',  avgRank: 10.1, lastJob: '3 hr ago',    status: 'active', color: '#7C3AED', initials: 'PR' },
-  { id: 12, name: 'Alpha Property Management',     domain: 'alphapropertymgmt.com',          plan: 'Agency',     score: 79, trend: '+2',  avgRank: 8.5,  lastJob: '2 hr ago',    status: 'active', color: '#7C3AED', initials: 'AP' },
-  { id: 13, name: 'Trading Academy',               domain: 'tradingacademy.com',             plan: 'Enterprise', score: 91, trend: '+5',  avgRank: 5.0,  lastJob: '20 min ago',  status: 'active', color: '#7C3AED', initials: 'TA' },
-  { id: 14, name: 'Youth Link',                    domain: 'youthlink.org',                  plan: 'Starter',    score: 55, trend: '→0',  avgRank: 18.7, lastJob: '2 days ago',  status: 'review', color: '#F59E3B', initials: 'YL' },
-  { id: 15, name: 'LAF Counseling',                domain: 'lafcounseling.com',              plan: 'Starter',    score: 61, trend: '+1',  avgRank: 15.3, lastJob: '1 day ago',   status: 'active', color: '#EA580C', initials: 'LC' },
+  { id: 1,  name: 'All Thingz Electric',           domain: 'allthingzelectric.com',          plan: 'Starter',    score: 74, trend: '+5',  avgRank: 9.2,  lastJob: '1 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AE' },
+  { id: 2,  name: 'Adam Levinstein Photography',   domain: 'adamlevinstein.com',             plan: 'Starter',    score: 62, trend: '+1',  avgRank: 14.1, lastJob: '2 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AL' },
+  { id: 3,  name: 'Dolce Electric',                domain: 'dolceelectric.com',              plan: 'Starter',    score: 69, trend: '→0',  avgRank: 11.8, lastJob: '3 hr ago',    status: 'active',   color: '#7C3AED', initials: 'DE' },
+  { id: 4,  name: 'Integrative Sports and Spine',  domain: 'integrativesportsandspine.com',  plan: 'Agency',     score: 81, trend: '+6',  avgRank: 7.3,  lastJob: '30 min ago',  status: 'active',   color: '#0D9488', initials: 'IS' },
+  { id: 5,  name: 'Saiyan Electric',               domain: 'saiyanelectric.com',             plan: 'Starter',    score: 71, trend: '+2',  avgRank: 10.6, lastJob: '4 hr ago',    status: 'active',   color: '#7C3AED', initials: 'SE' },
+  { id: 6,  name: 'Cedar Gold Group',              domain: 'cedargoldgroup.com',             plan: 'Agency',     score: 85, trend: '+4',  avgRank: 6.9,  lastJob: '1 hr ago',    status: 'active',   color: '#0D9488', initials: 'CG' },
+  { id: 7,  name: 'Pelican Coast Electric',        domain: 'pelicancoastelectric.com',       plan: 'Starter',    score: 67, trend: '-1',  avgRank: 13.4, lastJob: '5 hr ago',    status: 'active',   color: '#7C3AED', initials: 'PC' },
+  { id: 8,  name: 'ProofPilot',                    domain: 'proofpilot.com',                 plan: 'Agency',     score: 94, trend: '+8',  avgRank: 4.1,  lastJob: '12 min ago',  status: 'active',   color: '#0051FF', initials: 'PP' },
+  { id: 9,  name: 'Xsite Belize',                  domain: 'xsitebelize.com',                plan: 'Starter',    score: 58, trend: '+3',  avgRank: 16.2, lastJob: '1 day ago',   status: 'active',   color: '#7C3AED', initials: 'XB' },
+  { id: 10, name: 'Power Route Electric',          domain: 'powerrouteelectric.com',         plan: 'Starter',    score: 73, trend: '+4',  avgRank: 10.1, lastJob: '3 hr ago',    status: 'active',   color: '#7C3AED', initials: 'PR' },
+  { id: 11, name: 'Alpha Property Management',     domain: 'alphapropertymgmt.com',          plan: 'Agency',     score: 79, trend: '+2',  avgRank: 8.5,  lastJob: '2 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AP' },
+  { id: 12, name: 'Trading Academy',               domain: 'tradingacademy.com',             plan: 'Enterprise', score: 91, trend: '+5',  avgRank: 5.0,  lastJob: '20 min ago',  status: 'active',   color: '#7C3AED', initials: 'TA' },
+  { id: 13, name: 'Youth Link',                    domain: 'youthlink.org',                  plan: 'Starter',    score: 55, trend: '→0',  avgRank: 18.7, lastJob: '2 days ago',  status: 'inactive', color: '#F59E3B', initials: 'YL' },
+  { id: 14, name: 'LAF Counseling',                domain: 'lafcounseling.com',              plan: 'Starter',    score: 61, trend: '+1',  avgRank: 15.3, lastJob: '1 day ago',   status: 'active',   color: '#EA580C', initials: 'LC' },
 ];
 
 const WORKFLOWS = [
@@ -208,7 +207,7 @@ function renderRoster() {
     const scoreClass = c.score >= 80 ? 'score-hi' : c.score >= 65 ? 'score-md' : 'score-lo';
     const trendClass = c.trend.startsWith('+') ? 'tr-up' : c.trend.startsWith('-') ? 'tr-down' : '';
     return `
-      <div class="roster-item ${i === 0 ? 'selected' : ''}" onclick="selectRosterItem(this)">
+      <div class="roster-item ${i === 0 ? 'selected' : ''} ${c.status === 'inactive' ? 'inactive' : ''}" onclick="selectRosterItem(this)">
         <div class="roster-avatar" style="color:${c.color};">${c.initials}</div>
         <div class="roster-info">
           <div class="roster-name">${c.name}</div>
@@ -268,7 +267,8 @@ function renderClientSelect() {
   if (!sel) return;
   const current = sel.value;
   sel.innerHTML = '<option value="">— Choose client —</option>' +
-    CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    CLIENTS.filter(c => c.status === 'active')
+           .map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   if (current) sel.value = current;
 }
 
@@ -373,9 +373,9 @@ function renderClients(filter = '') {
 
   el.innerHTML = filtered.map(c => {
     const scoreClass = c.score >= 80 ? 'score-hi' : c.score >= 65 ? 'score-md' : 'score-lo';
-    const statusPill = c.status === 'active' ? 'pill-act' : c.status === 'paused' ? 'pill-pau' : 'pill-warn';
+    const isActive = c.status === 'active';
     return `
-      <tr>
+      <tr class="${isActive ? '' : 'row-inactive'}">
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:26px;height:26px;background:var(--dark-blue);border:1px solid rgba(0,81,255,0.3);
@@ -389,13 +389,31 @@ function renderClients(filter = '') {
         <td><span class="seo-score ${scoreClass}">${c.score}</span></td>
         <td style="font-family:var(--mono);color:var(--text3);">#${c.avgRank}</td>
         <td style="font-family:var(--mono);font-size:10px;color:var(--text3);">${c.lastJob}</td>
-        <td><span class="pill ${statusPill}">${c.status}</span></td>
         <td>
-          <button class="tbl-btn" onclick="showView('workflows')">Run</button>
+          <span class="pill ${isActive ? 'pill-act' : 'pill-inactive'} pill-toggle"
+                onclick="toggleClientStatus(${c.id})"
+                title="${isActive ? 'Click to deactivate' : 'Click to activate'}">
+            ${isActive ? 'Active' : 'Inactive'}
+          </span>
+        </td>
+        <td>
+          <button class="tbl-btn" onclick="showView('workflows')" ${isActive ? '' : 'disabled'}>Run</button>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+function toggleClientStatus(id) {
+  const client = CLIENTS.find(c => c.id === id);
+  if (!client) return;
+  client.status = client.status === 'active' ? 'inactive' : 'active';
+
+  // Refresh all views that depend on client status
+  const searchEl = document.getElementById('clientSearch');
+  renderClients(searchEl ? searchEl.value.toLowerCase() : '');
+  renderClientSelect();   // workflow dropdown: active clients only
+  renderRoster();         // dashboard roster: dim inactive
 }
 
 /* ── JOBS ── */
