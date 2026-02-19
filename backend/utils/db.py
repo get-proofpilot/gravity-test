@@ -19,6 +19,8 @@ DB_PATH = os.environ.get(
 
 
 def _connect() -> sqlite3.Connection:
+    # Ensure parent directory exists (required when using a Railway Volume path)
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn

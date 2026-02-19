@@ -11,10 +11,9 @@ import asyncio
 from pathlib import Path
 
 import anthropic
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 
@@ -253,7 +252,27 @@ def get_job_detail(job_id: str):
     }
 
 
-# ── Serve frontend (must be last — catches all remaining routes) ──
+# ── Serve frontend ────────────────────────────────────────────────
+# Explicit routes instead of StaticFiles mount — prevents the mount from
+# intercepting /api/* routes (known FastAPI/Starlette issue with root mounts).
 static_dir = Path(__file__).parent / "static"
-if static_dir.exists():
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+
+@app.get("/")
+async def serve_index():
+    f = static_dir / "index.html"
+    if f.exists():
+        return FileResponse(f)
+    return {"status": "frontend not found"}
+
+@app.get("/script.js")
+async def serve_script():
+    return FileResponse(static_dir / "script.js", media_type="application/javascript")
+
+@app.get("/style.css")
+async def serve_style():
+    return FileResponse(static_dir / "style.css", media_type="text/css")
+
+@app.get("/{spa_path:path}")
+async def serve_spa(spa_path: str):
+    """Catch-all for SPA client-side routing. API routes are matched first."""
+    return FileResponse(static_dir / "index.html")

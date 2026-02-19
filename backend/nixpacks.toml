@@ -1,0 +1,3 @@
+# Force uvicorn as the start command — prevents Nixpacks from using Caddy
+[start]
+cmd = "uvicorn server:app --host 0.0.0.0 --port $PORT"
