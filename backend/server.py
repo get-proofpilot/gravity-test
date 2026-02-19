@@ -24,6 +24,7 @@ from workflows.keyword_gap import run_keyword_gap
 from workflows.seo_blog_post import run_seo_blog_post
 from workflows.service_page import run_service_page
 from workflows.location_page import run_location_page
+from workflows.programmatic_content import run_programmatic_content
 from utils.docx_generator import generate_docx
 from utils.db import init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs
 
@@ -58,6 +59,7 @@ WORKFLOW_TITLES = {
     "property-mgmt-strategy": "Property Mgmt Strategy",
     "frontend-design":        "Frontend Interface Builder",
     "lovable-prompting":      "Lovable App Builder",
+    "programmatic-content":   "Programmatic Content Agent",
 }
 
 
@@ -70,10 +72,52 @@ class WorkflowRequest(BaseModel):
     strategy_context: Optional[str] = ""
 
 
+class DiscoverCitiesRequest(BaseModel):
+    city: str
+    radius: int = 15
+
+
 # ── Routes ────────────────────────────────────────────────
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "ProofPilot Agency Hub API"}
+
+
+@app.post("/api/discover-cities")
+async def discover_cities(req: DiscoverCitiesRequest):
+    """Use Claude Haiku to find nearby cities for programmatic content."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+
+    city_name = req.city.split(",")[0].strip()
+    client = anthropic.AsyncAnthropic(api_key=api_key)
+
+    response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": (
+                f"List all real, incorporated cities and towns within approximately "
+                f"{req.radius} miles of {req.city}. Do NOT include {city_name} itself. "
+                f"Format each as 'City, ST' (2-letter state code). One per line. "
+                f"No numbering, no bullets, no other text. Just the city list. "
+                f"Maximum 50 cities. If fewer than 50 exist within that radius, list all of them."
+            ),
+        }],
+    )
+
+    import re
+    text = response.content[0].text.strip()
+    cities = []
+    for line in text.split("\n"):
+        line = line.strip().lstrip("- ").lstrip("• ").lstrip("* ")
+        line = re.sub(r'^\d+[\.\)]\s*', '', line).strip()
+        if line and "," in line:
+            cities.append(line)
+
+    return {"cities": cities[:50]}
 
 
 @app.post("/api/run-workflow")
@@ -150,8 +194,16 @@ async def run_workflow(req: WorkflowRequest):
                     strategy_context=req.strategy_context or "",
                     client_name=req.client_name,
                 )
+            elif req.workflow_id == "programmatic-content":
+                generator = run_programmatic_content(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
             else:
-                yield f"data: {json.dumps({'type': 'error', 'message': f'Workflow \"{req.workflow_id}\" is not yet wired up.'})}\n\n"
+                msg = f'Workflow "{req.workflow_id}" is not yet wired up.'
+                yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
                 return
 
             # ── Stream tokens to the browser ──

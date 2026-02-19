@@ -1256,6 +1256,48 @@ body {
   flex-shrink: 0;
 }
 
+.wf-batch-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--neon-green);
+  background: rgba(200, 255, 0, 0.08);
+  border: 1px solid rgba(200, 255, 0, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--t-fast);
+  letter-spacing: 0.05em;
+  margin-left: auto;
+}
+.wf-batch-badge:hover {
+  background: rgba(200, 255, 0, 0.18);
+  border-color: rgba(200, 255, 0, 0.45);
+}
+
+.btn-discover {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--elec-blue);
+  background: rgba(0, 81, 255, 0.08);
+  border: 1px solid rgba(0, 81, 255, 0.25);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--t-fast);
+  white-space: nowrap;
+  margin-top: 0;
+}
+.btn-discover:hover {
+  background: rgba(0, 81, 255, 0.15);
+  border-color: rgba(0, 81, 255, 0.4);
+}
+.btn-discover:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .wf-soon-badge {
   font-family: var(--mono);
   font-size: 9px;
