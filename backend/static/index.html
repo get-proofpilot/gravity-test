@@ -625,6 +625,10 @@
       </div>
 
       <div class="wf-modal-body">
+        <div id="wfOutputPreview" class="wf-output-preview" style="display:none">
+          <div class="wf-preview-label">SAMPLE OUTPUT</div>
+          <pre id="wfPreviewText" class="wf-preview-text"></pre>
+        </div>
         <div class="wf-modal-field" id="wfClientFieldWrap">
           <label class="wf-field-label">Client <span class="req">*</span></label>
           <select id="wfClientSelect" onchange="checkRunReady()">

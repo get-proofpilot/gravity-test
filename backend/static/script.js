@@ -23,30 +23,80 @@ const CLIENTS = [
 ];
 
 const WORKFLOWS = [
-  /* ── ACTIVE SKILLS ── */
-  { id: 'website-seo-audit',       icon: '🔍', title: 'Website & SEO Audit',        desc: 'Full technical SEO audit for existing clients — performance, structure, local signals, backlinks, and ranked action list.',   time: '~8 min',  status: 'active', skill: 'website-seo-audit' },
-  { id: 'prospect-audit',          icon: '🎯', title: 'Prospect SEO Market Analysis', desc: 'Sales-focused market analysis for new client proposals — shows the revenue gap, names the competitors, and closes the deal.',    time: '~8 min',  status: 'active', skill: 'prospect-audit' },
-  { id: 'keyword-gap',             icon: '🔍', title: 'Keyword Gap Analysis',         desc: 'Find every keyword your top competitors rank for that you don\'t — sorted by revenue opportunity.',                              time: '~6 min',  status: 'active', skill: 'keyword-gap' },
-  { id: 'seo-blog-post',           icon: '✍️', title: 'SEO Blog Post',               desc: 'Publish-ready blog post targeting informational keywords — key takeaways, FAQ, local CTA, and meta description included.',  time: '~5 min',  status: 'active', skill: 'seo-blog-post' },
-  { id: 'service-page',            icon: '⚡', title: 'Service Page',                desc: 'Conversion-optimized service page targeting high-intent "[service] [city]" keywords — built to rank and convert.',              time: '~4 min',  status: 'active', skill: 'service-page' },
-  { id: 'location-page',           icon: '📍', title: 'Location Page',               desc: 'Geo-targeted location page for "[service] [city]" rankings — genuinely local, not templated.',                                  time: '~4 min',  status: 'active', skill: 'location-page' },
-  { id: 'seo-blog-generator',      icon: '✍️', title: 'SEO Blog Generator',          desc: 'Full SEO blog post workflow for service businesses — keyword-targeted, structured, and ready to publish.',                    time: '~6 min',  status: 'soon' },
-  { id: 'programmatic-content',    icon: '🚀', title: 'Programmatic Content Agent', desc: 'Bulk-generate unique, data-driven content at scale — location pages, service pages, or blog posts with DataForSEO research per page.', time: '~2 min/page', status: 'active', skill: 'programmatic-content' },
-  { id: 'home-service-content',    icon: '🏠', title: 'Home Service SEO Content',    desc: 'SEO articles tuned for electricians, plumbers, HVAC, and other home service businesses. Built for local rank.',             time: '~5 min',  status: 'active', skill: 'home-service-seo-content' },
-  { id: 'seo-strategy-sheet',      icon: '📊', title: 'SEO Strategy Spreadsheet',    desc: '14-tab SEO strategy workbook — keyword clusters, competitor gaps, content calendar, and priority matrix.',                   time: '~4 min',  status: 'soon' },
-  { id: 'content-strategy-sheet',  icon: '📋', title: 'Content Strategy Spreadsheet',desc: 'Content ecosystem mapping with psychographic profiles, funnel stages, and distribution plan per channel.',                   time: '~5 min',  status: 'soon' },
-  { id: 'proposals',               icon: '📄', title: 'Client Proposals',            desc: 'Branded marketing proposals ready to send — scoped deliverables, pricing, and ProofPilot positioning built in.',             time: '~3 min',  status: 'soon' },
-  { id: 'brand-styling',           icon: '🎨', title: 'Brand Styling',               desc: 'Applies ProofPilot brand standards to .docx and .xlsx deliverables — fonts, colors, headers, and polish.',                  time: '~2 min',  status: 'soon' },
-  { id: 'pnl-statement',           icon: '💰', title: 'P&L Statement',               desc: 'Monthly profit & loss statement generator — structured financials formatted and ready for review.',                           time: '~3 min',  status: 'soon' },
-  { id: 'property-mgmt-strategy',  icon: '🏢', title: 'Property Mgmt Strategy',      desc: 'Website and SEO strategy for property management companies — local presence, lead gen focus, and conversion flow.',          time: '~6 min',  status: 'soon' },
-  { id: 'frontend-design',         icon: '🖥️', title: 'Frontend Interface Builder',  desc: 'Production-grade UI components and pages — distinctive design, clean code, no generic AI aesthetics.',                     time: '~8 min',  status: 'soon' },
-  { id: 'lovable-prompting',       icon: '⚡', title: 'Lovable App Builder',          desc: 'Expert Lovable.dev prompting to build full apps — structured flows that get clean, working results fast.',                  time: '~5 min',  status: 'soon' },
-  /* ── COMING SOON ── */
-  { id: 'backlink-outreach',       icon: '🔗', title: 'Backlink Outreach',           desc: 'Prospect link-building opportunities and generate personalized outreach emails at scale.',                                    time: '~12 min', status: 'soon' },
-  { id: 'competitor-gap',          icon: '🎯', title: 'Competitor Gap Analysis',      desc: 'Find keywords competitors rank for that you don\'t — instant opportunity list with difficulty scores.',                      time: '~5 min',  status: 'soon' },
-  { id: 'monthly-report',          icon: '📈', title: 'Monthly Client Report',        desc: 'White-label client report — GSC data, rankings, traffic wins, and recommendations bundled to send.',                        time: '~3 min',  status: 'soon' },
-  { id: 'google-ads-copy',         icon: '📣', title: 'Google Ads Copy',             desc: 'High-converting search ad copy — headlines, descriptions, and extensions for service-based campaigns.',                     time: '~4 min',  status: 'soon' },
-  { id: 'schema-generator',        icon: '🧩', title: 'Schema Generator',            desc: 'Auto-generate structured data markup for target pages — local business, FAQ, service, and article schemas.',                 time: '~2 min',  status: 'soon' },
+  /* ── SEO ANALYSIS ── */
+  { id: 'website-seo-audit', icon: '🔍', title: 'Website & SEO Audit',
+    desc: 'Full technical SEO audit — performance, structure, local signals, backlinks, and a ranked action list.',
+    time: '~8 min', status: 'active', skill: 'website-seo-audit', category: 'seo',
+    preview: '# SEO Audit: All Thingz Electric — Chandler, AZ\n\n**Overall Score: 63/100** — Est. 12–18 leads/month lost to ranking gaps.\n\n## Critical Issues\n- "Panel upgrade Chandler AZ" — Position #23 (first page achievable in 90 days)\n- GBP missing 8 service categories vs. top competitor\n- 0 backlinks from local Chandler business directories\n\n## Top Priority Action\nCreate 3 service pages targeting underranked commercial keywords. Estimated ROI: 8–12 inbound calls/month within 60 days.' },
+  { id: 'prospect-audit', icon: '🎯', title: 'Prospect SEO Market Analysis',
+    desc: 'Sales-focused market analysis for proposals — shows the revenue gap, names competitors, and closes the deal.',
+    time: '~8 min', status: 'active', skill: 'prospect-audit', category: 'seo',
+    preview: '# Market Analysis: Steadfast Plumbing — Gilbert, AZ\n\n**Revenue Gap: ~$28,000/month** — Top-ranked competitor captures 3× the lead volume.\n\n## Who\'s Winning\nMesa Plumbing Pros ranks #1 for 14 commercial keywords including "water heater replacement Gilbert."\n\n## Your Opportunity\n8 high-value keywords with <45 difficulty — achievable page 1 rankings within 60 days.\n\n**Closing Insight:** 340 people searched "emergency plumber Gilbert AZ" last month. You\'re not appearing for any of them.' },
+  { id: 'keyword-gap', icon: '📊', title: 'Keyword Gap Analysis',
+    desc: 'Find every keyword competitors rank for that you don\'t — sorted by revenue opportunity.',
+    time: '~6 min', status: 'active', skill: 'keyword-gap', category: 'seo',
+    preview: '# Keyword Gap Report: All Thingz Electric vs. 3 Competitors\n\n**47 untapped keywords** your top competitors rank for — you rank for 0.\n\nTop Opportunities by Revenue:\n- "electrical panel upgrade chandler" — 210/mo searches, Difficulty 38, Est. $4,200/mo\n- "ev charger installation scottsdale" — 170/mo searches, Difficulty 31, Est. $3,400/mo\n- "electrical inspection chandler az" — 140/mo searches, Difficulty 27, Est. $2,100/mo\n\n**Priority Plan:** 3 service pages + 2 blog posts covers 74% of total opportunity.' },
+  { id: 'seo-strategy-sheet', icon: '📋', title: 'SEO Strategy Spreadsheet',
+    desc: '14-tab SEO strategy workbook — keyword clusters, competitor gaps, content calendar, and priority matrix.',
+    time: '~4 min', status: 'soon', category: 'seo' },
+  { id: 'backlink-outreach', icon: '🔗', title: 'Backlink Outreach',
+    desc: 'Prospect link-building opportunities and generate personalized outreach emails at scale.',
+    time: '~12 min', status: 'soon', category: 'seo' },
+  { id: 'schema-generator', icon: '🧩', title: 'Schema Generator',
+    desc: 'Auto-generate structured data markup for target pages — local business, FAQ, service, and article schemas.',
+    time: '~2 min', status: 'soon', category: 'seo' },
+  /* ── CONTENT CREATION ── */
+  { id: 'seo-blog-post', icon: '✍️', title: 'SEO Blog Post',
+    desc: 'Publish-ready blog post targeting informational keywords — key takeaways, FAQ, local CTA, and meta description.',
+    time: '~5 min', status: 'active', skill: 'seo-blog-post', category: 'content',
+    preview: 'META: How much does it cost to rewire a house in Phoenix? Real ranges ($8,000–$22,000), what drives price, and when to call a licensed Phoenix electrician.\n\n# How Much Does It Cost to Rewire a House in Phoenix, AZ?\n\n## Key Takeaways\n- Whole-home rewire in Phoenix: **$8,000–$22,000** (1,500–3,000 sq ft)\n- Permit required in Maricopa County — expect $180–$420\n- Timeline: 3–5 days for most homes\n- Summer timing matters: Phoenix heat accelerates insulation degradation\n\nIf your home was built before 1985, there\'s a reasonable chance your wiring has been sending warning signs for months...' },
+  { id: 'service-page', icon: '⚡', title: 'Service Page',
+    desc: 'Conversion-optimized page targeting high-intent "[service] [city]" keywords — built to rank and convert.',
+    time: '~4 min', status: 'active', skill: 'service-page', category: 'content',
+    preview: '# Electrical Panel Upgrade in Chandler, AZ\n\nYour circuit breaker tripping again? **A panel upgrade stops the problem at the source** — and in Chandler\'s heat-heavy summers, an undersized panel isn\'t just inconvenient, it\'s a fire risk.\n\n**Call for a free estimate: (480) 555-0182**\n\n## What\'s Included in Every Panel Upgrade\n- 200-amp service upgrade with permits pulled same day\n- All circuits mapped, labeled, and load-balanced\n- City of Chandler inspection coordinated — we handle scheduling\n- Same-day power restoration in most cases\n\n**Price range: $1,800–$3,200** depending on panel size and existing wiring.' },
+  { id: 'location-page', icon: '📍', title: 'Location Page',
+    desc: 'Geo-targeted page for "[service] [city]" rankings — genuinely local, not templated.',
+    time: '~4 min', status: 'active', skill: 'location-page', category: 'content',
+    preview: '# Plumbing Repair in Mesa, AZ | Chandler Plumbing Pros\n\nMesa\'s housing stock tells a story. **Homes in the Val Vista Lakes area** were built in the late 1980s — after 35 years, that original copper plumbing is at the stage where pinhole leaks become a Tuesday problem.\n\nBased in Chandler, we\'ve been serving Mesa homeowners for 12 years. Licensed, insured, and familiar with the specific challenges that come with **east Mesa\'s hard water** and the aging PVC systems common in Dobson Ranch.\n\n**Call for same-day service: (480) 555-0182**\n\n## Plumbing Services in Mesa\n- Emergency leak repair (2-hour response for Mesa residents)\n- Water heater replacement and tankless conversion...' },
+  { id: 'home-service-content', icon: '🏠', title: 'Home Service SEO Content',
+    desc: 'SEO articles for electricians, plumbers, HVAC, and other home service businesses. Built for local rank.',
+    time: '~5 min', status: 'active', skill: 'home-service-seo-content', category: 'content',
+    preview: '# 7 Signs Your Home Needs an Electrical Panel Upgrade\n\nMost homeowners in Chandler don\'t think about their electrical panel until something goes wrong. By then, the warning signs had been there for months — tripping breakers, flickering lights, outlets that stopped working.\n\nHere\'s what to look for, and when to call a licensed electrician:\n\n**1. Breakers That Keep Tripping**\nA breaker trips once — that\'s it doing its job. If the same breaker trips twice a week, the circuit is consistently overloaded. This is the most common panel issue in Chandler homes built before 2000...' },
+  { id: 'seo-blog-generator', icon: '✍️', title: 'SEO Blog Generator',
+    desc: 'Full SEO blog post workflow for service businesses — keyword-targeted, structured, and ready to publish.',
+    time: '~6 min', status: 'soon', category: 'content' },
+  { id: 'content-strategy-sheet', icon: '📋', title: 'Content Strategy Spreadsheet',
+    desc: 'Content ecosystem mapping with psychographic profiles, funnel stages, and distribution plan per channel.',
+    time: '~5 min', status: 'soon', category: 'content' },
+  { id: 'google-ads-copy', icon: '📣', title: 'Google Ads Copy',
+    desc: 'High-converting search ad copy — headlines, descriptions, and extensions for service-based campaigns.',
+    time: '~4 min', status: 'soon', category: 'content' },
+  /* ── BUSINESS TOOLS ── */
+  { id: 'proposals', icon: '📄', title: 'Client Proposals',
+    desc: 'Branded marketing proposals ready to send — scoped deliverables, pricing, and ProofPilot positioning built in.',
+    time: '~3 min', status: 'soon', category: 'business' },
+  { id: 'monthly-report', icon: '📈', title: 'Monthly Client Report',
+    desc: 'White-label client report — rankings, traffic wins, and recommendations bundled to send.',
+    time: '~3 min', status: 'soon', category: 'business' },
+  { id: 'pnl-statement', icon: '💰', title: 'P&L Statement',
+    desc: 'Monthly profit & loss statement generator — structured financials formatted and ready for review.',
+    time: '~3 min', status: 'soon', category: 'business' },
+  { id: 'brand-styling', icon: '🎨', title: 'Brand Styling',
+    desc: 'Applies ProofPilot brand standards to .docx and .xlsx deliverables — fonts, colors, headers, and polish.',
+    time: '~2 min', status: 'soon', category: 'business' },
+  /* ── DEV & CREATIVE ── */
+  { id: 'frontend-design', icon: '🖥️', title: 'Frontend Interface Builder',
+    desc: 'Production-grade UI components and pages — distinctive design, clean code, no generic AI aesthetics.',
+    time: '~8 min', status: 'soon', category: 'dev' },
+  { id: 'lovable-prompting', icon: '⚡', title: 'Lovable App Builder',
+    desc: 'Expert Lovable.dev prompting to build full apps — structured flows that get clean, working results fast.',
+    time: '~5 min', status: 'soon', category: 'dev' },
+  { id: 'property-mgmt-strategy', icon: '🏢', title: 'Property Mgmt Strategy',
+    desc: 'Website and SEO strategy for property management companies — local presence, lead gen focus, and conversion flow.',
+    time: '~6 min', status: 'soon', category: 'dev' },
+  { id: 'competitor-gap', icon: '🎯', title: 'Competitor Gap Analysis',
+    desc: 'Find keywords competitors rank for that you don\'t — instant opportunity list with difficulty scores.',
+    time: '~5 min', status: 'soon', category: 'dev' },
 ];
 
 const JOBS = [];
@@ -294,52 +344,49 @@ function renderWorkflowCards() {
   const el = document.getElementById('workflowCardsGrid');
   if (!el) return;
 
-  const active = WORKFLOWS.filter(w => w.status === 'active');
-  const soon   = WORKFLOWS.filter(w => w.status === 'soon');
+  const categories = [
+    { key: 'seo',      label: 'SEO Analysis',      desc: 'Audits, gap reports, and competitive intelligence' },
+    { key: 'content',  label: 'Content Creation',   desc: 'Blog posts, service pages, and location pages' },
+    { key: 'business', label: 'Business Tools',     desc: 'Reports, proposals, and agency operations' },
+    { key: 'dev',      label: 'Dev & Creative',     desc: 'Frontend builds, app prompting, and design' },
+  ];
 
-  const batchMap = {
-    'location-page': 'location-pages',
-    'service-page':  'service-pages',
-    'seo-blog-post': 'blog-posts',
-  };
+  let html = '';
+  categories.forEach(cat => {
+    const activeInCat = WORKFLOWS.filter(w => w.category === cat.key && w.status === 'active');
+    const soonInCat   = WORKFLOWS.filter(w => w.category === cat.key && w.status === 'soon');
+    if (!activeInCat.length && !soonInCat.length) return;
 
-  const activeCards = active.map(wf => {
-    const batchType = batchMap[wf.id] || '';
-    const batchBadge = batchType
-      ? `<span class="wf-batch-badge" onclick="event.stopPropagation(); selectProgrammatic('${batchType}')" title="Generate multiple at once">⚡ Batch</span>`
-      : '';
-    return `
-    <div class="wf-card" data-id="${wf.id}" onclick="selectWorkflow('${wf.id}')">
-      <div class="wf-card-header">
-        <span class="wf-card-icon">${wf.icon}</span>
-        <span class="wf-skill-tag">${wf.skill}</span>
-        ${batchBadge}
-      </div>
-      <div class="wf-card-title">${wf.title}</div>
-      <div class="wf-card-desc">${wf.desc}</div>
-      <div class="wf-card-time">⏱ ${wf.time}</div>
-    </div>
-  `;
-  }).join('');
+    html += `<div class="wf-category-header">
+      <div class="wf-category-name">${cat.label}</div>
+      <div class="wf-category-desc">${cat.desc}${activeInCat.length ? ` · <span class="wf-cat-active">${activeInCat.length} active</span>` : ''}${soonInCat.length ? ` · ${soonInCat.length} coming` : ''}</div>
+    </div>`;
 
-  const soonCards = soon.map(wf => `
-    <div class="wf-card soon" data-id="${wf.id}">
-      <div class="wf-card-header">
-        <span class="wf-card-icon">${wf.icon}</span>
-        <span class="wf-soon-badge">SOON</span>
-      </div>
-      <div class="wf-card-title">${wf.title}</div>
-      <div class="wf-card-desc">${wf.desc}</div>
-      <div class="wf-card-time">⏱ ${wf.time}</div>
-    </div>
-  `).join('');
+    activeInCat.forEach(wf => {
+      html += `<div class="wf-card" data-id="${wf.id}" onclick="selectWorkflow('${wf.id}')">
+        <div class="wf-card-header">
+          <span class="wf-card-icon">${wf.icon}</span>
+        </div>
+        <div class="wf-card-title">${wf.title}</div>
+        <div class="wf-card-desc">${wf.desc}</div>
+        <div class="wf-card-time">⏱ ${wf.time} · <span class="wf-preview-hint">click to preview</span></div>
+      </div>`;
+    });
 
-  el.innerHTML = `
-    <div class="wf-section-label">ACTIVE SKILLS — ${active.length} BUILT</div>
-    ${activeCards}
-    <div class="wf-section-label">COMING SOON — ${soon.length} IN PIPELINE</div>
-    ${soonCards}
-  `;
+    soonInCat.forEach(wf => {
+      html += `<div class="wf-card soon">
+        <div class="wf-card-header">
+          <span class="wf-card-icon">${wf.icon}</span>
+          <span class="wf-soon-badge">SOON</span>
+        </div>
+        <div class="wf-card-title">${wf.title}</div>
+        <div class="wf-card-desc">${wf.desc}</div>
+        <div class="wf-card-time">⏱ ${wf.time}</div>
+      </div>`;
+    });
+  });
+
+  el.innerHTML = html;
 }
 
 function selectWorkflow(id) {
@@ -352,6 +399,18 @@ function selectWorkflow(id) {
   document.getElementById('modalWfIcon').textContent = wf.icon;
   document.getElementById('modalWfTitle').textContent = wf.title;
   document.getElementById('modalWfDesc').textContent = wf.desc;
+
+  // Populate preview panel
+  const previewEl = document.getElementById('wfOutputPreview');
+  const previewText = document.getElementById('wfPreviewText');
+  if (previewEl && previewText) {
+    if (wf.preview) {
+      previewText.textContent = wf.preview;
+      previewEl.style.display = 'block';
+    } else {
+      previewEl.style.display = 'none';
+    }
+  }
 
   // Show/hide workflow-specific inputs
   const panels = {

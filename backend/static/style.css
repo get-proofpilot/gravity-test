@@ -1225,6 +1225,37 @@ body {
   margin-bottom: 4px;
 }
 
+/* ── Category header (new) ── */
+.wf-category-header {
+  grid-column: 1 / -1;
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+.wf-category-header:first-child { margin-top: 0; }
+.wf-category-name {
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.wf-category-desc {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.wf-cat-active {
+  color: var(--neon-green);
+}
+.wf-preview-hint {
+  color: var(--elec-blue);
+  opacity: 0.7;
+  font-size: 9px;
+}
+
 /* ── Card internals ── */
 .wf-card-header {
   display: flex;
@@ -2275,6 +2306,34 @@ body {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+}
+
+/* ── Sample output preview block ── */
+.wf-output-preview {
+  background: rgba(0, 81, 255, 0.04);
+  border: 1px solid rgba(0, 81, 255, 0.18);
+  border-radius: 6px;
+  padding: 14px 16px 12px;
+}
+.wf-preview-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: var(--elec-blue);
+  opacity: 0.7;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.wf-preview-text {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.55);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 /* ── Individual field group ── */
