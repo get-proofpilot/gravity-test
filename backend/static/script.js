@@ -2561,13 +2561,7 @@ async function loadLocalFalconCompetitors(containerId) {
       return;
     }
 
-    const key = scans[0].report_key || scans[0].reportKey || scans[0].key || scans[0].id || '';
-    if (!key) {
-      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">No report key found.</div></div>';
-      return;
-    }
-
-    const res = await fetch(`${API_BASE}/api/localfalcon/competitors/${key}`);
+    const res = await fetch(`${API_BASE}/api/localfalcon/competitors`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const competitors = data.competitors || [];

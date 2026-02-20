@@ -51,13 +51,18 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 - [x] Content type filters for GBP Posts + Monthly Reports
 
 **Phase 3.5 (Local Falcon — Full Integration): COMPLETE**
-- [x] Local Falcon MCP client (`utils/localfalcon.py` — all 25 MCP tools: scans, campaigns, trends, competitors, guards, keywords, locations, reviews, auto-scans, GBP locations, account)
+- [x] Local Falcon MCP client (`utils/localfalcon.py` — all 37 MCP tools with correct camelCase params)
 - [x] Heatmap grid visualization (CSS grid, color-coded ranks 1-20+, ARP/SoLV/ATRP metrics)
-- [x] 20+ Local Falcon API endpoints (scans, campaigns, trends, competitors, guards, keywords, locations, reviews, GBP locations, auto-scans, account)
+- [x] 35+ Local Falcon API endpoints (scans, campaigns CRUD, trends, competitors, guards CRUD, keywords, locations, reviews, business search, knowledge base, auto-scans, account)
 - [x] Client Hub tabbed Local Falcon dashboard (Heat Maps / Trends / Competitors / Locations / Alerts tabs)
 - [x] Portal heatmap section with competitor table (`/api/portal/{token}/heatmap` — heatmaps + competitors)
 - [x] Website SEO Audit integration (Local Falcon grid data, competitors, trends injected into audit context)
 - [x] Monthly report integration (comprehensive Local Falcon data — scans, trends, competitors, reviews, guards)
+- [x] Campaign management (create, run, pause, resume, reactivate campaigns via API)
+- [x] Guard management (add, pause, resume, remove GBP monitoring via API)
+- [x] Business location search and save (Google/Apple Maps → save to account)
+- [x] AI platform scanning support (google, apple, gaio, chatgpt, gemini, grok, aimode, giao)
+- [x] Knowledge base search (Local Falcon help articles and docs)
 - [x] Aggregated data gathering (`gather_full_lf_data()` — fetches all LF data in parallel for workflows)
 - [x] Formatting suite (`format_full_lf_context()` — converts all LF data to Claude prompt context)
 
@@ -337,16 +342,26 @@ Add a `div#modalInputs{Name}` with input fields matching the workflow's input sc
 | `/api/portal/{token}` | GET | Client portal data (client info + jobs) |
 | `/api/portal/{token}/heatmap` | GET | Local Falcon heatmap data for portal client |
 | `/api/localfalcon/status` | GET | Check if Local Falcon API key is configured |
-| `/api/localfalcon/scans` | GET | List all Local Falcon scan reports |
+| `/api/localfalcon/scans` | GET | List scan reports (filters: place_id, keyword, platform) |
 | `/api/localfalcon/scans/{key}` | GET | Get single scan report with grid data |
+| `/api/localfalcon/scans/run` | POST | Run new scan (costs credits) |
 | `/api/localfalcon/campaigns` | GET | List campaign reports |
-| `/api/localfalcon/campaigns/{id}` | GET | Get single campaign report |
+| `/api/localfalcon/campaigns/{key}` | GET | Get single campaign report |
+| `/api/localfalcon/campaigns/create` | POST | Create new campaign |
+| `/api/localfalcon/campaigns/{key}/run` | POST | Manually trigger campaign |
+| `/api/localfalcon/campaigns/{key}/pause` | POST | Pause campaign |
+| `/api/localfalcon/campaigns/{key}/resume` | POST | Resume campaign |
+| `/api/localfalcon/campaigns/{key}/reactivate` | POST | Reactivate campaign |
 | `/api/localfalcon/trends` | GET | List trend reports |
 | `/api/localfalcon/trends/{key}` | GET | Get trend report with historical data |
-| `/api/localfalcon/competitors/{key}` | GET | Get competitor rankings for a scan |
+| `/api/localfalcon/competitors` | GET | Get competitor rankings (filters: place_id, keyword) |
 | `/api/localfalcon/competitor/{key}` | GET | Get detailed single competitor report |
-| `/api/localfalcon/guards` | GET | List guard (rank change) alerts |
-| `/api/localfalcon/guards/{key}` | GET | Get single guard report |
+| `/api/localfalcon/guards` | GET | List Guard-monitored locations |
+| `/api/localfalcon/guards/{placeId}` | GET | Get Guard report for placeId (GBP monitoring) |
+| `/api/localfalcon/guards/add` | POST | Add location(s) to Guard |
+| `/api/localfalcon/guards/pause` | POST | Pause Guard monitoring |
+| `/api/localfalcon/guards/resume` | POST | Resume Guard monitoring |
+| `/api/localfalcon/guards/remove` | POST | Remove Guard protection |
 | `/api/localfalcon/keywords` | GET | List keyword tracking reports |
 | `/api/localfalcon/keywords/{key}` | GET | Get keyword tracking detail |
 | `/api/localfalcon/locations` | GET | List tracked Local Falcon locations |
@@ -354,9 +369,13 @@ Add a `div#modalInputs{Name}` with input fields matching the workflow's input sc
 | `/api/localfalcon/location-reports/{key}` | GET | Get location report detail |
 | `/api/localfalcon/reviews` | GET | List reviews analysis reports |
 | `/api/localfalcon/reviews/{key}` | GET | Get reviews analysis detail |
-| `/api/localfalcon/gbp-locations` | GET | Get GBP locations from Local Falcon |
+| `/api/localfalcon/gbp-locations` | GET | Search Google for business listings (?query=) |
+| `/api/localfalcon/search-business` | GET | Search businesses on Google/Apple Maps |
+| `/api/localfalcon/save-location` | POST | Save business location to account |
 | `/api/localfalcon/auto-scans` | GET | List configured auto-scans |
 | `/api/localfalcon/account` | GET | Local Falcon account info |
+| `/api/localfalcon/knowledge-base` | GET | Search knowledge base articles |
+| `/api/localfalcon/knowledge-base/{id}` | GET | Get knowledge base article |
 | `/portal/{token}` | GET | Client portal page (public-facing) |
 
 ### SSE Event Types
@@ -482,22 +501,36 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 **Client:** `utils/localfalcon.py`
 **Env var:** `LOCALFALCON_API_KEY`
 
-### Available MCP Tools (25 total)
+### Available MCP Tools (37 total)
+
+All parameters use **camelCase** (e.g. `reportKey`, `placeId`, `gridSize`, `campaignKey`).
+
 | Category | Tools | Used In |
 |----------|-------|---------|
-| Scans | `listLocalFalconScanReports`, `getLocalFalconReport`, `getLocalFalconGrid` | Dashboard, Portal, Audits, Reports |
-| Campaigns | `listLocalFalconCampaignReports`, `getLocalFalconCampaignReport` | Dashboard, Reports |
-| Trends | `listLocalFalconTrendReports`, `getLocalFalconTrendReport` | Client Hub Trends tab, Reports |
-| Competitors | `getLocalFalconCompetitorReports`, `getLocalFalconCompetitorReport` | Client Hub Competitors tab, Portal, Audits |
-| Guards | `listLocalFalconGuardReports`, `getLocalFalconGuardReport` | Client Hub Alerts tab, Reports |
-| Keywords | `listLocalFalconKeywordReports`, `getLocalFalconKeywordReport`, `getLocalFalconKeywordAtCoordinate` | Dashboard |
-| Locations | `listAllLocalFalconLocations`, `listLocalFalconLocationReports`, `getLocalFalconLocationReport` | Client Hub Locations tab |
-| Rankings | `getLocalFalconRankingAtCoordinate` | Coordinate-level checks |
-| Reviews | `listLocalFalconReviewsAnalysisReports`, `getLocalFalconReviewsAnalysisReport` | Reports, Audits |
-| GBP | `getLocalFalconGoogleBusinessLocations` | Dashboard |
-| Auto-scans | `listLocalFalconAutoScans` | Dashboard |
-| Actions | `runLocalFalconScan`, `runLocalFalconCampaign` | Not exposed (manual only) |
-| Account | `viewLocalFalconAccountInformation` | Status check |
+| Scans (3) | `listLocalFalconScanReports`, `getLocalFalconReport`, `runLocalFalconScan` | Dashboard, Portal, Audits, Reports |
+| Campaigns (6) | `listLocalFalconCampaignReports`, `getLocalFalconCampaignReport`, `createLocalFalconCampaign`, `runLocalFalconCampaign`, `pauseLocalFalconCampaign`, `resumeLocalFalconCampaign`, `reactivateLocalFalconCampaign` | Dashboard, Reports |
+| Trends (2) | `listLocalFalconTrendReports`, `getLocalFalconTrendReport` | Client Hub Trends tab, Reports |
+| Competitors (2) | `getLocalFalconCompetitorReports`, `getLocalFalconCompetitorReport` | Client Hub Competitors tab, Portal, Audits |
+| Guards (6) | `listLocalFalconGuardReports`, `getLocalFalconGuardReport` (takes `placeId`), `addLocationsToFalconGuard`, `pauseFalconGuardProtection`, `resumeFalconGuardProtection`, `removeFalconGuardProtection` | Client Hub Alerts tab, GBP monitoring |
+| Keywords (3) | `listLocalFalconKeywordReports`, `getLocalFalconKeywordReport`, `getLocalFalconKeywordAtCoordinate` | Dashboard |
+| Locations (3) | `listAllLocalFalconLocations`, `listLocalFalconLocationReports`, `getLocalFalconLocationReport` | Client Hub Locations tab |
+| Coordinate (2) | `getLocalFalconGrid`, `getLocalFalconRankingAtCoordinate` | Debugging, coordinate-level checks |
+| Reviews (2) | `listLocalFalconReviewsAnalysisReports`, `getLocalFalconReviewsAnalysisReport` | Reports, Audits |
+| Business Search (3) | `searchForLocalFalconBusinessLocation`, `saveLocalFalconBusinessLocationToAccount`, `getLocalFalconGoogleBusinessLocations` | Location management |
+| Auto-scans (1) | `listLocalFalconAutoScans` | Dashboard |
+| Account (1) | `viewLocalFalconAccountInformation` | Status check |
+| Knowledge Base (2) | `searchLocalFalconKnowledgeBase`, `getLocalFalconKnowledgeBaseArticle` | Help docs |
+
+### AI Platform Scanning
+The `platform` parameter in scan tools supports **8 platforms**:
+- `google` — Google Maps local pack
+- `apple` — Apple Maps
+- `gaio` — Google AI Overviews
+- `chatgpt` — ChatGPT local visibility
+- `gemini` — Google Gemini AI
+- `grok` — Grok AI
+- `aimode` — Google AI Mode
+- `giao` — Google Immersive AI Overviews
 
 ### Key Functions
 - `gather_full_lf_data()` — Fetches all LF data in parallel (scans, trends, competitors, guards, reviews, locations)
@@ -510,6 +543,9 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 - **ARP** — Average Rank Position (average of pins ranking ≤20)
 - **ATRP** — Average Total Rank Position (average of ALL pins, 20+ = not found)
 - **SoLV** — Share of Local Voice (% of grid points where business ranks top 3)
+- **SAIV** — Share of AI Voice (% of AI response points where business is mentioned — AI platforms only)
+- **RVS** — Review Volume Score (Reviews Analysis)
+- **RQS** — Review Quality Score (Reviews Analysis)
 
 ### Heatmap Color Scale
 Green (#059669) → ranks 1-3, Light green (#A7F3D0) → 4-6, Yellow (#FDE68A) → 7-9,

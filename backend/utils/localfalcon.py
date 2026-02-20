@@ -11,22 +11,33 @@ Required env var:
 MCP endpoint: https://mcp.localfalcon.com/mcp
 Auth: API key passed as query parameter
 
-Available MCP tools (25 total):
-  Scans:        listLocalFalconScanReports, getLocalFalconReport, getLocalFalconGrid
-  Campaigns:    listLocalFalconCampaignReports, getLocalFalconCampaignReport
+Available MCP tools (37 total):
+  Scans:        listLocalFalconScanReports, getLocalFalconReport, runLocalFalconScan,
+                getLocalFalconGrid
+  Campaigns:    listLocalFalconCampaignReports, getLocalFalconCampaignReport,
+                createLocalFalconCampaign, runLocalFalconCampaign,
+                pauseLocalFalconCampaign, resumeLocalFalconCampaign,
+                reactivateLocalFalconCampaign
   Trends:       listLocalFalconTrendReports, getLocalFalconTrendReport
   Competitors:  getLocalFalconCompetitorReports, getLocalFalconCompetitorReport
-  Guards:       listLocalFalconGuardReports, getLocalFalconGuardReport
+  Guards:       listLocalFalconGuardReports, getLocalFalconGuardReport,
+                addLocationsToFalconGuard, pauseFalconGuardProtection,
+                resumeFalconGuardProtection, removeFalconGuardProtection
   Keywords:     listLocalFalconKeywordReports, getLocalFalconKeywordReport,
                 getLocalFalconKeywordAtCoordinate
   Locations:    listAllLocalFalconLocations, listLocalFalconLocationReports,
                 getLocalFalconLocationReport
   Rankings:     getLocalFalconRankingAtCoordinate
   Reviews:      listLocalFalconReviewsAnalysisReports, getLocalFalconReviewsAnalysisReport
-  GBP:          getLocalFalconGoogleBusinessLocations
+  GBP/Search:   getLocalFalconGoogleBusinessLocations,
+                searchForLocalFalconBusinessLocation,
+                saveLocalFalconBusinessLocationToAccount
   Auto-scans:   listLocalFalconAutoScans
-  Actions:      runLocalFalconScan, runLocalFalconCampaign
   Account:      viewLocalFalconAccountInformation
+  Knowledge:    searchLocalFalconKnowledgeBase, getLocalFalconKnowledgeBaseArticle
+
+All tool parameters use camelCase (e.g. reportKey, placeId, gridSize, campaignKey).
+Platform parameter supports: google, apple, gaio, chatgpt, gemini, grok, aimode, giao
 """
 
 import os
@@ -230,10 +241,28 @@ def _to_dict(result) -> dict:
 # ── High-level functions: Scans ──────────────────────────────────────────────
 
 
-async def list_scan_reports(limit: int = 50) -> list[dict]:
-    """List all scan reports from the Local Falcon account."""
+async def list_scan_reports(
+    limit: int = 50,
+    place_id: str = "",
+    keyword: str = "",
+    platform: str = "",
+    start_date: str = "",
+    end_date: str = "",
+) -> list[dict]:
+    """List scan reports, optionally filtered by placeId/keyword/platform/dates."""
     try:
-        result = await lf_call("listLocalFalconScanReports")
+        args: dict = {}
+        if place_id:
+            args["placeId"] = place_id
+        if keyword:
+            args["keyword"] = keyword
+        if platform:
+            args["platform"] = platform
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("listLocalFalconScanReports", args)
         return _to_list(result, "reports")[:limit]
     except Exception:
         return []
@@ -241,14 +270,22 @@ async def list_scan_reports(limit: int = 50) -> list[dict]:
 
 async def get_scan_report(report_key: str) -> dict:
     """Get a single scan report with full grid data."""
-    result = await lf_call("getLocalFalconReport", {"report_key": report_key})
+    result = await lf_call("getLocalFalconReport", {"reportKey": report_key})
     return _to_dict(result)
 
 
-async def get_grid(report_key: str) -> dict:
-    """Get grid data for a scan report (alternative endpoint)."""
+async def get_grid(
+    lat: str, lng: str, grid_size: str, radius: str, measurement: str = "mi"
+) -> dict:
+    """Generate grid coordinates for manual single-point checks."""
     try:
-        result = await lf_call("getLocalFalconGrid", {"report_key": report_key})
+        result = await lf_call("getLocalFalconGrid", {
+            "lat": lat,
+            "lng": lng,
+            "gridSize": grid_size,
+            "radius": radius,
+            "measurement": measurement,
+        })
         return _to_dict(result)
     except Exception:
         return {}
@@ -257,19 +294,34 @@ async def get_grid(report_key: str) -> dict:
 # ── High-level functions: Campaigns ──────────────────────────────────────────
 
 
-async def list_campaign_reports(limit: int = 20) -> list[dict]:
+async def list_campaign_reports(
+    limit: int = 20,
+    place_id: str = "",
+    start_date: str = "",
+    end_date: str = "",
+) -> list[dict]:
     """List campaign (recurring scan) reports."""
     try:
-        result = await lf_call("listLocalFalconCampaignReports")
+        args: dict = {}
+        if place_id:
+            args["placeId"] = place_id
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("listLocalFalconCampaignReports", args)
         return _to_list(result, "reports")[:limit]
     except Exception:
         return []
 
 
-async def get_campaign_report(campaign_id: str) -> dict:
+async def get_campaign_report(report_key: str, run: str = "") -> dict:
     """Get a single campaign report with scan history."""
     try:
-        result = await lf_call("getLocalFalconCampaignReport", {"campaign_id": campaign_id})
+        args: dict = {"reportKey": report_key}
+        if run:
+            args["run"] = run
+        result = await lf_call("getLocalFalconCampaignReport", args)
         return _to_dict(result)
     except Exception:
         return {}
@@ -278,10 +330,28 @@ async def get_campaign_report(campaign_id: str) -> dict:
 # ── High-level functions: Trends ─────────────────────────────────────────────
 
 
-async def list_trend_reports(limit: int = 50) -> list[dict]:
+async def list_trend_reports(
+    limit: int = 50,
+    place_id: str = "",
+    keyword: str = "",
+    platform: str = "",
+    start_date: str = "",
+    end_date: str = "",
+) -> list[dict]:
     """List trend reports showing rank changes over time."""
     try:
-        result = await lf_call("listLocalFalconTrendReports")
+        args: dict = {}
+        if place_id:
+            args["placeId"] = place_id
+        if keyword:
+            args["keyword"] = keyword
+        if platform:
+            args["platform"] = platform
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("listLocalFalconTrendReports", args)
         return _to_list(result, "reports")[:limit]
     except Exception:
         return []
@@ -290,7 +360,7 @@ async def list_trend_reports(limit: int = 50) -> list[dict]:
 async def get_trend_report(report_key: str) -> dict:
     """Get a single trend report with historical data points."""
     try:
-        result = await lf_call("getLocalFalconTrendReport", {"report_key": report_key})
+        result = await lf_call("getLocalFalconTrendReport", {"reportKey": report_key})
         return _to_dict(result)
     except Exception:
         return {}
@@ -299,10 +369,24 @@ async def get_trend_report(report_key: str) -> dict:
 # ── High-level functions: Competitors ────────────────────────────────────────
 
 
-async def get_competitor_reports(report_key: str) -> list[dict]:
-    """Get competitor rankings for a specific scan/keyword."""
+async def get_competitor_reports(
+    place_id: str = "",
+    keyword: str = "",
+    start_date: str = "",
+    end_date: str = "",
+) -> list[dict]:
+    """Get competitor rankings, optionally filtered by placeId/keyword/dates."""
     try:
-        result = await lf_call("getLocalFalconCompetitorReports", {"report_key": report_key})
+        args: dict = {}
+        if place_id:
+            args["placeId"] = place_id
+        if keyword:
+            args["keyword"] = keyword
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("getLocalFalconCompetitorReports", args)
         return _to_list(result, "competitors")
     except Exception:
         return []
@@ -311,7 +395,7 @@ async def get_competitor_reports(report_key: str) -> list[dict]:
 async def get_competitor_report(report_key: str) -> dict:
     """Get detailed competitor report for a single competitor."""
     try:
-        result = await lf_call("getLocalFalconCompetitorReport", {"report_key": report_key})
+        result = await lf_call("getLocalFalconCompetitorReport", {"reportKey": report_key})
         return _to_dict(result)
     except Exception:
         return {}
@@ -320,19 +404,35 @@ async def get_competitor_report(report_key: str) -> dict:
 # ── High-level functions: Guard (rank monitoring alerts) ─────────────────────
 
 
-async def list_guard_reports(limit: int = 50) -> list[dict]:
-    """List guard reports (rank change monitoring alerts)."""
+async def list_guard_reports(
+    limit: int = 50, status: str = "", start_date: str = "", end_date: str = ""
+) -> list[dict]:
+    """List Guard-monitored locations (GBP monitoring alerts)."""
     try:
-        result = await lf_call("listLocalFalconGuardReports")
+        args: dict = {}
+        if status:
+            args["status"] = status  # "protected" or "paused"
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("listLocalFalconGuardReports", args)
         return _to_list(result, "reports")[:limit]
     except Exception:
         return []
 
 
-async def get_guard_report(report_key: str) -> dict:
-    """Get a single guard report with rank change details."""
+async def get_guard_report(
+    place_id: str, start_date: str = "", end_date: str = ""
+) -> dict:
+    """Get a Guard report for a specific placeId (GBP monitoring + performance insights)."""
     try:
-        result = await lf_call("getLocalFalconGuardReport", {"report_key": report_key})
+        args: dict = {"placeId": place_id}
+        if start_date:
+            args["startDate"] = start_date
+        if end_date:
+            args["endDate"] = end_date
+        result = await lf_call("getLocalFalconGuardReport", args)
         return _to_dict(result)
     except Exception:
         return {}
@@ -353,21 +453,22 @@ async def list_keyword_reports(limit: int = 50) -> list[dict]:
 async def get_keyword_report(report_key: str) -> dict:
     """Get detailed keyword tracking report."""
     try:
-        result = await lf_call("getLocalFalconKeywordReport", {"report_key": report_key})
+        result = await lf_call("getLocalFalconKeywordReport", {"reportKey": report_key})
         return _to_dict(result)
     except Exception:
         return {}
 
 
 async def get_keyword_at_coordinate(
-    keyword: str, lat: float, lng: float
+    lat: str, lng: str, keyword: str, zoom: str = "13"
 ) -> dict:
-    """Check keyword ranking at a specific geographic coordinate."""
+    """Show raw search results at one coordinate point."""
     try:
         result = await lf_call("getLocalFalconKeywordAtCoordinate", {
-            "keyword": keyword,
             "lat": lat,
             "lng": lng,
+            "keyword": keyword,
+            "zoom": zoom,
         })
         return _to_dict(result)
     except Exception:
@@ -375,14 +476,15 @@ async def get_keyword_at_coordinate(
 
 
 async def get_ranking_at_coordinate(
-    report_key: str, lat: float, lng: float
+    lat: str, lng: str, keyword: str, zoom: str = "13"
 ) -> dict:
-    """Get ranking data at a specific coordinate within a scan grid."""
+    """Single-point ranking check at one coordinate."""
     try:
         result = await lf_call("getLocalFalconRankingAtCoordinate", {
-            "report_key": report_key,
             "lat": lat,
             "lng": lng,
+            "keyword": keyword,
+            "zoom": zoom,
         })
         return _to_dict(result)
     except Exception:
@@ -392,10 +494,13 @@ async def get_ranking_at_coordinate(
 # ── High-level functions: Locations ──────────────────────────────────────────
 
 
-async def list_locations() -> list[dict]:
-    """List all tracked locations in the Local Falcon account."""
+async def list_locations(query: str = "") -> list[dict]:
+    """List all saved locations in the Local Falcon account."""
     try:
-        result = await lf_call("listAllLocalFalconLocations")
+        args: dict = {}
+        if query:
+            args["query"] = query
+        result = await lf_call("listAllLocalFalconLocations", args)
         return _to_list(result, "locations")
     except Exception:
         return []
@@ -413,7 +518,7 @@ async def list_location_reports(limit: int = 50) -> list[dict]:
 async def get_location_report(report_key: str) -> dict:
     """Get detailed location-level report."""
     try:
-        result = await lf_call("getLocalFalconLocationReport", {"report_key": report_key})
+        result = await lf_call("getLocalFalconLocationReport", {"reportKey": report_key})
         return _to_dict(result)
     except Exception:
         return {}
@@ -432,9 +537,9 @@ async def list_reviews_reports(limit: int = 50) -> list[dict]:
 
 
 async def get_reviews_report(report_key: str) -> dict:
-    """Get detailed reviews analysis (sentiment, competitor comparison)."""
+    """Get detailed reviews analysis (RVS, RQS, sentiment, competitor comparison)."""
     try:
-        result = await lf_call("getLocalFalconReviewsAnalysisReport", {"report_key": report_key})
+        result = await lf_call("getLocalFalconReviewsAnalysisReport", {"reportKey": report_key})
         return _to_dict(result)
     except Exception:
         return {}
@@ -443,10 +548,13 @@ async def get_reviews_report(report_key: str) -> dict:
 # ── High-level functions: Google Business ────────────────────────────────────
 
 
-async def get_gbp_locations() -> list[dict]:
-    """Get Google Business Profile locations connected to Local Falcon."""
+async def get_gbp_locations(query: str, near: str = "") -> list[dict]:
+    """Search Google for business listings to find Place IDs."""
     try:
-        result = await lf_call("getLocalFalconGoogleBusinessLocations")
+        args: dict = {"query": query}
+        if near:
+            args["near"] = near
+        result = await lf_call("getLocalFalconGoogleBusinessLocations", args)
         return _to_list(result, "locations")
     except Exception:
         return []
@@ -455,10 +563,22 @@ async def get_gbp_locations() -> list[dict]:
 # ── High-level functions: Auto-scans ─────────────────────────────────────────
 
 
-async def list_auto_scans(limit: int = 50) -> list[dict]:
+async def list_auto_scans(
+    limit: int = 50,
+    place_id: str = "",
+    keyword: str = "",
+    platform: str = "",
+) -> list[dict]:
     """List configured automatic/scheduled scans."""
     try:
-        result = await lf_call("listLocalFalconAutoScans")
+        args: dict = {}
+        if place_id:
+            args["placeId"] = place_id
+        if keyword:
+            args["keyword"] = keyword
+        if platform:
+            args["platform"] = platform
+        result = await lf_call("listLocalFalconAutoScans", args)
         return _to_list(result, "auto_scans")[:limit]
     except Exception:
         return []
@@ -467,10 +587,220 @@ async def list_auto_scans(limit: int = 50) -> list[dict]:
 # ── High-level functions: Account ────────────────────────────────────────────
 
 
-async def get_account_info() -> dict:
+async def get_account_info(return_field: str = "") -> dict:
     """Get Local Falcon account details (credits, subscription info)."""
     try:
-        result = await lf_call("viewLocalFalconAccountInformation")
+        args: dict = {}
+        if return_field:
+            args["returnField"] = return_field  # "user", "credit package", "subscription", "credits"
+        result = await lf_call("viewLocalFalconAccountInformation", args)
+        return _to_dict(result)
+    except Exception:
+        return {}
+
+
+# ── High-level functions: Run scan ────────────────────────────────────────────
+
+
+async def run_scan(
+    place_id: str,
+    keyword: str,
+    lat: str,
+    lng: str,
+    grid_size: str,
+    radius: str,
+    measurement: str = "mi",
+    platform: str = "google",
+    ai_analysis: bool = False,
+) -> dict:
+    """
+    Run a new ranking scan. COSTS CREDITS — confirm with user before running.
+
+    Platform options: google, apple, gaio, chatgpt, gemini, grok, aimode, giao
+    """
+    args: dict = {
+        "placeId": place_id,
+        "keyword": keyword,
+        "lat": lat,
+        "lng": lng,
+        "gridSize": grid_size,
+        "radius": radius,
+        "measurement": measurement,
+        "platform": platform,
+    }
+    if ai_analysis:
+        args["aiAnalysis"] = True
+    result = await lf_call("runLocalFalconScan", args)
+    return _to_dict(result)
+
+
+# ── High-level functions: Campaign management ────────────────────────────────
+
+
+async def create_campaign(
+    name: str,
+    place_id: str,
+    keyword: str,
+    grid_size: str,
+    radius: str,
+    measurement: str,
+    frequency: str,
+    start_date: str,
+    start_time: str,
+    ai_analysis: bool = False,
+    notify: bool = False,
+    email_recipients: str = "",
+) -> dict:
+    """
+    Create a new campaign with scheduled recurring scans.
+
+    frequency: one-time, daily, weekly, biweekly, monthly
+    """
+    args: dict = {
+        "name": name,
+        "placeId": place_id,
+        "keyword": keyword,
+        "gridSize": grid_size,
+        "radius": radius,
+        "measurement": measurement,
+        "frequency": frequency,
+        "startDate": start_date,
+        "startTime": start_time,
+    }
+    if ai_analysis:
+        args["aiAnalysis"] = True
+    if notify:
+        args["notify"] = True
+    if email_recipients:
+        args["emailRecipients"] = email_recipients
+    result = await lf_call("createLocalFalconCampaign", args)
+    return _to_dict(result)
+
+
+async def run_campaign(campaign_key: str) -> dict:
+    """Manually trigger a campaign to run immediately. Checks credits first."""
+    result = await lf_call("runLocalFalconCampaign", {"campaignKey": campaign_key})
+    return _to_dict(result)
+
+
+async def pause_campaign(campaign_key: str) -> dict:
+    """Pause a campaign from running on its scheduled frequency."""
+    result = await lf_call("pauseLocalFalconCampaign", {"campaignKey": campaign_key})
+    return _to_dict(result)
+
+
+async def resume_campaign(
+    campaign_key: str, start_date: str = "", start_time: str = ""
+) -> dict:
+    """Resume a paused or deactivated campaign."""
+    args: dict = {"campaignKey": campaign_key}
+    if start_date:
+        args["startDate"] = start_date
+    if start_time:
+        args["startTime"] = start_time
+    result = await lf_call("resumeLocalFalconCampaign", args)
+    return _to_dict(result)
+
+
+async def reactivate_campaign(campaign_key: str) -> dict:
+    """Reactivate a campaign deactivated due to insufficient credits."""
+    result = await lf_call("reactivateLocalFalconCampaign", {"campaignKey": campaign_key})
+    return _to_dict(result)
+
+
+# ── High-level functions: Guard management ────────────────────────────────────
+
+
+async def add_to_guard(place_id: str) -> dict:
+    """Add location(s) to Falcon Guard protection. Comma-separate multiple placeIds."""
+    result = await lf_call("addLocationsToFalconGuard", {"placeId": place_id})
+    return _to_dict(result)
+
+
+async def pause_guard(place_id: str = "", guard_key: str = "") -> dict:
+    """Pause Guard monitoring. Provide placeId or guardKey."""
+    args: dict = {}
+    if place_id:
+        args["placeId"] = place_id
+    if guard_key:
+        args["guardKey"] = guard_key
+    result = await lf_call("pauseFalconGuardProtection", args)
+    return _to_dict(result)
+
+
+async def resume_guard(place_id: str = "", guard_key: str = "") -> dict:
+    """Resume paused Guard protection. Provide placeId or guardKey."""
+    args: dict = {}
+    if place_id:
+        args["placeId"] = place_id
+    if guard_key:
+        args["guardKey"] = guard_key
+    result = await lf_call("resumeFalconGuardProtection", args)
+    return _to_dict(result)
+
+
+async def remove_guard(place_id: str = "", guard_key: str = "") -> dict:
+    """Remove Guard protection entirely. Provide placeId or guardKey."""
+    args: dict = {}
+    if place_id:
+        args["placeId"] = place_id
+    if guard_key:
+        args["guardKey"] = guard_key
+    result = await lf_call("removeFalconGuardProtection", args)
+    return _to_dict(result)
+
+
+# ── High-level functions: Business location search ───────────────────────────
+
+
+async def search_business(term: str, platform: str = "google", proximity: str = "") -> list[dict]:
+    """Search for businesses on Google or Apple Maps."""
+    try:
+        args: dict = {"term": term, "platform": platform}
+        if proximity:
+            args["proximity"] = proximity
+        result = await lf_call("searchForLocalFalconBusinessLocation", args)
+        return _to_list(result, "results")
+    except Exception:
+        return []
+
+
+async def save_business_location(
+    platform: str, place_id: str, name: str = "", lat: str = "", lng: str = ""
+) -> dict:
+    """Save a business location to the account. Required before scanning."""
+    args: dict = {"platform": platform, "placeId": place_id}
+    if name:
+        args["name"] = name
+    if lat:
+        args["lat"] = lat
+    if lng:
+        args["lng"] = lng
+    result = await lf_call("saveLocalFalconBusinessLocationToAccount", args)
+    return _to_dict(result)
+
+
+# ── High-level functions: Knowledge base ──────────────────────────────────────
+
+
+async def search_knowledge_base(query: str = "", limit: str = "10") -> list[dict]:
+    """Search Local Falcon help articles and documentation."""
+    try:
+        args: dict = {}
+        if query:
+            args["q"] = query
+        if limit:
+            args["limit"] = limit
+        result = await lf_call("searchLocalFalconKnowledgeBase", args)
+        return _to_list(result, "articles")
+    except Exception:
+        return []
+
+
+async def get_knowledge_base_article(article_id: str) -> dict:
+    """Get a knowledge base article by ID."""
+    try:
+        result = await lf_call("getLocalFalconKnowledgeBaseArticle", {"articleId": article_id})
         return _to_dict(result)
     except Exception:
         return {}
@@ -928,20 +1258,8 @@ async def gather_full_lf_data(limit_scans: int = 5) -> dict:
         except Exception:
             pass
 
-    # Get competitor data for the most recent scan
-    competitors = []
-    if scans:
-        first_key = (
-            scans[0].get("report_key")
-            or scans[0].get("reportKey")
-            or scans[0].get("key")
-            or scans[0].get("id")
-            or ""
-        )
-        if first_key:
-            competitors = await _safe(
-                get_competitor_reports(str(first_key))
-            )
+    # Get competitor data (most recent competitor reports)
+    competitors = await _safe(get_competitor_reports())
 
     # Get detailed trend data for the first trend report
     trend_detail = {}
