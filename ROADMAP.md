@@ -29,23 +29,23 @@ The foundational platform is live and production-ready.
 **Why first:** Clients are currently hardcoded arrays in `script.js`. Every new client requires a code edit and re-deploy. This blocks everything downstream.
 
 ### 2.1 — Client CRUD API
-- [ ] `POST /api/clients` — create client (name, domain, service, location, monthly_revenue, avg_job_value, notes, status)
-- [ ] `GET /api/clients` — list all clients (replace hardcoded JS array)
-- [ ] `PATCH /api/clients/{id}` — update client fields
-- [ ] `DELETE /api/clients/{id}` — soft-delete (status = inactive)
-- [ ] SQLite `clients` table with all fields + `created_at`, `updated_at`
-- [ ] Frontend: "Add Client" modal in the Clients view
-- [ ] Frontend: Edit client inline from client hub
+- [x] `POST /api/clients` — create client (name, domain, service, location, monthly_revenue, avg_job_value, notes, status)
+- [x] `GET /api/clients` — list all clients (replace hardcoded JS array)
+- [x] `PATCH /api/clients/{id}` — update client fields
+- [x] `DELETE /api/clients/{id}` — soft-delete (status = inactive)
+- [x] SQLite `clients` table with all fields + `created_at`, `updated_at`
+- [x] Frontend: "Add Client" modal in the Clients view
+- [x] Frontend: Edit client inline from client hub
 
 ### 2.2 — Strategy Context Persistence
-- [ ] Save per-client strategy context in DB (currently typed fresh every workflow run)
-- [ ] Auto-populate strategy context field when client is selected in workflow modal
-- [ ] Edit strategy context from client hub → persists to DB
+- [x] Save per-client strategy context in DB (currently typed fresh every workflow run)
+- [x] Auto-populate strategy context field when client is selected in workflow modal
+- [x] Edit strategy context from client hub → persists to DB
 
 ### 2.3 — Content Approval Status
-- [ ] Add `approved`, `approved_at` columns to jobs table
-- [ ] "Mark as Approved" toggle in Content Library card
-- [ ] Approved content gets a visual badge (green checkmark)
+- [x] Add `approved`, `approved_at` columns to jobs table
+- [x] "Mark as Approved" toggle in Content Library card
+- [x] Approved content gets a visual badge (green checkmark)
 - [ ] Filter Content Library by: All / Approved / Pending Review
 
 ### 2.4 — Input Validation & UX Polish

@@ -1,69 +1,243 @@
-# ProofPilot Agency Hub — Project Context
+# ProofPilot Agent Hub
 
-## What This Is
-ProofPilot Agency Hub is an AI-powered SEO operations platform. Agency owners run AI workflows against real client data — audits, market analyses, and content — that stream live via Claude Opus 4.6 and export to branded `.docx` documents.
+AI-powered SEO operations platform for home service agencies. Run workflows against real client data, stream live via Claude Opus 4.6, export branded `.docx` documents.
 
-**Live URL:** `https://proofpilot-agents.up.railway.app`
+**Live:** `https://proofpilot-agents.up.railway.app`
+**Repo:** `https://github.com/get-proofpilot/proofpilot-agent-hub`
+
+---
+
+## Mission
+
+ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck**. Every workflow automated here frees hours that go toward closing new clients or building acquisition systems. The platform is on the critical path to scaling ProofPilot from ~$25-30K MRR to $5M+ ARR.
+
+**Who uses it:**
+- **Matthew** — runs workflows, reviews output, uses for prospect audits and sales
+- **Jo Paula** — reviews and publishes content (needs Drive integration for zero-friction handoff)
+
+**What success looks like:** A full month of content for one client takes <10 minutes of Matthew's time. Monthly reports auto-generate. Prospect audits close deals without manual research.
+
+---
+
+## Current State
+
+**Phase 1 (Core Platform): COMPLETE**
+- 8 live workflows with real-time SSE streaming
+- Branded `.docx` export on every job
+- SQLite persistence (jobs + clients) on Railway Volume
+- Content Library with client grouping, search, and filters
+- Per-client hub with activity tracking
+- Workflow categories with sample output previews
+- DataForSEO integration (14+ functions: SERP, Maps, Labs, Keywords, GBP, Difficulty)
+- Search Atlas integration (organic data, backlinks, holistic audit scores)
+- Programmatic Content Agent (bulk location/service/blog generation)
+- Client CRUD API (`/api/clients` — create, read, update, soft-delete)
+- Job approval system (`/api/jobs/{id}/approve`)
+
+**Phase 2 (Client Data Layer): ~80% DONE**
+- [x] Client CRUD API + SQLite table
+- [x] Frontend client management
+- [x] Job approval with badges
+- [ ] Content approval filtering (All / Approved / Pending)
+- [ ] Domain format validation on workflow launch
+- [ ] TTL cleanup for `temp_docs/`
+
+**What's NOT built yet (high priority per growth plan):**
+- GBP Post workflow (Month 1 priority — highest client visibility)
+- Monthly Client Report workflow (Month 1 — justifies retainers)
+- Google Drive integration (Phase 3 — zero-friction content handoff to Jo Paula)
+- Scheduled automations / cron (makes the platform run without Matthew)
+
+---
+
+## What to Build Next
+
+Ordered by business impact. Each item maps to the master growth plan at `~/Agency-Brain/strategy/master-growth-plan.md`.
+
+| Priority | Feature | Why | Effort |
+|----------|---------|-----|--------|
+| 1 | **GBP Post Workflow** | Every client needs 8-12 posts/month. Currently manual. Highest visibility deliverable. | Low |
+| 2 | **Monthly Client Report** | Auto-pull SA + DFS data + job history → narrative report. Stops clients from forgetting what we do. | Medium |
+| 3 | **Google Drive Integration** | Approved content auto-uploads to client folders. Jo Paula's inbox becomes zero-friction. | Medium |
+| 4 | **Finish Phase 2** | Content approval filters, domain validation, temp_docs cleanup. | Low |
+| 5 | **On-Page Technical Audit** | Async DFS crawl → ranked issue list. Sells as one-time audit or recurring monitoring. | Medium |
+| 6 | **Scheduled Automations** | Monthly reports on the 1st, GBP posts on the 28th, competitor monitoring daily. | High |
+| 7 | **WordPress Direct Publish** | Push approved content straight to client WordPress sites as drafts. | Medium |
+
+Full roadmap with implementation details: `ROADMAP.md`
+
+---
+
+## Working Conventions
+
+### Local Development
+```bash
+cd ~/Documents/ProofPilot-Agent-Hub/backend
+cp .env.example .env   # ANTHROPIC_API_KEY, SEARCHATLAS_API_KEY, DATAFORSEO_LOGIN, DATAFORSEO_PASSWORD
+.venv/bin/uvicorn server:app --reload
+# → http://localhost:8000
+```
+
+### Deployment
+- **Railway auto-deploys on push to main** — root dir is `/backend`
+- Railway Volume persists SQLite at `/app/data/jobs.db`
+- Set env vars: `railway variables set KEY=value`
+- Always test locally before pushing — there's no staging environment
+- Check deployment health: `https://proofpilot-agents.up.railway.app/health`
+
+### Code Patterns
+- **Python:** Python 3.11, FastAPI, async generators for SSE streaming
+- **Frontend:** Pure HTML/CSS/JS SPA — no frameworks, no build step. All in `backend/static/`
+- **Claude API:** Always use `claude-opus-4-6`, `thinking: {"type": "adaptive"}`, `max_tokens: 8000`. No prefills — Opus 4.6 returns 400 on assistant turn prefills
+- **Streaming:** `client.messages.stream()` → `async for text in stream.text_stream` → `yield text`
+- **New features:** Prefer editing existing files over creating new ones. The frontend is a single SPA — add views/modals to the existing `index.html`, `script.js`, `style.css`
+
+### Git & Commits
+- Work on `main` branch (single developer, Railway auto-deploys)
+- Commit messages: describe what changed and why, not just "update files"
+- Don't push untested code — Railway deploys immediately
+- Dockerfile comment tracks version: update the `# Copy application code — vN (description)` line
+
+### What NOT to Do
+- Never auto-publish or auto-deploy content to client sites without approval
+- Never use Search Atlas `content_genius`, `digital_pr`, `OTTO_SEO_Deployment`, `OTTO_Wildfire`, `gbp_posts_automation`, `gbp_posts_publication`, or `Content_Publication_Tools`
+- Never commit `.env` files or API keys
+- Don't over-engineer — this is a production tool for one agency, not a SaaS platform (yet)
+
+---
+
+## Agent Playbook
+
+Use these patterns to work faster and smarter in Claude Code sessions.
+
+### When to Use Sub-Agents
+
+| Situation | Agent Type | Why |
+|-----------|-----------|-----|
+| Exploring unfamiliar code | `Explore` | Keeps main context clean for implementation |
+| Researching APIs or libraries | `general-purpose` | Can web search + read docs without polluting your context |
+| Planning multi-file changes | `Plan` | Designs approach before you start coding |
+| Independent parallel tasks | Multiple `Task` agents | Run 2-3 research tasks simultaneously |
+| Building frontend + backend in parallel | Separate `Task` agents | One for Python changes, one for JS/HTML |
+
+### Session Start Checklist
+Every new session should begin with understanding current state:
+1. Read this CLAUDE.md (happens automatically)
+2. Check `git status` and `git log --oneline -5` to see recent work
+3. Check ROADMAP.md if building a new feature
+4. Check `~/Agency-Brain/strategy/master-growth-plan.md` if making strategic decisions
+
+### Effective Patterns
+- **Research before coding:** Use an Explore agent to understand existing patterns before modifying code
+- **Parallel research:** Launch 2-3 Explore agents simultaneously for different aspects of a problem
+- **Keep context focused:** Use sub-agents for exploration, keep the main thread for implementation
+- **Test incrementally:** After each significant change, test locally before moving to the next
+- **Update this file:** After shipping a feature, update the "Current State" and "What to Build Next" sections
+
+### When Adding a New Feature
+1. Read ROADMAP.md for the spec (if it exists)
+2. Read the relevant existing code (workflow files, server.py, script.js)
+3. Follow the 5-Step Workflow Pattern (documented below) if it's a new workflow
+4. Test locally with `uvicorn server:app --reload`
+5. Commit with a descriptive message
+6. Push to main (triggers Railway deploy)
+7. Update CLAUDE.md "Current State" section
+
+### Keeping This File Current
+This CLAUDE.md is the project's memory. Update it when:
+- A feature ships → move from "What to Build Next" to "Current State"
+- A new priority emerges → add to "What to Build Next" with reasoning
+- A pattern changes → update "Working Conventions"
+- A new API is integrated → add to the technical reference section
+- Tech debt is resolved → remove from known limitations
 
 ---
 
 ## Stack
 
-### Frontend (`backend/static/`)
-- Pure HTML / CSS / JavaScript SPA — no frameworks, no build step
-- `index.html` — all views and markup (695+ lines)
-- `style.css` — full dark theme with ProofPilot brand system
-- `script.js` — CLIENTS, JOBS, WORKFLOWS data + view routing, SSE streaming, workflow launch
+| Layer | Tech |
+|-------|------|
+| AI | Claude Opus 4.6 via `anthropic` SDK (streaming + adaptive thinking) |
+| Backend | Python 3.11 + FastAPI + uvicorn + SSE |
+| Database | SQLite on Railway Volume (`/app/data/jobs.db`) |
+| Frontend | Vanilla HTML/CSS/JS SPA (`backend/static/`) |
+| Export | `python-docx` → branded `.docx` files |
+| SEO Data | DataForSEO (SERP, Labs, Keywords, GBP, On-Page) |
+| SEO Data | Search Atlas MCP (organic, backlinks, holistic audit, local SEO) |
+| Deploy | Railway — auto-deploy on push, Dockerfile in `/backend` |
 
-### Backend (`backend/`)
-- Python 3.11 + FastAPI + Server-Sent Events (SSE)
-- `server.py` — routes, SSE streaming, in-memory job store, `.docx` trigger, `/api/content` endpoint
-- `workflows/` — one file per runnable workflow
-- `utils/searchatlas.py` — Search Atlas MCP wrapper (async)
-- `utils/dataforseo.py` — DataForSEO API client (all live endpoints)
-- `utils/docx_generator.py` — ProofPilot branded Word document output
-- Deployed on Railway — root dir = `/backend`, auto-deploy on push
-
-### Run Locally
-```bash
-cd backend
-cp .env.example .env   # add keys (see env vars section)
-.venv/bin/uvicorn server:app --reload
-# → http://localhost:8000
+### Key Files
+```
+backend/
+  server.py              — FastAPI app, routes, SSE streaming, workflow dispatch
+  utils/
+    dataforseo.py        — DataForSEO API client (14+ functions)
+    searchatlas.py       — Search Atlas MCP wrapper
+    docx_generator.py    — Branded Word document output
+    db.py                — SQLite schema, CRUD operations, seed data
+  workflows/
+    website_seo_audit.py — Full site SEO audit (SA + DFS + Labs)
+    prospect_audit.py    — Sales-focused market analysis (SA + DFS + Keywords + GBP)
+    keyword_gap.py       — Competitor keyword gap (DFS Labs + SA)
+    seo_blog_post.py     — Blog post (Claude only)
+    service_page.py      — Service page (Claude only)
+    location_page.py     — Location page (Claude only)
+    home_service_content.py — Home service article (Claude only)
+    programmatic_content.py — Bulk generation agent (batch mode)
+  static/
+    index.html           — Full SPA markup (all views, modals)
+    script.js            — WORKFLOWS array, view routing, SSE streaming, workflow launch
+    style.css            — Dark theme with ProofPilot brand system
 ```
 
 ---
 
-## Brand
-- **Colors:** Dark Blue `#00184D`, Electric Blue `#0051FF`, Neon Green `#C8FF00`
-- **CSS vars:** `--dark-blue`, `--elec-blue`, `--neon-green`, `--text`, `--text2`, `--text3`
-- **Fonts:** Bebas Neue (display/headings), Martian Mono (terminal/code), Inter (body)
-- **Base bg:** `#060D1F` — panels: `#0A1530` — panel headers: `#0E1D3E`
-- **Transitions:** `--t-fast: 0.15s ease`, `--t-med: 0.22s ease`
+## Brand System
+
+| Element | Value |
+|---------|-------|
+| Dark Blue | `#00184D` / `--dark-blue` |
+| Electric Blue | `#0051FF` / `--elec-blue` |
+| Neon Green | `#C8FF00` / `--neon-green` |
+| Base Background | `#060D1F` |
+| Panel Background | `#0A1530` |
+| Panel Headers | `#0E1D3E` |
+| Display Font | Bebas Neue |
+| Code Font | Martian Mono |
+| Body Font | Inter |
+| Transitions | `--t-fast: 0.15s ease`, `--t-med: 0.22s ease` |
+
+### .docx Brand Rendering
+- `# H1` → Bebas Neue 24pt Dark Blue
+- `## H2` → Bebas Neue 15pt Electric Blue
+- `### H3` → Calibri 12pt bold Dark Blue
+- `---` → Electric Blue rule
+- Bold, italic, bullets, numbered lists all supported
 
 ---
 
-## Live Workflows (7 Active)
+## Live Workflows (8 Active)
 
 | Workflow ID | Title | Data Sources | File |
 |-------------|-------|-------------|------|
 | `website-seo-audit` | Website & SEO Audit | Search Atlas + DataForSEO + DFS Labs | `workflows/website_seo_audit.py` |
-| `prospect-audit` | Prospect SEO Market Analysis | Search Atlas + DataForSEO + Keyword Volumes + GBP + Difficulty | `workflows/prospect_audit.py` |
-| `keyword-gap` | Keyword Gap Analysis | DataForSEO Labs (ranked keywords diff) + Search Atlas | `workflows/keyword_gap.py` |
+| `prospect-audit` | Prospect SEO Market Analysis | SA + DFS SERP + Keywords + GBP + Difficulty | `workflows/prospect_audit.py` |
+| `keyword-gap` | Keyword Gap Analysis | DFS Labs (ranked keywords diff) + SA | `workflows/keyword_gap.py` |
 | `home-service-content` | Home Service SEO Content | Claude only | `workflows/home_service_content.py` |
 | `seo-blog-post` | SEO Blog Post | Claude only | `workflows/seo_blog_post.py` |
 | `service-page` | Service Page | Claude only | `workflows/service_page.py` |
 | `location-page` | Location Page | Claude only | `workflows/location_page.py` |
+| `programmatic-content` | Programmatic Content Agent | Claude + optional DFS | `workflows/programmatic_content.py` |
 
 ### How Workflows Work
 1. Frontend POSTs to `/api/run-workflow` with `workflow_id`, `client_name`, `inputs`, `strategy_context`
 2. Backend streams SSE tokens (`type: token`) as Claude generates
-3. On completion: generates branded `.docx`, stores job, returns `type: done` with `job_id`, `client_name`, `workflow_title`, `workflow_id`
-4. Frontend: shows live streaming terminal → download button → adds to Content Library
+3. On completion: generates branded `.docx`, persists to SQLite, returns `type: done`
+4. Frontend: live streaming terminal → download button → adds to Content Library
 
 ---
 
-## ⚡ Adding a New Workflow (5-Step Pattern)
+## Adding a New Workflow (5-Step Pattern)
 
 Every new workflow requires exactly these 5 changes:
 
@@ -84,10 +258,10 @@ async def run_{name}(
     strategy_context: str,
     client_name: str,
 ) -> AsyncGenerator[str, None]:
-    # 1. Extract inputs: field = inputs.get("field", "").strip()
-    # 2. Yield status: yield f"> Doing X for **{client_name}**...\n\n"
-    # 3. Build user_prompt from inputs + strategy_context
-    # 4. Stream:
+    # 1. Extract inputs
+    # 2. Yield status message
+    # 3. Build user_prompt
+    # 4. Stream Claude response
     async with client.messages.stream(
         model="claude-opus-4-6",
         max_tokens=8000,
@@ -101,102 +275,24 @@ async def run_{name}(
 
 ### Step 2: Register in `server.py`
 ```python
-# Import at top:
 from workflows.{name} import run_{name}
-
-# Add to WORKFLOW_TITLES dict:
-"{workflow-id}": "Workflow Display Title",
-
-# Add elif in event_stream():
-elif req.workflow_id == "{workflow-id}":
-    generator = run_{name}(client=client, inputs=req.inputs,
-                           strategy_context=req.strategy_context or "",
-                           client_name=req.client_name)
+# Add to WORKFLOW_TITLES dict
+# Add elif in event_stream()
 ```
-Add `SEARCHATLAS_API_KEY` guard only if the workflow uses Search Atlas.
 
 ### Step 3: Add to `static/script.js` WORKFLOWS array
 ```javascript
-{
-  id: '{workflow-id}',
-  icon: '🔍',
-  title: 'Workflow Title',
-  desc: 'One sentence description.',
-  time: '~X min',
-  status: 'active',  // or 'soon'
-  skill: '{workflow-id}'
-},
+{ id: '{workflow-id}', icon: '...', title: '...', desc: '...', time: '~X min',
+  status: 'active', skill: '{workflow-id}', category: 'seo|content|business|dev' },
 ```
 
 ### Step 4: Add modal panel to `static/index.html`
-```html
-<div id="modalInputs{WorkflowName}" style="display:none; flex-direction:column; gap:16px;">
-  <!-- Required fields -->
-  <div class="wf-modal-field">
-    <label class="wf-field-label">Field Label <span class="req">*</span></label>
-    <input type="text" id="wf{Name}Field" placeholder="e.g. value" oninput="checkRunReady()" />
-  </div>
-  <!-- Optional fields grouped in optional section -->
-  <div class="wf-modal-optional-section">
-    <div class="wf-modal-optional-label">Optional</div>
-    <div class="wf-modal-field">
-      <label class="wf-field-label">Optional Field <span class="opt">optional</span></label>
-      <input type="text" id="wf{Name}OptField" placeholder="e.g. value" />
-    </div>
-  </div>
-</div>
-```
+Add a `div#modalInputs{Name}` with input fields matching the workflow's input schema.
 
 ### Step 5: Wire in `static/script.js` (3 places)
-
-**`selectWorkflow()` panels object:**
-```javascript
-'modalInputs{WorkflowName}': id === '{workflow-id}',
-```
-Also add all new field IDs to the reset list in `selectWorkflow()`.
-
-**`checkRunReady()` — add validation block:**
-```javascript
-if (selectedWorkflow === '{workflow-id}') {
-  // prospect-audit pattern: no clientVal check, use own name field
-  // all others: clientVal already checked in else branch
-  const field1 = document.getElementById('wf{Name}Field1')?.value.trim();
-  const field2 = document.getElementById('wf{Name}Field2')?.value.trim();
-  ready = !!(field1 && field2);
-}
-```
-
-**`launchWorkflow()` — add inputs collection + live list:**
-```javascript
-} else if (selectedWorkflow === '{workflow-id}') {
-  inputs = {
-    field1: document.getElementById('wf{Name}Field1')?.value.trim() || '',
-    field2: document.getElementById('wf{Name}Field2')?.value.trim() || '',
-  };
-}
-// Add to liveWorkflows array:
-const liveWorkflows = [..., '{workflow-id}'];
-```
-
-**Add required fields to the input event listener array:**
-```javascript
-['...existing...', 'wf{Name}Field1', 'wf{Name}Field2'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', checkRunReady);
-});
-```
-
----
-
-## Required Environment Variables (Railway)
-
-| Variable | Description |
-|----------|-------------|
-| `ANTHROPIC_API_KEY` | Claude API key (Opus 4.6) |
-| `SEARCHATLAS_API_KEY` | Search Atlas MCP API key |
-| `DATAFORSEO_LOGIN` | DataForSEO account email |
-| `DATAFORSEO_PASSWORD` | DataForSEO account password |
-
-Set via: `railway variables set KEY=value`
+- `selectWorkflow()` — show/hide the modal panel
+- `checkRunReady()` — validate required fields
+- `launchWorkflow()` — collect inputs and add to liveWorkflows array
 
 ---
 
@@ -205,30 +301,24 @@ Set via: `railway variables set KEY=value`
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
-| `/api/run-workflow` | POST | Start workflow — returns SSE stream |
+| `/api/run-workflow` | POST | Start workflow → SSE stream |
 | `/api/download/{job_id}` | GET | Download branded .docx |
 | `/api/jobs/{job_id}` | GET | Job metadata + content preview |
-| `/api/content` | GET | All completed jobs as content library items |
-| `/` | GET | Serves frontend SPA |
+| `/api/jobs/{job_id}/approve` | POST | Mark job as approved |
+| `/api/jobs/{job_id}/approve` | DELETE | Remove approval |
+| `/api/content` | GET | All completed jobs (content library) |
+| `/api/clients` | GET | List all clients |
+| `/api/clients` | POST | Create client |
+| `/api/clients/{id}` | PATCH | Update client fields |
+| `/api/clients/{id}` | DELETE | Soft-delete client |
+| `/api/discover-cities` | POST | Find nearby cities (Haiku-powered) |
 
-### SSE Event Types (from `/api/run-workflow`)
+### SSE Event Types
 ```
-type: "token"  → { type, text }           — stream token to terminal
-type: "done"   → { type, job_id, client_name, workflow_title, workflow_id }
-type: "error"  → { type, message }
+type: "token" → { type, text }
+type: "done"  → { type, job_id, client_name, workflow_title, workflow_id }
+type: "error" → { type, message }
 ```
-
-### WorkflowRequest Schema
-```json
-{
-  "workflow_id": "website-seo-audit",
-  "client_id": 1,
-  "client_name": "All Thingz Electric",
-  "inputs": { "domain": "allthingzelectric.com", "service": "electrician", "location": "Chandler, AZ" },
-  "strategy_context": ""
-}
-```
-**Note:** For `prospect-audit`, `client_id` is `0` (prospects are not clients yet). `client_name` is the prospect's business name.
 
 ---
 
@@ -244,14 +334,12 @@ type: "error"  → { type, message }
 { "domain": "steadfastplumbingaz.com", "service": "plumber", "location": "Gilbert, AZ",
   "monthly_revenue": "$45,000", "avg_job_value": "$450", "notes": "optional sales context" }
 ```
-Claude context includes: SA organic data + DataForSEO SERP competitors + keyword volumes + keyword difficulty + competitor GBP profiles.
 
 ### `keyword-gap`
 ```json
 { "domain": "allthingzelectric.com", "service": "electrician", "location": "Chandler, AZ",
   "competitor_domains": "competitor1.com, competitor2.com", "notes": "optional" }
 ```
-`competitor_domains` is optional — auto-discovered via Maps/SERP if blank.
 
 ### `home-service-content`
 ```json
@@ -278,86 +366,48 @@ Claude context includes: SA organic data + DataForSEO SERP competitors + keyword
 
 ---
 
-## Claude API Config (all workflows)
-- **Model:** `claude-opus-4-6`
-- **Thinking:** `{"type": "adaptive"}` — Opus 4.6 native, no `budget_tokens` needed
-- **Max tokens:** `8000`
-- **Streaming:** `client.messages.stream()` → `async for text in stream.text_stream`
-- **No prefills** — Opus 4.6 returns 400 on assistant turn prefills, use system prompt instructions instead
+## DataForSEO Integration
 
----
+**Auth:** Basic auth (`DATAFORSEO_LOGIN:DATAFORSEO_PASSWORD`, base64)
+**Pricing:** ~$0.002/call live SERP, ~$0.0006 standard queue
+**Client:** `utils/dataforseo.py`
 
-## DataForSEO — Implementation Status
-
-**Auth:** Basic auth with `DATAFORSEO_LOGIN:DATAFORSEO_PASSWORD` (base64 encoded)
-**Pricing:** ~$0.002/call live SERP, ~$0.0006 standard queue (66% cheaper for non-realtime)
-**Docs:** https://docs.dataforseo.com/v3/
-
-### Implemented Functions (`utils/dataforseo.py`)
-
+### Implemented Functions
 | Function | Endpoint | Used In |
 |----------|----------|---------|
 | `get_local_pack()` | `serp/google/maps/live/advanced` | website-seo-audit, prospect-audit, keyword-gap |
 | `get_organic_serp()` | `serp/google/organic/live/advanced` | website-seo-audit, prospect-audit, keyword-gap |
-| `research_competitors()` | Both above in parallel | Both audits, keyword-gap |
-| `get_competitor_sa_profiles()` | Search Atlas cross-reference | Both audits |
+| `research_competitors()` | Maps + Organic in parallel | Both audits, keyword-gap |
 | `get_keyword_search_volumes()` | `keywords_data/google_ads/search_volume/live` | prospect-audit, keyword-gap |
-| `get_domain_ranked_keywords()` | `dataforseo_labs/google/ranked_keywords/live` | website-seo-audit ✅, keyword-gap ✅ |
-| `get_bulk_keyword_difficulty()` | `dataforseo_labs/google/bulk_keyword_difficulty/live` | prospect-audit ✅ |
-| `get_competitor_gmb_profiles()` | `business_data/google/my_business_search/live` | prospect-audit ✅ |
+| `get_domain_ranked_keywords()` | `dataforseo_labs/google/ranked_keywords/live` | website-seo-audit, keyword-gap |
+| `get_bulk_keyword_difficulty()` | `dataforseo_labs/google/bulk_keyword_difficulty/live` | prospect-audit |
+| `get_competitor_gmb_profiles()` | `business_data/google/my_business_search/live` | prospect-audit |
 | `build_service_keyword_seeds()` | (utility) | prospect-audit, keyword-gap |
-| `format_keyword_volumes()` | (formatter) | prospect-audit |
-| `format_domain_ranked_keywords()` | (formatter) | website-seo-audit |
-| `format_keyword_difficulty()` | (formatter) | prospect-audit |
-| `format_competitor_gmb_profiles()` | (formatter) | prospect-audit |
-| `format_full_competitor_section()` | (formatter) | Both audits |
+| Format helpers | `format_keyword_volumes()`, `format_domain_ranked_keywords()`, `format_keyword_difficulty()`, `format_competitor_gmb_profiles()`, `format_full_competitor_section()` | Various |
 
-### DataForSEO API Capabilities (Full Map)
-
-| Category | Key Endpoints | Best Use |
-|----------|--------------|---------|
-| **SERP** | `google/organic`, `google/maps`, `google/local_services` | Competitor discovery, rank tracking |
-| **Keywords Data** | `google_ads/search_volume`, `keywords_for_site`, `ad_traffic_by_keywords` | Volume, CPC, content ideas |
-| **DFS Labs** | `ranked_keywords`, `bulk_keyword_difficulty`, `domain_intersection`, `domain_rank_overview` | Gap analysis, difficulty, traffic estimates |
-| **Business Data** | `google/my_business_info`, `google/my_business_search`, `google/reviews` | GBP profiles, competitor reviews |
-| **On-Page** | `task_post`, `summary`, `pages`, `resources` | Technical audit (task-based, 2-10 min) |
-| **Content Analysis** | `search/live`, `summary/live`, `rating/live` | Brand monitoring, sentiment |
-| **Domain Analytics** | `technologies/domain_technologies`, `whois/overview` | Tech stack, domain age |
-| **Backlinks** | `summary`, `referring_domains`, `competitors` | Link profile, gap |
-| **Trends** | `google_trends/explore`, `subregion_interests` | Seasonality, geographic demand |
+### Unused But Available
+| Category | Endpoints | Use Case |
+|----------|----------|----------|
+| On-Page | `task_post`, `summary`, `pages` | Technical audit (async, 2-10 min) |
+| Business Data | `google/reviews` | Review intelligence |
+| Backlinks | `summary`, `referring_domains`, `competitors` | Link profile audit |
+| Trends | `google_trends/explore`, `subregion_interests` | Seasonality report |
+| Content Analysis | `search/live`, `rating/live` | Brand monitoring |
 
 ---
 
-## Priority Roadmap — Next Builds
+## Search Atlas MCP
 
-### Phase 3 — Advanced Workflows
-1. **On-Page Technical Audit** — async task-based DFS crawl → `workflows/onpage_audit.py` with polling (tasks take 2-10 min, store task_id, poll)
-2. **Monthly Client Report** — aggregate SA + DFS data + job history → `workflows/monthly_report.py`
-3. **GBP Audit Workflow** — compare client GBP completeness vs competitors (photos, categories, attributes, Q&A)
-4. **Review Intelligence** — pull competitor reviews → sentiment themes for prospect audit
-5. **Seasonality Report** — Google Trends subregion data → content calendar timing
-
-### Phase 4 — Platform Infrastructure
-6. **Persistent job storage** — replace in-memory `jobs` dict with SQLite or Redis (jobs lost on Railway restart)
-7. **Client data persistence** — CLIENTS array is currently hardcoded in script.js; needs a real data layer
-8. **Scheduled automations** — cron-triggered workflow runs for monthly reports
-9. **On-Page async polling** — background task system for multi-minute DFS crawl jobs
-
----
-
-## Search Atlas MCP Integration
-
-MCP server configured in Claude Code global config.
-**API Key:** `SEARCHATLAS_API_KEY` env var.
+Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 
 ### Approved Tools
-| Namespace | Tools |
-|-----------|-------|
-| `Site_Explorer_Organic_Tool` | `get_organic_keywords`, `get_organic_pages`, `get_organic_competitors` |
-| `Site_Explorer_Backlinks_Tool` | `get_site_referring_domains`, `get_site_backlinks` |
-| `Site_Explorer_Analysis_Tool` | `get_position_distribution` |
-| `Site_Explorer_Holistic_Audit_Tool` | `get_holistic_seo_pillar_scores` |
-| `Site_Explorer_Keyword_Research_Tool` | keyword research |
+| Namespace | Capabilities |
+|-----------|-------------|
+| `Site_Explorer_Organic_Tool` | Organic keywords, pages, competitors |
+| `Site_Explorer_Backlinks_Tool` | Referring domains, backlinks |
+| `Site_Explorer_Analysis_Tool` | Position distribution |
+| `Site_Explorer_Holistic_Audit_Tool` | SEO pillar scores |
+| `Site_Explorer_Keyword_Research_Tool` | Keyword research |
 | `local_seo` | Grids, Business, Data, Analytics |
 | `gbp` | Locations (read), Reviews, Stats, Tasks |
 | `llm_visibility` | Visibility Analysis, Sentiment |
@@ -365,69 +415,41 @@ MCP server configured in Claude Code global config.
 ### Off-Limits (never use)
 `content_genius`, `digital_pr`, `linklab`, `otto_ppc`, `press_release`, `OTTO_SEO_Deployment`, `OTTO_Wildfire`, `gbp_posts_automation`, `gbp_posts_publication`, `Content_Publication_Tools`
 
-**Rule:** Never auto-publish or auto-deploy. SA is data + analysis only.
-
 ---
 
 ## Frontend Views
 
-| View ID | Nav Label | Description |
-|---------|-----------|-------------|
-| `dashboard` | Dashboard | KPIs, live task queue, client roster |
-| `workflows` | AI Skills | 7 active workflow cards + coming soon |
-| `clients` | Clients | 14 clients — active/inactive toggle, clickable → client hub |
-| `jobs` | Agent Tasks | Job list with progress, client names clickable → hub |
-| `reports` | Reports | Report cards |
-| `content` | Content | Content Library — client-organized document library |
-| `logs` | Activity Log | Terminal-style log stream |
-| `ads` | Ad Studio | Ad creative placeholder |
-| `campaigns` | Campaigns | Placeholder |
-| `client-hub` | (no nav) | Per-client hub — accessed by clicking any client name |
-
-### Content Library
-- Every completed workflow adds a document card to the library
-- Grouped by client with search + type + client filters
-- Syncs from `GET /api/content` on every navigation (survives page refresh within server session)
-- `CONTENT_ITEMS` array in script.js, `addToContentLibrary()` called from SSE `done` handler
-
-### Client Hub
-- Accessed by clicking any client name (dashboard roster, clients table, jobs list)
-- 4 columns: In Progress, Completed, Needs Attention, Upcoming Automations
-- "Run Workflow" button pre-selects the client in the workflow modal
-- `showClientHub(clientId)` → `renderClientHub()` in script.js
+| View | Description |
+|------|-------------|
+| Dashboard | KPIs, live task queue, client roster |
+| AI Skills | 8 workflow cards organized by category (SEO, Content, Business, Dev) |
+| Clients | Client list with add/edit, active/inactive toggle |
+| Agent Tasks | Job history with status, client links |
+| Content | Content Library — grouped by client, searchable, filterable |
+| Reports | Report cards (placeholder) |
+| Activity Log | Terminal-style log stream |
+| Client Hub | Per-client activity view (click any client name) |
 
 ---
 
-## .docx Generator
+## Environment Variables
 
-File: `utils/docx_generator.py`
-
-**Markdown elements rendered:**
-- `# H1` → Bebas Neue 24pt Dark Blue
-- `## H2` → Bebas Neue 15pt Electric Blue
-- `### H3` → Calibri 12pt bold Dark Blue
-- `- bullet` / `* bullet` → List Bullet style
-- `1. numbered` → List Number style
-- `---` → Electric Blue rule (90 chars, 7pt)
-- `**bold**` → bold run
-- `*italic*` → italic run
-- Empty lines → 2pt spacer paragraph
-
-**Brand colors:**
-- `DARK_BLUE = RGBColor(0x00, 0x18, 0x4D)`
-- `ELEC_BLUE = RGBColor(0x00, 0x51, 0xFF)`
-
-**Output:** `backend/temp_docs/{job_id}.docx` — ephemeral, lost on Railway restart
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | Claude API key (Opus 4.6) |
+| `SEARCHATLAS_API_KEY` | Yes | Search Atlas MCP API key |
+| `DATAFORSEO_LOGIN` | Yes | DataForSEO account email |
+| `DATAFORSEO_PASSWORD` | Yes | DataForSEO account password |
+| `DATABASE_PATH` | No | SQLite path (default: `./data/jobs.db`) |
 
 ---
 
-## Known Limitations / Tech Debt
+## Known Limitations
 
-| Issue | Impact | Fix |
-|-------|--------|-----|
-| In-memory job store | Jobs lost on Railway restart | Add SQLite/Redis persistence |
-| Hardcoded CLIENTS in script.js | Can't add clients without code edit | Add `/api/clients` CRUD endpoint |
-| Content Library ephemeral | Cleared on server restart | Persist to DB with job store |
-| Location parsing US-only | International clients get wrong format | Use DFS appendix/locations API |
-| No input validation on domain format | Invalid domains sent to APIs | Add regex validation |
-| `temp_docs/` not cleaned up | Disk fills over time | Add TTL cleanup job |
+| Issue | Impact | Planned Fix |
+|-------|--------|-------------|
+| US-only location parsing | International clients get wrong format | DFS appendix/locations API |
+| No domain format validation | Invalid domains sent to APIs | Phase 2.4 |
+| `temp_docs/` not cleaned up | Disk fills over time | TTL cleanup in Phase 2.4 |
+| No test coverage | Risky deploys | Add pytest for keyword gap, docx gen |
+| No request logging | Hard to debug production issues | Structured logging |
