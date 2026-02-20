@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code — v14 (prospect_audit v4: fixed asyncio.coroutine + f-string backslash, client_name in conclusion)
+# Copy application code — v19 (dashboard: prospect-audit moved to #1, updated preview with real output data)
 COPY . .
 
 # Ensure default directories exist

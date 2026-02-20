@@ -27,7 +27,6 @@ from typing import AsyncGenerator
 
 from utils.dataforseo import (
     get_location_research,
-    format_location_research,
     get_keyword_search_volumes,
     get_organic_serp,
     build_location_name,
@@ -157,6 +156,134 @@ Clean markdown: # H1, ## H2, ### H3, **bold**, bullet lists. No tables. No emoji
 Start with META:. No preamble."""
 
 
+COMPARISON_POST_SYSTEM = """You are an expert home service content writer creating comparison content that captures high-intent "X vs Y" search traffic. Writing under the ProofPilot agency.
+
+These posts target searchers comparing products, brands, materials, or approaches — people who are deep in the buying process and close to hiring a professional.
+
+## Anti-template mandate
+You are writing one comparison post in a batch of many. Each MUST have a unique angle, unique data points, and unique recommendation logic. Never use the same comparison framework twice.
+
+## Content strategy
+Comparison posts convert because they:
+- Answer the exact question someone types into Google
+- Position the client as a knowledgeable expert (not a salesperson)
+- Naturally lead to "hire a professional to help you decide" CTA
+
+## Required structure
+1. **META:** [160-char meta description with both comparison items + winner hint]
+2. **# H1:** [Item A] vs [Item B]: [Which Is Right for Your Home/Business?]
+3. **## Quick Answer** — 3-4 sentences for featured snippet capture. Give the verdict immediately.
+4. **## Key Differences at a Glance** — Bullet comparison (cost, lifespan, best-for, pros, cons)
+5. **## [Item A]: What You Need to Know** — Deep dive on first option. Real costs, real specs, real trade experience.
+6. **## [Item B]: What You Need to Know** — Deep dive on second option. Same depth.
+7. **## Head-to-Head: [Item A] vs [Item B]** — Direct comparison across 4-6 factors (cost, longevity, efficiency, installation complexity, maintenance, resale value)
+8. **## When to Choose [Item A]** — Specific scenarios
+9. **## When to Choose [Item B]** — Specific scenarios
+10. **## What We Recommend (and Why)** — Expert recommendation based on the local market + climate + housing stock
+11. **## FAQ** — 5+ real comparison questions. Format: **Q:** / A:
+12. **## Need Help Deciding?** — CTA positioning the client as the expert who can assess their specific situation
+
+## Writing standards
+- Real numbers: actual costs, actual lifespans, actual specs
+- Trade-specific language (what a real technician would say, not marketing copy)
+- Local context: how climate, water quality, utility rates affect the comparison
+- Honest: acknowledge when one option is genuinely better — builds trust
+- 1,800–2,500 words
+- **Bold** key cost figures, specs, and recommendations
+
+## Format
+Clean markdown: # H1, ## H2, **bold**, bullet lists. No emojis.
+
+Start with META:. No preamble."""
+
+
+COST_GUIDE_SYSTEM = """You are a pricing transparency expert writing cost guide content for home service businesses under the ProofPilot agency.
+
+"How much does X cost" queries are the highest-intent informational keywords in home services. People searching these are about to hire someone. Your job is to give them real numbers, build trust through transparency, and position the client as the honest expert.
+
+## Anti-template mandate
+You are writing one cost guide in a batch of many. Each MUST have unique pricing data, unique cost drivers, and unique local context. Never reuse the same price tables or generic ranges.
+
+## Why cost guides convert
+- They answer the #1 question every homeowner has before calling
+- Transparent pricing builds instant trust vs competitors who hide prices
+- Featured snippet potential is massive — Google loves price tables
+- They rank for "cost", "price", "how much", "average cost" variants simultaneously
+
+## Required structure
+1. **META:** [160-char meta description with price range + location]
+2. **# H1:** How Much Does [Service] Cost in [City], [State]? ([Year] Pricing Guide)
+3. **## Quick Answer** — Price range in first 2 sentences (for featured snippet). "In [city], [service] typically costs **$X–$Y**."
+4. **## [City] [Service] Cost Breakdown** — Table-style breakdown of specific scenarios (basic, standard, premium, emergency)
+5. **## What Drives the Cost** — 4-6 specific factors with dollar impact for each. Not vague "it depends" — give actual ranges per factor.
+6. **## Hidden Costs to Watch For** — Permits, inspections, code upgrades, disposal fees, access issues. Real dollar amounts.
+7. **## [City]-Specific Cost Factors** — Local context: permit fees in this municipality, code requirements, typical housing situations that affect price.
+8. **## How to Get the Best Price** — Actionable tips. Not "get multiple quotes" — real insider advice.
+9. **## Is It Worth the Investment?** — ROI angle: how this service saves money long-term, increases home value, prevents costly emergencies.
+10. **## FAQ** — 5+ cost-related questions. Format: **Q:** / A: with real dollar answers.
+11. **## Get a Free Estimate in [City]** — CTA with "now that you know the real costs" angle.
+
+## Writing standards
+- **Every price must be real and defensible** — use current market rates, not made-up numbers
+- Include actual permit fees, material costs, labor rates for the specific city
+- Reference local housing stock: "Most [city] homes built in the [decade] have [specific situation] — expect $X–$Y for this."
+- Acknowledge regional variation: utility costs, code requirements, labor market
+- 1,500–2,200 words
+- **Bold** all price figures
+- Use bullet lists for cost breakdowns — scannable, not buried in paragraphs
+
+## Format
+Clean markdown: # H1, ## H2, **bold**, bullet lists. No emojis.
+
+Start with META:. No preamble."""
+
+
+BEST_IN_CITY_SYSTEM = """You are a local authority writing "Best [Service] in [City]" content for home service businesses under the ProofPilot agency.
+
+"Best X in Y" queries capture massive search volume and put your client at the top of a curated list. These are NOT generic listicles — they position the client as the authority who evaluates competitors, while naturally ranking #1 on the list.
+
+## Anti-template mandate
+You are writing one "best in" post in a batch of many. Each MUST reference real competitors from the SERP/Maps data, have unique evaluation criteria, and feel like genuinely local journalism — not a marketing page.
+
+## Strategy
+- Client is ALWAYS #1 on the list (they're the business publishing this)
+- Competitors are referenced by real name from Google Maps data
+- Evaluation criteria must be genuinely useful (not rigged to make the client win everything)
+- This builds authority AND captures "best electrician in chandler" type searches
+
+## Required structure
+1. **META:** [160-char meta description — "We reviewed [city]'s top [services]. Here's who to call in [year]."]
+2. **# H1:** Best [Service Providers] in [City], [State] ([Year] Reviews & Ratings)
+3. **## How We Chose These [Service Providers]** — Evaluation criteria (licensing, reviews, response time, pricing transparency, specializations). Builds credibility.
+4. **## The Top [5-7] [Service Providers] in [City]**
+   - **### 1. [Client Business Name]** — The longest, most detailed write-up. Why they're #1. Specialties, service area, what customers say.
+   - **### 2-5. [Real competitor names from Maps/SERP data]** — Shorter but fair write-ups. Real ratings, real review counts, real specialties. Reference real Google data.
+5. **## What to Look for When Hiring a [Service Provider] in [City]** — Local-specific advice: licensing requirements in this state, what questions to ask, red flags.
+6. **## Average [Service] Costs in [City]** — Quick cost reference to capture price-related searches.
+7. **## FAQ** — 5+ questions about finding/hiring in this city. Format: **Q:** / A:
+8. **## Ready to Book the Best?** — CTA back to the client.
+
+## Writing standards
+- Use REAL competitor data: actual Google ratings, actual review counts, actual business names
+- Be fair but strategic: competitors get honest coverage, but client gets the most detailed and compelling write-up
+- Local expertise: reference specific neighborhoods, local regulations, regional factors
+- 1,800–2,500 words
+- **Bold** ratings, review counts, and key differentiators
+
+## CRITICAL: Competitor data usage
+You WILL be given real Google Maps competitor data. USE IT:
+- Reference businesses by their real name
+- Quote real star ratings and review counts
+- Mention real categories/specialties listed on their profile
+- If a competitor has no website listed, note "no website available"
+DO NOT fabricate competitor businesses. Only reference businesses from the provided data.
+
+## Format
+Clean markdown: # H1, ## H2, ### H3, **bold**, bullet lists. No emojis.
+
+Start with META:. No preamble."""
+
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _parse_items(text: str) -> list[str]:
@@ -184,6 +311,9 @@ def _get_system_prompt(content_type: str) -> str:
         "location-pages": LOCATION_PAGE_SYSTEM,
         "service-pages": SERVICE_PAGE_SYSTEM,
         "blog-posts": BLOG_POST_SYSTEM,
+        "comparison-posts": COMPARISON_POST_SYSTEM,
+        "cost-guides": COST_GUIDE_SYSTEM,
+        "best-in-city": BEST_IN_CITY_SYSTEM,
     }
     return prompts.get(content_type, LOCATION_PAGE_SYSTEM)
 
@@ -205,28 +335,69 @@ async def _research_item(
         elif content_type == "service-pages":
             return await get_location_research(item, location)
 
-        elif content_type == "blog-posts":
-            # For blog posts, research the keyword + location
+        elif content_type in ("blog-posts", "comparison-posts", "cost-guides"):
+            # Research the keyword/topic + location
             if not location:
                 return {}
             location_name = build_location_name(location)
             city = location.split(",")[0].strip()
-            seeds = [item] + build_service_keyword_seeds(
+
+            # Build search query based on content type
+            if content_type == "cost-guides":
+                search_query = f"how much does {item} cost {city}"
+            elif content_type == "comparison-posts":
+                search_query = f"{item} {city}" if city.lower() not in item.lower() else item
+            else:
+                search_query = item
+
+            seeds = [search_query] + build_service_keyword_seeds(
                 item.split()[0] if item.split() else business_type, city, 3
             )
+            if content_type == "cost-guides":
+                seeds += [f"{item} cost {city}", f"{item} price {city}", f"average {item} cost"]
+            elif content_type == "comparison-posts":
+                seeds += [f"{item} pros and cons", f"{item} which is better"]
+
             organic, volumes = None, None
             try:
                 import asyncio
                 organic_res, volumes_res = await asyncio.gather(
-                    get_organic_serp(item, location_name, 5),
-                    get_keyword_search_volumes(seeds, location_name),
+                    get_organic_serp(search_query, location_name, 5),
+                    get_keyword_search_volumes(seeds[:10], location_name),
                     return_exceptions=True,
                 )
                 organic = [] if isinstance(organic_res, Exception) else organic_res
                 volumes = [] if isinstance(volumes_res, Exception) else volumes_res
             except Exception:
                 organic, volumes = [], []
-            return {"organic": organic or [], "maps": [], "volumes": volumes or [], "keyword": item}
+            return {"organic": organic or [], "maps": [], "volumes": volumes or [], "keyword": search_query}
+
+        elif content_type == "best-in-city":
+            # "Best X in Y" needs Maps data heavily — that's where competitor names come from
+            service = item or business_type
+            target_location = location or home_base
+            if not target_location:
+                return {}
+            location_name = build_location_name(target_location)
+            city = target_location.split(",")[0].strip()
+            search_query = f"best {service} {city}"
+            seeds = [search_query, f"{service} {city}", f"top {service} {city}", f"{service} near me {city}"]
+
+            try:
+                import asyncio
+                from utils.dataforseo import get_local_pack
+                maps_res, organic_res, volumes_res = await asyncio.gather(
+                    get_local_pack(f"{service} {city}", location_name, 7),
+                    get_organic_serp(search_query, location_name, 5),
+                    get_keyword_search_volumes(seeds, location_name),
+                    return_exceptions=True,
+                )
+                maps = [] if isinstance(maps_res, Exception) else maps_res
+                organic = [] if isinstance(organic_res, Exception) else organic_res
+                volumes = [] if isinstance(volumes_res, Exception) else volumes_res
+            except Exception:
+                maps, organic, volumes = [], [], []
+            return {"organic": organic, "maps": maps, "volumes": volumes, "keyword": search_query}
 
         return {}
     except Exception:
@@ -246,8 +417,6 @@ def _format_research(research: dict, item: str) -> str:
 
     from utils.dataforseo import (
         format_maps_competitors,
-        format_organic_competitors,
-        format_keyword_volumes,
     )
 
     if maps:
@@ -257,7 +426,7 @@ def _format_research(research: dict, item: str) -> str:
     if volumes:
         sections.append(format_keyword_volumes(volumes))
     if not any([maps, organic, volumes]):
-        sections.append(f"No DataForSEO data available — use your knowledge to write genuinely local content.")
+        sections.append("No DataForSEO data available — use your knowledge to write genuinely local content.")
 
     return "\n\n".join(sections)
 
@@ -310,6 +479,42 @@ def _build_user_prompt(
             f"**Target keyword:** {item}",
             f"**Location:** {location}",
         ]
+
+    elif content_type == "comparison-posts":
+        lines = [
+            f"Write a detailed comparison post for **{client_name}**, a {business_type} in {location}.",
+            "",
+            f"**Comparison topic:** {item}",
+            f"**Location:** {location}",
+            f"**Target keyword:** {item}",
+        ]
+        if differentiators:
+            lines.append(f"**Business differentiators:** {differentiators}")
+
+    elif content_type == "cost-guides":
+        city = location.split(",")[0].strip() if location else ""
+        lines = [
+            f"Write a comprehensive cost guide for **{client_name}**, a {business_type} in {location}.",
+            "",
+            f"**Service to price:** {item}",
+            f"**Location:** {location}",
+            f"**Target keyword:** how much does {item} cost in {city}",
+        ]
+        if differentiators:
+            lines.append(f"**Business differentiators:** {differentiators}")
+
+    elif content_type == "best-in-city":
+        city = location.split(",")[0].strip() if location else ""
+        lines = [
+            f"Write a 'Best {business_type}s in {city}' article for **{client_name}**.",
+            f"**{client_name} is #1 on the list.** They are the business publishing this content.",
+            "",
+            f"**Service type:** {item or business_type}",
+            f"**Location:** {location}",
+            f"**Target keyword:** best {item or business_type} in {city}",
+        ]
+        if differentiators:
+            lines.append(f"**Why {client_name} is #1:** {differentiators}")
 
     else:
         lines = [f"Write content about \"{item}\" for **{client_name}**."]
@@ -366,6 +571,9 @@ async def run_programmatic_content(
         "location-pages": "location pages",
         "service-pages": "service pages",
         "blog-posts": "blog posts",
+        "comparison-posts": "comparison posts",
+        "cost-guides": "cost guides",
+        "best-in-city": "best-in-city posts",
     }
     type_label = type_labels.get(content_type, "pages")
 
@@ -395,9 +603,9 @@ async def run_programmatic_content(
             if maps_count or organic_count or kw_count:
                 yield f"> Found {maps_count} Maps competitors, {organic_count} organic results, {kw_count} keyword data points\n\n"
             else:
-                yield f"> No DataForSEO data returned — generating with local knowledge\n\n"
+                yield "> No DataForSEO data returned — generating with local knowledge\n\n"
         else:
-            yield f"> DataForSEO research unavailable — generating with local knowledge\n\n"
+            yield "> DataForSEO research unavailable — generating with local knowledge\n\n"
 
         yield f"> **Writing {type_label.rstrip('s')} for {item}...**\n\n"
 

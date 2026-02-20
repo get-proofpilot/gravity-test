@@ -82,7 +82,7 @@ async def run_seo_blog_post(
     # ── Build the user prompt ──────────────────────────────
     lines = [
         f"Write a full SEO blog post for **{client_name}**, a {business_type} serving {location}.",
-        f"",
+        "",
         f"**Primary keyword to target:** {keyword}",
         f"**Target audience:** {audience}",
         f"**Tone:** {tone}",
@@ -93,21 +93,21 @@ async def run_seo_blog_post(
 
     if notes:
         lines += [
-            f"",
-            f"**Content direction and context — use this to make the post non-generic:**",
+            "",
+            "**Content direction and context — use this to make the post non-generic:**",
             f"{notes}",
         ]
 
     if strategy_context and strategy_context.strip():
         lines += [
-            f"",
-            f"**Strategy direction from account manager — follow this carefully:**",
+            "",
+            "**Strategy direction from account manager — follow this carefully:**",
             f"{strategy_context.strip()}",
         ]
 
     lines += [
-        f"",
-        f"Write the complete blog post now. Start immediately with META: — no preamble.",
+        "",
+        "Write the complete blog post now. Start immediately with META: — no preamble.",
     ]
 
     user_prompt = "\n".join(lines)

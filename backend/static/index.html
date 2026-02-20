@@ -892,6 +892,390 @@
           </div>
         </div>
 
+        <!-- ai-search-report inputs -->
+        <div id="modalInputsAISearch" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfAIDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service / Industry <span class="req">*</span></label>
+              <input type="text" id="wfAIService" placeholder="e.g. electrician, plumber, HVAC" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Location <span class="req">*</span></label>
+            <input type="text" id="wfAILocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfAINotes" rows="2" placeholder="Specific keywords to check, competitor names, focus areas..."></textarea>
+          </div>
+        </div>
+
+        <!-- backlink-audit inputs -->
+        <div id="modalInputsBacklinkAudit" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfBLDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service / Industry <span class="opt">optional</span></label>
+              <input type="text" id="wfBLService" placeholder="e.g. electrician" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Location <span class="opt">optional</span></label>
+            <input type="text" id="wfBLLocation" placeholder="e.g. Chandler, AZ" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Competitor Domains <span class="opt">optional</span></label>
+            <input type="text" id="wfBLCompetitors" placeholder="e.g. competitor1.com, competitor2.com" />
+            <div class="wf-field-hint">Comma-separated — we'll compare their backlink profiles to yours</div>
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfBLNotes" rows="2" placeholder="Any specific backlink concerns, disavow history, recent link building efforts..."></textarea>
+          </div>
+        </div>
+
+        <!-- seo-research inputs -->
+        <div id="modalInputsSEOResearch" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfSRDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service / Industry <span class="req">*</span></label>
+              <input type="text" id="wfSRService" placeholder="e.g. electrician, plumber, HVAC" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Location <span class="req">*</span></label>
+            <input type="text" id="wfSRLocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Competitor Domains <span class="opt">optional</span></label>
+            <input type="text" id="wfSRCompetitors" placeholder="e.g. competitor1.com, competitor2.com" />
+            <div class="wf-field-hint">Comma-separated — or leave blank to auto-discover from SERP</div>
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfSRNotes" rows="2" placeholder="Business goals, specific keywords to research, areas to focus on..."></textarea>
+          </div>
+        </div>
+
+        <!-- competitor-intel inputs -->
+        <div id="modalInputsCompIntel" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Your Domain <span class="req">*</span></label>
+              <input type="text" id="wfCIDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service / Industry <span class="opt">optional</span></label>
+              <input type="text" id="wfCIService" placeholder="e.g. electrician" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Competitor Domains <span class="opt">optional</span></label>
+            <input type="text" id="wfCICompetitors" placeholder="e.g. parkersons.com, sundevilelectric.com" />
+            <div class="wf-field-hint">Comma-separated — or leave blank to auto-discover from SERP</div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Location <span class="opt">optional</span></label>
+            <input type="text" id="wfCILocation" placeholder="e.g. Chandler, AZ" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfCINotes" rows="2" placeholder="Known competitor strengths, specific concerns, business context..."></textarea>
+          </div>
+        </div>
+
+        <!-- onpage-audit inputs -->
+        <div id="modalInputsOnpageAudit" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Page URL <span class="req">*</span></label>
+            <input type="text" id="wfOPUrl" placeholder="e.g. https://allthingzelectric.com/panel-upgrade" oninput="checkRunReady()" />
+            <div class="wf-field-hint">Full URL of the page to audit</div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Target Keyword <span class="opt">optional</span></label>
+              <input type="text" id="wfOPKeyword" placeholder="e.g. panel upgrade chandler az" />
+              <div class="wf-field-hint">The keyword this page should rank for</div>
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="opt">optional</span></label>
+              <input type="text" id="wfOPLocation" placeholder="e.g. Chandler, AZ" />
+            </div>
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfOPNotes" rows="2" placeholder="Known issues, specific concerns, competitor URLs to compare against..."></textarea>
+          </div>
+        </div>
+
+        <!-- monthly-report inputs -->
+        <div id="modalInputsMonthlyReport" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfMRDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Reporting Period <span class="opt">optional</span></label>
+              <input type="text" id="wfMRPeriod" placeholder="e.g. January 2026 (defaults to current month)" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service <span class="opt">optional</span></label>
+              <input type="text" id="wfMRService" placeholder="e.g. electrician" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="opt">optional</span></label>
+              <input type="text" id="wfMRLocation" placeholder="e.g. Chandler, AZ" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Highlights / Deliverables <span class="opt">optional</span></label>
+            <textarea id="wfMRHighlights" rows="3" placeholder="e.g. Published 4 blog posts, fixed 3 broken links, added FAQ schema to 5 pages..."></textarea>
+            <div class="wf-field-hint">Manual wins and deliverables to include in the report</div>
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfMRNotes" rows="2" placeholder="Context about client goals, previous report data, etc."></textarea>
+          </div>
+        </div>
+
+        <!-- proposals inputs -->
+        <div id="modalInputsProposals" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfPRDomain" placeholder="e.g. steadfastplumbingaz.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service <span class="req">*</span></label>
+              <input type="text" id="wfPRService" placeholder="e.g. plumber" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfPRLocation" placeholder="e.g. Gilbert, AZ" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Package Tier <span class="opt">optional</span></label>
+              <select id="wfPRPackage">
+                <option value="growth-strategy">Growth Strategy — $6,200/mo</option>
+                <option value="foundation">Foundation — $1,200/mo</option>
+                <option value="market-expansion">Market Expansion — $2,000/mo</option>
+                <option value="digital-domination">Digital Domination — $3,500/mo</option>
+                <option value="market-leader">Market Leader — $8,000/mo</option>
+                <option value="industry-authority">Industry Authority — $10,000/mo</option>
+              </select>
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Competitors <span class="opt">optional</span></label>
+            <input type="text" id="wfPRCompetitors" placeholder="e.g. competitor1.com, competitor2.com" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfPRNotes" rows="2" placeholder="Sales context, prospect pain points, discovery call notes..."></textarea>
+          </div>
+        </div>
+
+        <!-- google-ads-copy inputs -->
+        <div id="modalInputsGoogleAds" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service <span class="req">*</span></label>
+              <input type="text" id="wfGAService" placeholder="e.g. electrician" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfGALocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Name <span class="opt">optional</span></label>
+              <input type="text" id="wfGABusinessName" placeholder="e.g. All Thingz Electric" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Landing Page URL <span class="opt">optional</span></label>
+              <input type="text" id="wfGALandingUrl" placeholder="e.g. https://allthingzelectric.com" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Unique Selling Propositions <span class="opt">optional</span></label>
+            <input type="text" id="wfGAUsp" placeholder="e.g. 24/7 emergency service, licensed & insured, 5-star rated" />
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Monthly Budget <span class="opt">optional</span></label>
+              <input type="text" id="wfGABudget" placeholder="e.g. $2,000/mo" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <input type="text" id="wfGANotes" placeholder="Campaign goals, past performance..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- schema-generator inputs -->
+        <div id="modalInputsSchema" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Name <span class="opt">optional</span></label>
+              <input type="text" id="wfSCBusinessName" placeholder="e.g. All Thingz Electric" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Type <span class="req">*</span></label>
+              <input type="text" id="wfSCBusinessType" placeholder="e.g. electrician" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfSCLocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Schema Types <span class="opt">optional</span></label>
+              <input type="text" id="wfSCSchemaTypes" placeholder="LocalBusiness, FAQPage, Service" />
+              <div class="wf-field-hint">Comma-separated — defaults to LocalBusiness, FAQPage, Service</div>
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Phone <span class="opt">optional</span></label>
+              <input type="text" id="wfSCPhone" placeholder="e.g. (480) 555-0182" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Website <span class="opt">optional</span></label>
+              <input type="text" id="wfSCWebsite" placeholder="e.g. https://allthingzelectric.com" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Address <span class="opt">optional</span></label>
+            <input type="text" id="wfSCAddress" placeholder="e.g. 123 Main St, Chandler, AZ 85225" />
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Services List <span class="opt">optional</span></label>
+            <input type="text" id="wfSCServicesList" placeholder="e.g. panel upgrades, wiring, EV charger installation" />
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Hours <span class="opt">optional</span></label>
+              <input type="text" id="wfSCHours" placeholder="e.g. Mon-Fri 7am-6pm, Sat 8am-2pm" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <input type="text" id="wfSCNotes" placeholder="FAQ questions, specific pages..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- content-strategy inputs -->
+        <div id="modalInputsContentStrategy" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Type <span class="req">*</span></label>
+              <input type="text" id="wfCSBusinessType" placeholder="e.g. electrician" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service Focus <span class="req">*</span></label>
+              <input type="text" id="wfCSService" placeholder="e.g. panel upgrades, rewiring" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfCSLocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Target Audience <span class="opt">optional</span></label>
+              <input type="text" id="wfCSAudience" placeholder="e.g. homeowners 35-55, property managers" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Content Goals <span class="opt">optional</span></label>
+            <input type="text" id="wfCSGoals" placeholder="e.g. increase organic traffic, build authority, generate leads" />
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfCSNotes" rows="2" placeholder="Existing content, brand voice guidelines, topics to avoid..."></textarea>
+          </div>
+        </div>
+
+        <!-- pnl-statement inputs -->
+        <div id="modalInputsPnl" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Period <span class="req">*</span></label>
+              <input type="text" id="wfPLPeriod" placeholder="e.g. January 2026" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Entity <span class="opt">optional</span></label>
+              <input type="text" id="wfPLEntity" placeholder="ProofPilot" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Revenue Items <span class="req">*</span></label>
+            <textarea id="wfPLRevenue" rows="4" placeholder="Client A: $6,200&#10;Client B: $2,000&#10;Client C: $3,500&#10;One-time audit: $1,500" oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint">One item per line — Name: $Amount</div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Expense Items <span class="req">*</span></label>
+            <textarea id="wfPLExpenses" rows="4" placeholder="DataForSEO: $200&#10;Claude API: $150&#10;Contractors: $2,000&#10;Software: $500" oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint">One item per line — Name: $Amount</div>
+          </div>
+          <div class="wf-modal-field optional">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="wfPLNotes" rows="2" placeholder="Prior month data for comparison, upcoming expenses, cash flow notes..."></textarea>
+          </div>
+        </div>
+
+        <!-- property-mgmt-strategy inputs -->
+        <div id="modalInputsPropertyMgmt" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="wfPMDomain" placeholder="e.g. abcpropertymanagement.com" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Company Name <span class="opt">optional</span></label>
+              <input type="text" id="wfPMCompany" placeholder="e.g. ABC Property Management" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="req">*</span></label>
+              <input type="text" id="wfPMLocation" placeholder="e.g. Phoenix, AZ" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Property Types <span class="opt">optional</span></label>
+              <input type="text" id="wfPMPropertyTypes" placeholder="e.g. residential, commercial, HOA" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Portfolio Size <span class="opt">optional</span></label>
+              <input type="text" id="wfPMPortfolioSize" placeholder="e.g. 150 units, 12 properties" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <input type="text" id="wfPMNotes" placeholder="Growth goals, target market..." />
+            </div>
+          </div>
+        </div>
+
         <!-- programmatic-content inputs -->
         <div id="modalInputsProgrammatic" style="display:none; flex-direction:column; gap:16px;">
           <div class="wf-modal-field">
@@ -901,6 +1285,9 @@
               <option value="location-pages">Location Pages — unique pages for multiple cities</option>
               <option value="service-pages">Service Pages — conversion pages for multiple services</option>
               <option value="blog-posts">Blog Posts — SEO posts for multiple keywords</option>
+              <option value="comparison-posts">Comparison Posts — "X vs Y" decision content</option>
+              <option value="cost-guides">Cost Guides — "How Much Does X Cost" pricing pages</option>
+              <option value="best-in-city">Best-in-City — "Best [Service] in [City]" authority posts</option>
             </select>
             <div class="wf-field-hint">Choose what kind of content to generate at scale</div>
           </div>

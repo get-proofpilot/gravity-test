@@ -1,18 +1,22 @@
 """
-Prospect SEO Market Analysis Workflow — ProofPilot v4
+Prospect SEO Market Analysis Workflow — ProofPilot v5
 
-SEO manager logic:
+SEO manager logic (from Matthew's audit walkthrough):
   - Searches across the full metro area (5 nearest cities), not just the prospect's city
-  - Finds the actual dominant local player, not national chains like Cobblestone
-  - Filters out directories, aggregators, and chains automatically
-  - Takes the top 1-2 local competitors per city, deduplicates, sorts by traffic
-  - Organic + GBP/Maps traffic unified (DFS Labs returns all ranked keywords for a domain,
-    which includes local pack positions when the GBP is linked to a website)
+  - Finds the actual dominant local player — not national chains, not directories
+  - Filters out weak competitors with no search volume automatically
+  - Takes top 1-2 local domains per city, deduplicates, sorts by traffic (dominant = most cities)
+  - Organic + GBP/Maps traffic unified (DFS Labs returns all ranked keywords including local pack)
+  - Service-aware keyword seeds — plumbing, electrician, HVAC, roofing, concrete, etc.
+  - Service-aware pillar grouping — correct buckets for each industry
+  - Competitor keyword tables include CPC + Traffic Value for each keyword
+  - All keyword variants aggregated into pillars (not listed as duplicates)
+  - City-based keyword thinking: "plumber gilbert az" not just "plumber"
 
 inputs keys:
-    domain          e.g. "motorcityautodetailing.com"
-    service         e.g. "auto detailing"
-    location        e.g. "Chandler, AZ"
+    domain          e.g. "steadfastplumbingaz.com"
+    service         e.g. "plumber"
+    location        e.g. "Gilbert, AZ"
     monthly_revenue optional
     avg_job_value   optional
     notes           optional sales context
@@ -28,7 +32,6 @@ from typing import AsyncGenerator
 from utils.searchatlas import sa_call
 from utils.dataforseo import (
     research_competitors,
-    get_competitor_sa_profiles,
     get_keyword_search_volumes,
     get_bulk_keyword_difficulty,
     get_domain_ranked_keywords,
@@ -234,6 +237,177 @@ def _is_excluded_domain(domain: str) -> bool:
     return any(p in d for p in skip_patterns)
 
 
+# ── Service intelligence ──────────────────────────────────────────────────────
+# Maps service descriptions → keyword seeds + pillar grouping rules.
+# Ensures the audit uses the right vocabulary for each trade.
+
+def _detect_service_type(service: str) -> str:
+    """Detect broad service category from free-text service string."""
+    s = service.lower()
+    if any(k in s for k in ["plumb", "plumber", "drain", "sewer", "water heater"]):
+        return "plumbing"
+    if any(k in s for k in ["electric", "electrician", "wiring", "panel"]):
+        return "electrician"
+    if any(k in s for k in ["hvac", "ac repair", "air condition", "heating", "cooling", "furnace", "heat pump"]):
+        return "hvac"
+    if any(k in s for k in ["roof", "roofer", "shingle", "gutter"]):
+        return "roofing"
+    if any(k in s for k in ["detail", "detailing", "car wash", "auto detail"]):
+        return "auto_detailing"
+    if any(k in s for k in ["concrete", "cement", "pav"]):
+        return "concrete"
+    if any(k in s for k in ["landscape", "lawn", "grass", "tree service", "tree trim"]):
+        return "landscaping"
+    if any(k in s for k in ["paint", "painting", "painter"]):
+        return "painting"
+    if any(k in s for k in ["clean", "cleaning", "maid", "janitorial", "pressure wash"]):
+        return "cleaning"
+    if any(k in s for k in ["pest", "exterminator", "rodent", "termite", "bug"]):
+        return "pest_control"
+    return "general"
+
+
+_SERVICE_SPECIALTY_KEYWORDS: dict[str, list[str]] = {
+    "plumbing": [
+        "emergency plumber", "plumbing repair", "drain cleaning",
+        "water heater repair", "water heater installation", "tankless water heater",
+        "water softener installation", "reverse osmosis system",
+        "sewer line repair", "leak detection", "burst pipe repair",
+        "toilet repair", "faucet installation",
+    ],
+    "electrician": [
+        "electrician", "electrical contractor", "panel upgrade",
+        "breaker panel replacement", "electrical repair",
+        "ev charger installation", "ev charging station",
+        "lighting installation", "emergency electrician", "house rewiring",
+        "outlet installation", "ceiling fan installation",
+    ],
+    "hvac": [
+        "ac repair", "air conditioner repair", "hvac repair", "hvac service",
+        "furnace repair", "furnace installation", "ac installation",
+        "heat pump repair", "ductwork repair", "air quality testing",
+        "hvac maintenance", "central air installation",
+    ],
+    "roofing": [
+        "roof repair", "roof replacement", "roofing contractor",
+        "roof inspection", "storm damage roof repair", "gutter installation",
+        "gutter repair", "gutter cleaning", "roof leak repair",
+        "shingle replacement", "flat roof repair",
+    ],
+    "auto_detailing": [
+        "ceramic coating", "paint correction", "interior detailing",
+        "exterior detailing", "mobile detailing", "full detail",
+        "auto detailing packages", "paint protection film",
+        "headlight restoration", "engine detailing",
+    ],
+    "concrete": [
+        "concrete driveway", "driveway installation", "concrete repair",
+        "patio installation", "stamped concrete", "concrete contractor",
+        "concrete flatwork", "concrete resurfacing", "retaining wall",
+    ],
+    "landscaping": [
+        "lawn care service", "lawn mowing", "landscape design",
+        "irrigation repair", "sprinkler repair", "tree trimming",
+        "tree removal", "sod installation", "hardscape installation",
+    ],
+    "painting": [
+        "interior painting", "exterior painting", "house painter",
+        "commercial painting", "cabinet painting", "deck staining",
+        "fence painting", "epoxy floor coating",
+    ],
+    "cleaning": [
+        "house cleaning service", "maid service", "deep cleaning",
+        "move in cleaning", "move out cleaning", "pressure washing",
+        "commercial cleaning", "window cleaning",
+    ],
+    "pest_control": [
+        "pest control", "exterminator", "termite treatment",
+        "rodent control", "ant control", "bed bug treatment",
+        "mosquito control", "wildlife removal",
+    ],
+}
+
+# Pillar rules: ordered list of (name, trigger_keywords).
+# First match wins. Empty trigger list = catch-all bucket.
+_SERVICE_PILLAR_RULES: dict[str, list[tuple[str, list[str]]]] = {
+    "plumbing": [
+        ("Emergency Plumbing",  ["emergency", "urgent", "24 hour", "same day", "24/7"]),
+        ("Water Heater",        ["water heater", "hot water", "tankless"]),
+        ("Drain & Sewer",       ["drain", "sewer", "clog", "rooter", "sewer line"]),
+        ("Water Treatment",     ["water softener", "softener", "water treatment",
+                                  "reverse osmosis", "ro system", "filtration",
+                                  "conditioning", "water purif"]),
+        ("Leak & Pipe Repair",  ["leak", "pipe", "burst", "repiping"]),
+        ("General Plumbing",    []),
+    ],
+    "electrician": [
+        ("Emergency",           ["emergency", "urgent", "24 hour", "same day"]),
+        ("Panel & Service",     ["panel", "breaker", "electrical box",
+                                  "service upgrade", "200 amp", "100 amp"]),
+        ("EV Charging",         ["ev charger", "electric vehicle", "tesla",
+                                  "charger install", "charging station"]),
+        ("Lighting",            ["lighting", "light fixture", "led", "dimmer", "recessed"]),
+        ("Wiring & Outlets",    ["wiring", "rewire", "outlet", "switch", "gfci"]),
+        ("General Electrical",  []),
+    ],
+    "hvac": [
+        ("Emergency HVAC",      ["emergency", "urgent", "24 hour", "same day"]),
+        ("AC Repair",           ["ac repair", "air conditioner repair", "ac service",
+                                  "cooling repair", "ac not cooling"]),
+        ("Heating",             ["heating", "furnace", "heat pump", "boiler", "heater"]),
+        ("Installation",        ["installation", "install", "new unit",
+                                  "replacement", "new ac", "new hvac"]),
+        ("Air Quality",         ["air quality", "ductwork", "filter",
+                                  "purifier", "humidity", "duct cleaning"]),
+        ("General HVAC",        []),
+    ],
+    "roofing": [
+        ("Emergency / Storm",   ["emergency", "storm damage", "urgent",
+                                  "roof leak", "hail damage"]),
+        ("Roof Replacement",    ["replacement", "new roof", "reroof"]),
+        ("Roof Repair",         ["repair", "fix", "patch", "leak repair"]),
+        ("Gutters",             ["gutter", "downspout", "fascia", "soffit"]),
+        ("Inspection",          ["inspection", "estimate", "assessment"]),
+        ("General Roofing",     []),
+    ],
+    "auto_detailing": [
+        ("Emergency / Urgent",  ["emergency", "urgent", "24 hour", "same day", "24/7"]),
+        ("Premium / Specialty", ["ceramic", "paint correction", "ppf",
+                                  "protection film", "restoration",
+                                  "premium", "packages", "full detail"]),
+        ("Interior",            ["interior", "inside", "upholstery", "carpet", "steam"]),
+        ("Exterior / Wash",     ["exterior", "outside", "wash", "wax", "polish"]),
+        ("Mobile",              ["mobile", "come to", "at home", "your home", "on-site"]),
+        ("Core Detailing",      []),
+    ],
+    "concrete": [
+        ("Driveway",            ["driveway"]),
+        ("Patio / Outdoor",     ["patio", "walkway", "pathway", "outdoor", "sidewalk"]),
+        ("Decorative",          ["stamped", "decorative", "stained",
+                                  "exposed aggregate", "colored"]),
+        ("Repair",              ["repair", "crack", "fix", "resurface", "patch"]),
+        ("Foundation",          ["foundation", "slab", "footing", "basement"]),
+        ("General Concrete",    []),
+    ],
+    "landscaping": [
+        ("Lawn Care",           ["lawn", "mowing", "grass", "turf", "sod"]),
+        ("Tree Services",       ["tree trim", "tree removal", "tree service",
+                                  "stump", "arborist"]),
+        ("Irrigation",          ["irrigation", "sprinkler", "drip system"]),
+        ("Hardscape",           ["patio", "retaining wall", "walkway",
+                                  "pavers", "fire pit"]),
+        ("Design & Install",    ["design", "landscape design", "renovation",
+                                  "makeover", "install"]),
+        ("General Landscaping", []),
+    ],
+    "general": [
+        ("Emergency",           ["emergency", "urgent", "24 hour", "same day"]),
+        ("Premium Service",     ["premium", "best", "top rated", "professional"]),
+        ("Local Demand",        []),
+    ],
+}
+
+
 # ── SA data gather ────────────────────────────────────────────────────────────
 
 async def _gather_sa_data(domain: str) -> dict[str, str]:
@@ -387,44 +561,52 @@ async def _profile_competitors(
 
 def _build_metro_seeds(service: str, metro_cities: list[str]) -> list[str]:
     """
-    Build keyword seeds across all metro cities + intent variants.
-    Gives a true picture of the market (not just one city).
+    Build keyword seeds across metro cities with service-aware specialty terms.
+
+    Logic (from Matthew's audit walkthrough):
+      - Core {service} {city} seeds for each metro city
+      - Near-me / high-intent seeds (emergency, best, near me)
+      - Service-specific specialty keywords × primary + secondary city
+        (e.g. for plumbing: water heater repair, drain cleaning, water softener)
+      - City-based keyword thinking: local businesses need city-qualified terms
     """
     s = service.lower().strip()
+    service_type = _detect_service_type(s)
+    specialty_terms = _SERVICE_SPECIALTY_KEYWORDS.get(service_type, [])
+
     seeds = []
 
-    # Per-city core seeds
+    # Core per-city seeds (first 4 metro cities)
     for city in metro_cities[:4]:
         c = city.lower()
         seeds += [
             f"{s} {c}",
-            f"mobile {s} {c}",
             f"best {s} {c}",
-            f"car detailing {c}",  # common near-synonym
         ]
 
-    # Broad / near-me intent (not city-specific but high value)
+    # High-commercial-intent near-me seeds
     seeds += [
         f"{s} near me",
         f"best {s} near me",
-        f"mobile {s} near me",
+        f"emergency {s} near me",
         f"{s} service near me",
+        f"{s} prices near me",
     ]
 
-    # Premium / specialty variants (city-agnostic)
+    # Service specialty terms × primary city
     city1 = metro_cities[0].lower() if metro_cities else ""
-    seeds += [
-        f"ceramic coating {city1}",
-        f"paint correction {city1}",
-        f"interior detailing {city1}",
-        f"exterior detailing {city1}",
-        f"full detail {city1}",
-        f"auto detailing packages {city1}",
-        f"mobile auto detailing {city1}",
-        f"{s} prices {city1}",
-    ]
+    for spec in specialty_terms[:14]:
+        if city1:
+            seeds.append(f"{spec} {city1}")
+        seeds.append(spec)  # Include bare term for volume reference
 
-    # Dedup, remove empties
+    # Service specialty terms × second city (metro coverage)
+    if len(metro_cities) > 1:
+        city2 = metro_cities[1].lower()
+        for spec in specialty_terms[:7]:
+            seeds.append(f"{spec} {city2}")
+
+    # Dedup, remove empties, cap at 50
     seen = set()
     out = []
     for kw in seeds:
@@ -530,15 +712,19 @@ def _build_market_leader_section(leader: dict) -> str:
 
     if top_kws:
         lines += [
-            "| Keyword | Position | Est. Traffic | Volume |",
-            "|---------|----------|-------------|--------|",
+            "| Keyword | Position | Traffic | Search Vol | CPC | Traffic Value |",
+            "|---------|----------|---------|-----------|-----|--------------|",
         ]
         for kw in top_kws[:10]:
             keyword = kw.get("keyword", "")
             rank = kw.get("rank") or "—"
             est_t = _fmt_num(kw.get("traffic_estimate"))
             vol = _fmt_num(kw.get("search_volume"))
-            lines.append(f"| {keyword} | #{rank} | {est_t} | {vol} |")
+            cpc = kw.get("cpc")
+            cpc_str = _fmt_cpc(cpc) if cpc is not None else "—"
+            traffic_val = (kw.get("traffic_estimate") or 0) * float(cpc or 0)
+            tval_str = _fmt_dollar(traffic_val) if traffic_val > 0 else "—"
+            lines.append(f"| {keyword} | #{rank} | {est_t} | {vol} | {cpc_str} | {tval_str} |")
     else:
         lines.append(f"*Detailed keyword breakdown unavailable for {d} — limited DFS Labs data for this domain.*")
 
@@ -569,15 +755,19 @@ def _build_other_competitors_section(profiles: list[dict]) -> str:
 
         if top_kws:
             lines += [
-                "| Keyword | Position | Est. Traffic | Volume |",
-                "|---------|----------|-------------|--------|",
+                "| Keyword | Position | Traffic | Search Vol | CPC | Traffic Value |",
+                "|---------|----------|---------|-----------|-----|--------------|",
             ]
             for kw in top_kws[:6]:
                 keyword = kw.get("keyword", "")
                 rank = kw.get("rank") or "—"
                 est_t = _fmt_num(kw.get("traffic_estimate"))
                 vol = _fmt_num(kw.get("search_volume"))
-                lines.append(f"| {keyword} | #{rank} | {est_t} | {vol} |")
+                cpc = kw.get("cpc")
+                cpc_str = _fmt_cpc(cpc) if cpc is not None else "—"
+                traffic_val = (kw.get("traffic_estimate") or 0) * float(cpc or 0)
+                tval_str = _fmt_dollar(traffic_val) if traffic_val > 0 else "—"
+                lines.append(f"| {keyword} | #{rank} | {est_t} | {vol} | {cpc_str} | {tval_str} |")
         else:
             lines.append(f"*Limited DFS Labs data available for {d}.*")
 
@@ -590,35 +780,40 @@ def _build_keyword_pillar_table(
     volumes: list[dict],
     service: str,
 ) -> tuple[str, list[dict]]:
-    """Group keyword volumes by service pillar. Returns (table, high_value_kws)."""
+    """
+    Group keyword volumes by service pillar using service-aware rules.
+    Returns (table_markdown, high_value_kws).
+
+    Uses _SERVICE_PILLAR_RULES to bucket keywords correctly for each trade:
+    plumbing → water heater / drain / water treatment / emergency / etc.
+    electrician → panel / EV charger / lighting / wiring / etc.
+    (not auto-detailing buckets for every industry)
+    """
     if not volumes:
         return "", []
 
-    pillar_rules = [
-        ("Emergency / Urgent",   ["emergency", "urgent", "24 hour", "same day", "24/7"]),
-        ("Premium / Specialty",  ["ceramic", "paint correction", "ppf", "protection film",
-                                   "restoration", "premium", "packages", "full detail"]),
-        ("Interior",             ["interior", "inside", "upholstery", "carpet", "steam"]),
-        ("Exterior / Wash",      ["exterior", "outside", "wash", "wax", "polish"]),
-        ("Mobile",               ["mobile", "come to", "at home", "your home", "on-site"]),
-    ]
+    service_type = _detect_service_type(service)
+    pillar_rules = _SERVICE_PILLAR_RULES.get(service_type, _SERVICE_PILLAR_RULES["general"])
 
     buckets: dict[str, list[dict]] = {}
     for kw_data in volumes:
         kw = kw_data.get("keyword", "").lower()
         assigned = False
-        for pillar_name, keywords in pillar_rules:
-            if any(k in kw for k in keywords):
+        for pillar_name, trigger_keywords in pillar_rules:
+            if trigger_keywords and any(k in kw for k in trigger_keywords):
                 if pillar_name not in buckets:
                     buckets[pillar_name] = []
                 buckets[pillar_name].append(kw_data)
                 assigned = True
                 break
         if not assigned:
-            core_name = f"Core {service.title()}"
-            if core_name not in buckets:
-                buckets[core_name] = []
-            buckets[core_name].append(kw_data)
+            # Find the catch-all (empty trigger list) and assign there
+            for pillar_name, trigger_keywords in pillar_rules:
+                if not trigger_keywords:
+                    if pillar_name not in buckets:
+                        buckets[pillar_name] = []
+                    buckets[pillar_name].append(kw_data)
+                    break
 
     lines = [
         "| Service Pillar | Monthly Searches | Avg CPC | Est. Annual Ad Value | Competition |",
@@ -665,6 +860,175 @@ def _build_high_value_keyword_table(high_value_kws: list[dict]) -> str:
         annual = vol * 0.10 * cpc * 12
         lines.append(f"| {keyword} | {_fmt_num(vol)} | {_fmt_cpc(cpc)} | {_fmt_dollar(annual)} |")
     return "\n".join(lines)
+
+
+def _build_why_this_matters_box(high_value_kws: list[dict], service: str) -> str:
+    """
+    "Why This Matters" calculation callout from the Steadfast reference.
+    Shows exact math: top high-CPC keyword × volume × CTR × 12 months = annual ad savings.
+    """
+    if not high_value_kws:
+        return ""
+
+    # Prefer emergency/urgent keyword — highest intent, highest CPC
+    top_kw = None
+    for kw in high_value_kws:
+        if any(t in kw.get("keyword", "").lower() for t in ["emergency", "urgent", "24 hour"]):
+            top_kw = kw
+            break
+    if top_kw is None:
+        top_kw = high_value_kws[0]
+
+    keyword = top_kw.get("keyword", "")
+    vol = top_kw.get("search_volume") or 0
+    cpc = float(top_kw.get("cpc", 0) or 0)
+
+    if not vol or not cpc:
+        return ""
+
+    monthly_clicks = round(vol * 0.10)
+    monthly_value = monthly_clicks * cpc
+    annual_value = monthly_value * 12
+
+    return (
+        f"**WHY THIS MATTERS**\n\n"
+        f"Every month, **{vol:,} people** search for \"{keyword}\".\n"
+        f"Google charges **{_fmt_cpc(cpc)} per click** for this keyword.\n"
+        f"At a 10% CTR that's **{monthly_clicks} monthly clicks** worth **{_fmt_dollar(int(monthly_value))}/month** in ad traffic.\n"
+        f"Over 12 months: **{_fmt_dollar(int(annual_value))} in Google Ads spend you never have to write a check for.**\n"
+        f"Rank organically — keep that money."
+    )
+
+
+def _build_service_subsection_tables(volumes: list[dict], service: str) -> str:
+    """
+    Build service-specific keyword sub-tables.
+    Plumbing → Water Heater | Water Treatment | Drain & Sewer | Emergency
+    Electrician → Panel | EV Charging | Emergency
+    etc.
+    Mirrors the Steadfast PDF's separate tables for each service sub-category.
+    """
+    if not volumes:
+        return ""
+
+    service_type = _detect_service_type(service)
+
+    subsection_rules: dict[str, list[tuple[str, list[str]]]] = {
+        "plumbing": [
+            ("Water Heater Keywords",      ["water heater", "tankless", "hot water"]),
+            ("Water Treatment Keywords",   ["water softener", "softener", "reverse osmosis",
+                                             "ro system", "filtration", "water treatment",
+                                             "water purif", "ro filter"]),
+            ("Drain & Sewer Keywords",     ["drain", "sewer", "clog", "rooter", "drain cleaning"]),
+            ("Emergency Plumbing Keywords",["emergency", "urgent", "24 hour", "burst pipe"]),
+        ],
+        "electrician": [
+            ("Panel & Service Upgrade Keywords", ["panel", "breaker", "200 amp", "service upgrade",
+                                                   "electrical box"]),
+            ("EV Charger Keywords",              ["ev charger", "electric vehicle", "charging station",
+                                                   "level 2 charger"]),
+            ("Emergency Electrical Keywords",    ["emergency", "urgent", "24 hour"]),
+        ],
+        "hvac": [
+            ("AC Repair Keywords",     ["ac repair", "air conditioner repair", "cooling repair",
+                                         "ac not cooling"]),
+            ("Heating Keywords",       ["heating", "furnace", "heat pump", "boiler"]),
+            ("Installation Keywords",  ["installation", "install", "replacement", "new unit"]),
+        ],
+        "roofing": [
+            ("Storm & Emergency Keywords", ["emergency", "storm damage", "hail", "roof leak"]),
+            ("Replacement Keywords",       ["replacement", "new roof", "reroof"]),
+            ("Gutter Keywords",            ["gutter", "downspout"]),
+        ],
+        "auto_detailing": [
+            ("Premium Service Keywords", ["ceramic coating", "paint correction", "ppf",
+                                           "paint protection", "full detail"]),
+            ("Mobile Detailing Keywords", ["mobile", "on-site", "come to you", "at your home"]),
+        ],
+    }
+
+    rules = subsection_rules.get(service_type, [])
+    if not rules:
+        return ""
+
+    sections = []
+    used_keywords: set[str] = set()
+
+    for section_name, triggers in rules:
+        kws_in_section = [
+            kw for kw in volumes
+            if kw.get("keyword") not in used_keywords
+            and any(t in kw.get("keyword", "").lower() for t in triggers)
+            and (kw.get("search_volume") or 0) > 0
+        ]
+        if not kws_in_section:
+            continue
+
+        kws_sorted = sorted(kws_in_section, key=lambda x: x.get("search_volume") or 0, reverse=True)
+
+        lines = [
+            f"**{section_name}**",
+            "",
+            "| Keyword | Monthly Volume | CPC | Competition |",
+            "|---------|---------------|-----|------------|",
+        ]
+        for kw in kws_sorted[:6]:
+            keyword = kw.get("keyword", "")
+            vol = _fmt_num(kw.get("search_volume"))
+            cpc = _fmt_cpc(kw.get("cpc"))
+            comp = kw.get("competition_level", "—")
+            comp_str = comp.title() if comp and comp != "—" else "—"
+            lines.append(f"| {keyword} | {vol} | {cpc} | {comp_str} |")
+            used_keywords.add(keyword)
+
+        sections.append("\n".join(lines))
+
+    return "\n\n".join(sections)
+
+
+def _build_per_city_keyword_tables(
+    volumes: list[dict],
+    metro_cities: list[str],
+) -> str:
+    """
+    Per-city keyword breakdown — mirrors the Steadfast PDF's city sections.
+    Gilbert | Mesa | Queen Creek | San Tan Valley each get their own table.
+    Groups keywords that contain the city name, shows Volume + CPC.
+    """
+    if not volumes or not metro_cities:
+        return ""
+
+    sections = []
+    for city in metro_cities[:5]:
+        city_lower = city.lower()
+        city_kws = [
+            kw for kw in volumes
+            if city_lower in kw.get("keyword", "").lower()
+            and (kw.get("search_volume") or 0) > 0
+        ]
+        if not city_kws:
+            continue
+
+        city_kws_sorted = sorted(city_kws, key=lambda x: x.get("search_volume") or 0, reverse=True)
+
+        lines = [
+            f"**{city.upper()}**",
+            "",
+            "| Keyword | Monthly Volume | CPC |",
+            "|---------|---------------|-----|",
+        ]
+        for kw in city_kws_sorted[:6]:
+            keyword = kw.get("keyword", "")
+            vol = _fmt_num(kw.get("search_volume"))
+            cpc = _fmt_cpc(kw.get("cpc"))
+            lines.append(f"| {keyword} | {vol} | {cpc} |")
+
+        sections.append("\n".join(lines))
+
+    if not sections:
+        return ""
+
+    return "\n\n".join(sections)
 
 
 def _build_priority_keyword_table(
@@ -749,7 +1113,7 @@ def _build_roi_table(
         f"| Organic Traffic Goal | {_fmt_num(con_traffic)}/month | Achievable with 20-30 page-1 rankings |",
         f"| Conversion Rate | 3% | Industry average for {service} businesses |",
         f"| Leads/Month | {con_leads} | {_fmt_num(con_traffic)} × 3% |",
-        f"| Close Rate | 40% | Good sales process |",
+        "| Close Rate | 40% | Good sales process |",
         f"| New Customers/Month | {con_jobs} | {con_leads} × 40% |",
         f"| Avg Job Value | {_fmt_dollar(job_val)} | Your stated average |",
         f"| **Monthly Revenue** | **{_fmt_dollar(con_revenue)}** | {con_jobs} × {_fmt_dollar(job_val)} |",
@@ -760,9 +1124,9 @@ def _build_roi_table(
         "| Metric | Value | Calculation |",
         "|--------|-------|-------------|",
         f"| Organic Traffic Goal | {_fmt_num(grow_traffic)}/month | With 50+ keywords ranking page 1 |",
-        f"| Conversion Rate | 4% | Optimized website |",
+        "| Conversion Rate | 4% | Optimized website |",
         f"| Leads/Month | {grow_leads} | {_fmt_num(grow_traffic)} × 4% |",
-        f"| Close Rate | 40% | Consistent process |",
+        "| Close Rate | 40% | Consistent process |",
         f"| New Customers/Month | {grow_jobs} | {grow_leads} × 40% |",
         f"| Avg Job Value | {_fmt_dollar(job_val)} | Your stated average |",
         f"| **Monthly Revenue** | **{_fmt_dollar(grow_revenue)}** | {grow_jobs} × {_fmt_dollar(job_val)} |",
@@ -836,6 +1200,12 @@ async def run_prospect_audit(
     state_abbr    = state_raw.upper()
     state_full    = _STATE_MAP.get(state_abbr, state_raw)
 
+    # US-national location for DFS Labs domain overview + ranked keyword calls.
+    # City-level and state-level are too granular for DFS Labs — these endpoints
+    # return accurate domain-level traffic at country scope only.
+    # SERP + keyword volume calls still use city-level location for local relevance.
+    state_location_name = "United States"
+
     # Get nearby cities for metro-wide competitor search
     metro_cities = _get_metro_cities(city, state_abbr, n=5)
 
@@ -869,9 +1239,11 @@ async def run_prospect_audit(
     yield f"> Pulling traffic data for {len(domain_city_map)} competitors across the {city} metro...\n\n"
 
     # ── Phase 2: Competitor profiling + prospect rank ──────────────────────
+    # Use state-level location for DFS Labs calls — city-level is too granular
+    # and returns empty traffic data for metro-wide competitors.
     competitor_profiles, prospect_rank, keyword_difficulty = await asyncio.gather(
-        _profile_competitors(domain_city_map, location_name),
-        _get_prospect_rank(domain, location_name),
+        _profile_competitors(domain_city_map, state_location_name),
+        _get_prospect_rank(domain, state_location_name),
         (
             get_bulk_keyword_difficulty(
                 [v["keyword"] for v in (keyword_volumes or [])[:20] if v.get("keyword") and (v.get("search_volume") or 0) > 0],
@@ -888,7 +1260,7 @@ async def run_prospect_audit(
     if isinstance(keyword_difficulty, Exception):
         keyword_difficulty = []
 
-    yield f"> Building analysis with real market data...\n\n"
+    yield "> Building analysis with real market data...\n\n"
     yield "---\n\n"
 
     # ── Phase 3: Compute market metrics ───────────────────────────────────
@@ -921,6 +1293,9 @@ async def run_prospect_audit(
 
     pillar_table, high_value_kws = _build_keyword_pillar_table(kw_vol_list, service)
     high_value_table = _build_high_value_keyword_table(high_value_kws)
+    why_this_matters = _build_why_this_matters_box(high_value_kws, service)
+    service_subsections = _build_service_subsection_tables(kw_vol_list, service)
+    per_city_tables = _build_per_city_keyword_tables(kw_vol_list, metro_cities)
     priority_table = _build_priority_keyword_table(kw_vol_list, keyword_difficulty or [], service, city)
 
     con_roi_table, grow_roi_table = _build_roi_table(
@@ -1032,11 +1407,12 @@ async def run_prospect_audit(
 
     high_value_section = ""
     if high_value_table:
+        why_box = f"\n\n{why_this_matters}" if why_this_matters else ""
         high_value_section = f"""### HIGH-VALUE KEYWORD OPPORTUNITIES
 
 These keywords have CPCs above $20 — every organic click saves you that amount vs. Google Ads.
 
-{high_value_table}"""
+{high_value_table}{why_box}"""
 
     _fallback_priority_row = (
         "| Priority | Keyword | Volume | CPC | Why |\n"
@@ -1044,6 +1420,15 @@ These keywords have CPCs above $20 — every organic click saves you that amount
         f"| 1 | {service} {city} | — | — | Core market keyword |"
     )
     priority_table_str = priority_table if priority_table else _fallback_priority_row
+
+    # Build optional sub-sections for the template
+    service_subsections_block = ""
+    if service_subsections:
+        service_subsections_block = f"### SERVICE-SPECIFIC KEYWORD BREAKDOWN\n\n{service_subsections}"
+
+    per_city_block = ""
+    if per_city_tables:
+        per_city_block = f"### KEYWORDS BY CITY\n\n{per_city_tables}"
 
     template = f"""# SEO MARKET OPPORTUNITY & COMPETITIVE ANALYSIS
 
@@ -1059,7 +1444,7 @@ Real Data. Real Opportunity. Real ROI.
 
 **EXECUTIVE SUMMARY**
 
-[Write 4-5 sentences. State total monthly searches ({total_searches_display}) across the metro area. Name {leader_name} as the market leader getting {_fmt_num(leader_traffic)} visits/month worth {_fmt_dollar(leader_value)}/mo. State that Motor City is currently invisible in organic search. Frame it as: this market is real, the competition is beatable, and the data shows exactly where the opportunity is. ProofPilot has the plan.]
+[Write 4-5 sentences. State total monthly searches ({total_searches_display}) across the metro area. Name {leader_name} as the market leader getting {_fmt_num(leader_traffic)} visits/month worth {_fmt_dollar(leader_value)}/mo. State that {client_name} is currently invisible in organic search. Frame it as: this market is real, the competition is beatable, and the data shows exactly where the opportunity is. ProofPilot has the plan.]
 
 **{total_searches_display}**
 **MONTHLY METRO SEARCHES**
@@ -1104,6 +1489,9 @@ Use this format:
 | Keyword | Volume | CPC | Competition |
 |---------|--------|-----|------------|
 (fill rows from data above, only include keywords with volume > 0)]
+
+{service_subsections_block}
+{per_city_block}
 
 ---
 

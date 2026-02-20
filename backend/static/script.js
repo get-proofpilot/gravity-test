@@ -52,27 +52,42 @@ async function loadClients() {
 
 const WORKFLOWS = [
   /* ── SEO ANALYSIS ── */
+  { id: 'prospect-audit', icon: '🎯', title: 'Prospect SEO Market Analysis',
+    desc: 'Full sales-pitch analysis — real competitor traffic, per-city keyword tables, service-specific breakdowns, $-value ROI projections, and a 3-phase strategy that closes deals.',
+    time: '~8 min', status: 'active', skill: 'prospect-audit', category: 'seo',
+    preview: '# SEO Market Opportunity: Steadfast Plumbing — Gilbert, AZ\n\n**3,990 monthly searches. $377K annual ad value. 7 named competitors.**\n\n## Competitor Landscape\n| Competitor | Monthly Traffic | Value |\n|---|---|---|\n| rotorooter.com | 2,340,262/mo | $66M/mo |\n| parkerandsons.com | 307,444/mo | $5.3M/mo |\n| ezflowplumbingaz.com | 8,946/mo | $208K/mo |\n| **Steadfast Plumbing** | **Your opportunity** | |\n\n## High-Value Keywords ($100+ CPC)\n- "emergency plumber" — $313.04/click, 30/mo\n- "emergency plumber gilbert" — $140.71/click, 140/mo\n- "emergency plumber near me" — $108.37/click, 210/mo\n\n**WHY THIS MATTERS:** Every organic click on "emergency plumber" saves $313/click vs. Google Ads. 12 months of rankings = $11,269 in ad spend you keep.\n\n## Per-City Keyword Tables (Gilbert, Chandler, Mesa, Tempe)\n## Service Breakdowns (Water Heater, Water Treatment, Drain, Emergency)\n## ROI: 12–48 new customers/month → $64,800–$259,200/year' },
   { id: 'website-seo-audit', icon: '🔍', title: 'Website & SEO Audit',
     desc: 'Full technical SEO audit — performance, structure, local signals, backlinks, and a ranked action list.',
     time: '~8 min', status: 'active', skill: 'website-seo-audit', category: 'seo',
     preview: '# SEO Audit: All Thingz Electric — Chandler, AZ\n\n**Overall Score: 63/100** — Est. 12–18 leads/month lost to ranking gaps.\n\n## Critical Issues\n- "Panel upgrade Chandler AZ" — Position #23 (first page achievable in 90 days)\n- GBP missing 8 service categories vs. top competitor\n- 0 backlinks from local Chandler business directories\n\n## Top Priority Action\nCreate 3 service pages targeting underranked commercial keywords. Estimated ROI: 8–12 inbound calls/month within 60 days.' },
-  { id: 'prospect-audit', icon: '🎯', title: 'Prospect SEO Market Analysis',
-    desc: 'Sales-focused market analysis for proposals — shows the revenue gap, names competitors, and closes the deal.',
-    time: '~8 min', status: 'active', skill: 'prospect-audit', category: 'seo',
-    preview: '# Market Analysis: Steadfast Plumbing — Gilbert, AZ\n\n**Revenue Gap: ~$28,000/month** — Top-ranked competitor captures 3× the lead volume.\n\n## Who\'s Winning\nMesa Plumbing Pros ranks #1 for 14 commercial keywords including "water heater replacement Gilbert."\n\n## Your Opportunity\n8 high-value keywords with <45 difficulty — achievable page 1 rankings within 60 days.\n\n**Closing Insight:** 340 people searched "emergency plumber Gilbert AZ" last month. You\'re not appearing for any of them.' },
   { id: 'keyword-gap', icon: '📊', title: 'Keyword Gap Analysis',
     desc: 'Find every keyword competitors rank for that you don\'t — sorted by revenue opportunity.',
     time: '~6 min', status: 'active', skill: 'keyword-gap', category: 'seo',
     preview: '# Keyword Gap Report: All Thingz Electric vs. 3 Competitors\n\n**47 untapped keywords** your top competitors rank for — you rank for 0.\n\nTop Opportunities by Revenue:\n- "electrical panel upgrade chandler" — 210/mo searches, Difficulty 38, Est. $4,200/mo\n- "ev charger installation scottsdale" — 170/mo searches, Difficulty 31, Est. $3,400/mo\n- "electrical inspection chandler az" — 140/mo searches, Difficulty 27, Est. $2,100/mo\n\n**Priority Plan:** 3 service pages + 2 blog posts covers 74% of total opportunity.' },
-  { id: 'seo-strategy-sheet', icon: '📋', title: 'SEO Strategy Spreadsheet',
-    desc: '14-tab SEO strategy workbook — keyword clusters, competitor gaps, content calendar, and priority matrix.',
-    time: '~4 min', status: 'soon', category: 'seo' },
-  { id: 'backlink-outreach', icon: '🔗', title: 'Backlink Outreach',
-    desc: 'Prospect link-building opportunities and generate personalized outreach emails at scale.',
-    time: '~12 min', status: 'soon', category: 'seo' },
+  { id: 'ai-search-report', icon: '🤖', title: 'AI Search Visibility Report',
+    desc: 'See how your brand appears in AI Overviews, featured snippets, and knowledge panels — with a plan to get cited.',
+    time: '~6 min', status: 'active', skill: 'ai-search-report', category: 'seo',
+    preview: '# AI Search Visibility Report: All Thingz Electric\n\n**AI Visibility Score: 22/100** — Your competitors are being cited by Google AI Overviews. You are not.\n\n## Key Findings\n- 7 of 10 target keywords trigger AI Overviews\n- Competitor "Parker & Sons" cited in 4 AI Overviews\n- You appear in 0 AI Overviews — missing $12K/mo in traffic\n\n## Top Opportunity\nCreate FAQ content answering "how much does a panel upgrade cost in Chandler?" — this query has an AI Overview citing a competitor blog post.' },
+  { id: 'backlink-audit', icon: '🔗', title: 'Backlink Audit',
+    desc: 'Full backlink health check — referring domains, anchor text, spam score, competitor comparison, and link-building plan.',
+    time: '~5 min', status: 'active', skill: 'backlink-audit', category: 'seo',
+    preview: '# Backlink Audit: All Thingz Electric\n\n**Backlink Health: 54/100** — 127 backlinks from 43 domains. Competitor average: 312 backlinks from 89 domains.\n\n## Key Issues\n- 68% of anchors are branded or URL-only — need more keyword-rich anchors\n- 12 broken backlinks losing link equity\n- Missing from Chandler Chamber of Commerce, BBB, and 3 local directories\n\n## Top Opportunities\n1. Replicate 14 competitor links from local directories\n2. Fix 12 broken backlinks → instant authority recovery\n3. Guest post on azcentral.com home improvement section' },
+  { id: 'onpage-audit', icon: '🔬', title: 'On-Page Technical Audit',
+    desc: 'Deep single-page technical audit — Core Web Vitals, meta tags, heading structure, and a prioritized fix list.',
+    time: '~4 min', status: 'active', skill: 'onpage-audit', category: 'seo',
+    preview: '# On-Page Audit: /panel-upgrade — All Thingz Electric\n\n**Page Health: 47/100** — 6 critical issues found.\n\n## Critical Fixes\n1. Title tag is 13 chars ("Panel Upgrade") — should be 50-60 with location keyword\n2. No H1 tag — the page has no primary heading element\n3. LCP is 4.8s — needs image optimization and lazy loading\n4. Only 2 internal links — competitors average 12+\n\n## vs. Top Competitor\n#1 ranking page has 2,400 words, 8 H2s, FAQ schema, and 14 internal links. This page: 340 words, 1 H2, no schema.' },
+  { id: 'seo-research', icon: '🧠', title: 'SEO Research & Content Strategy',
+    desc: 'The strategic brain — analyzes your entire keyword universe, clusters by intent, and produces a prioritized content roadmap.',
+    time: '~10 min', status: 'active', skill: 'seo-research', category: 'seo',
+    preview: '# SEO Content Strategy: All Thingz Electric — Chandler, AZ\n\n**Total Market Opportunity: $47,000/mo in organic traffic value**\n\n## Keyword Universe: 156 keywords discovered\n- Commercial (42): "electrician chandler az" 2,400/mo, "panel upgrade chandler" 210/mo\n- Cost Intent (18): "how much does rewiring cost phoenix" 1,200/mo\n- Comparison (12): "rheem vs carrier water heater" 880/mo\n- Informational (84): "signs you need panel upgrade" 450/mo\n\n## Content Roadmap\n**Week 1:** 3 service pages targeting commercial keywords (est. $4,200/mo value)\n**Month 1:** 8 location pages + 4 cost guides (est. $12,000/mo value)' },
+  { id: 'competitor-intel', icon: '🕵️', title: 'Competitor Intelligence Report',
+    desc: 'Deep competitive teardown — keyword gaps, backlink gaps, content gaps, and a specific plan to outrank every competitor.',
+    time: '~8 min', status: 'active', skill: 'competitor-intel', category: 'seo',
+    preview: '# Competitor Intelligence: All Thingz Electric vs. 3 Competitors\n\n**Competitive Position: Outranked** — Top competitor captures 4x your organic traffic.\n\n## Domain Comparison\n| Metric | You | Parker & Sons | Efficient Electric |\n|---|---|---|---|\n| Keywords | 47 | 312 | 189 |\n| Traffic | 280/mo | 4,200/mo | 1,800/mo |\n\n## Biggest Gap\n23 commercial keywords your competitors rank for that you rank for ZERO.\nTotal addressable volume: 8,400/mo searches.' },
   { id: 'schema-generator', icon: '🧩', title: 'Schema Generator',
     desc: 'Auto-generate structured data markup for target pages — local business, FAQ, service, and article schemas.',
-    time: '~2 min', status: 'soon', category: 'seo' },
+    time: '~2 min', status: 'active', skill: 'schema-generator', category: 'seo',
+    preview: '# Schema Markup: All Thingz Electric — Chandler, AZ\n\n## Strategy Overview\n3 schema types recommended: LocalBusiness, FAQPage, Service\n\n## LocalBusiness Schema\n```json\n{\n  "@context": "https://schema.org",\n  "@type": "Electrician",\n  "name": "All Thingz Electric",\n  "address": { "@type": "PostalAddress", "addressLocality": "Chandler", "addressRegion": "AZ" },\n  "telephone": "(480) 555-0182"\n}\n```\n\n## FAQPage Schema (5 Q&As)\n## Service Schema (per service)\n## Implementation Guide' },
   /* ── CONTENT CREATION ── */
   { id: 'seo-blog-post', icon: '✍️', title: 'SEO Blog Post',
     desc: 'Publish-ready blog post targeting informational keywords — key takeaways, FAQ, local CTA, and meta description.',
@@ -90,41 +105,31 @@ const WORKFLOWS = [
     desc: 'SEO articles for electricians, plumbers, HVAC, and other home service businesses. Built for local rank.',
     time: '~5 min', status: 'active', skill: 'home-service-seo-content', category: 'content',
     preview: '# 7 Signs Your Home Needs an Electrical Panel Upgrade\n\nMost homeowners in Chandler don\'t think about their electrical panel until something goes wrong. By then, the warning signs had been there for months — tripping breakers, flickering lights, outlets that stopped working.\n\nHere\'s what to look for, and when to call a licensed electrician:\n\n**1. Breakers That Keep Tripping**\nA breaker trips once — that\'s it doing its job. If the same breaker trips twice a week, the circuit is consistently overloaded. This is the most common panel issue in Chandler homes built before 2000...' },
-  { id: 'seo-blog-generator', icon: '✍️', title: 'SEO Blog Generator',
-    desc: 'Full SEO blog post workflow for service businesses — keyword-targeted, structured, and ready to publish.',
-    time: '~6 min', status: 'soon', category: 'content' },
-  { id: 'content-strategy-sheet', icon: '📋', title: 'Content Strategy Spreadsheet',
-    desc: 'Content ecosystem mapping with psychographic profiles, funnel stages, and distribution plan per channel.',
-    time: '~5 min', status: 'soon', category: 'content' },
+  { id: 'content-strategy', icon: '📋', title: 'Content Strategy',
+    desc: 'Content ecosystem mapping with buyer personas, topic clusters, funnel stages, 12-month calendar, and distribution plan.',
+    time: '~6 min', status: 'active', skill: 'content-strategy', category: 'content',
+    preview: '# Content Strategy: Steadfast Plumbing — Gilbert, AZ\n\n## Buyer Personas\n**Persona 1: "Emergency Ed"** — Homeowner, 40-55, pipe burst at 2am. Pain: water damage. Trigger: visible leak.\n**Persona 2: "Renovation Rachel"** — First-time buyer, 30-40, remodeling bathroom. Researches heavily before hiring.\n\n## Content Pillars (6)\n1. Emergency Services (12 cluster topics)\n2. Cost Transparency (8 cluster topics)\n3. Home Maintenance Education (10 topics)\n\n## 12-Month Calendar\nJan: "Winter pipe protection" blog series\nFeb: Cost guide refresh...' },
   { id: 'google-ads-copy', icon: '📣', title: 'Google Ads Copy',
-    desc: 'High-converting search ad copy — headlines, descriptions, and extensions for service-based campaigns.',
-    time: '~4 min', status: 'soon', category: 'content' },
+    desc: 'High-converting search ad copy — headlines, descriptions, sitelinks, callouts, and negative keywords.',
+    time: '~4 min', status: 'active', skill: 'google-ads-copy', category: 'content',
+    preview: '# Google Ads Copy: All Thingz Electric — Chandler, AZ\n\n## Ad Group: Electrician — High Intent\n**Headlines (15):**\n1. Electrician in Chandler AZ (23 chars)\n2. Licensed Master Electrician (27 chars)\n3. Same-Day Service Available (26 chars)\n\n**Descriptions (4):**\n1. Licensed & insured electricians serving Chandler. Same-day appointments. Call for free estimate. (90 chars)\n\n**Keywords:** "electrician chandler az" 2,400/mo $12.50 CPC\n\n## Sitelinks\n## Negative Keywords (47)' },
   /* ── BUSINESS TOOLS ── */
-  { id: 'proposals', icon: '📄', title: 'Client Proposals',
-    desc: 'Branded marketing proposals ready to send — scoped deliverables, pricing, and ProofPilot positioning built in.',
-    time: '~3 min', status: 'soon', category: 'business' },
   { id: 'monthly-report', icon: '📈', title: 'Monthly Client Report',
-    desc: 'White-label client report — rankings, traffic wins, and recommendations bundled to send.',
-    time: '~3 min', status: 'soon', category: 'business' },
+    desc: 'Data-backed monthly performance report — rankings, traffic, backlinks, wins, and strategic recommendations.',
+    time: '~5 min', status: 'active', skill: 'monthly-report', category: 'business',
+    preview: '# Monthly SEO Report: All Thingz Electric — January 2026\n\n**SEO Health Score: 72/100** | Direction: Improving\n\n## Rankings Performance\n- 47 total keywords ranked (up from 39)\n- 12 keywords on page 1 (3 new this month)\n- 8 keywords on page 2 — "almost there" opportunities\n\n## Traffic & Visibility\n- Est. organic traffic: 1,240/mo (+18% MoM)\n- Traffic value: $4,200/mo\n\n## Wins This Month\n- "panel upgrade chandler az" moved from #14 to #7\n- New blog post ranking #4 for "ev charger cost phoenix"\n\n## Next Month Strategy\n3 service pages targeting $8,400/mo in opportunity' },
+  { id: 'proposals', icon: '📄', title: 'Client Proposals',
+    desc: 'Data-backed marketing proposals — competitor data, opportunity sizing, scoped deliverables, and ROI projections.',
+    time: '~5 min', status: 'active', skill: 'proposals', category: 'business',
+    preview: '# Marketing Proposal: Steadfast Plumbing\nPrepared by ProofPilot\n\n## The Opportunity\nYour top competitor gets 4,200 monthly organic visits worth $18,000/mo in ad value. You currently get 280.\n\n**Total addressable search volume in Gilbert:** 8,900/mo\n**Revenue you\'re leaving on the table:** $47,000/year\n\n## Investment: Growth Strategy — $6,200/mo\n- 8 SEO-optimized pages/month\n- Full keyword gap remediation\n- Monthly backlink acquisition\n- Dedicated strategy calls\n\n## ROI Projection\nConservative (5% capture): 12 new leads/mo → $64,800/year' },
   { id: 'pnl-statement', icon: '💰', title: 'P&L Statement',
-    desc: 'Monthly profit & loss statement generator — structured financials formatted and ready for review.',
-    time: '~3 min', status: 'soon', category: 'business' },
-  { id: 'brand-styling', icon: '🎨', title: 'Brand Styling',
-    desc: 'Applies ProofPilot brand standards to .docx and .xlsx deliverables — fonts, colors, headers, and polish.',
-    time: '~2 min', status: 'soon', category: 'business' },
-  /* ── DEV & CREATIVE ── */
-  { id: 'frontend-design', icon: '🖥️', title: 'Frontend Interface Builder',
-    desc: 'Production-grade UI components and pages — distinctive design, clean code, no generic AI aesthetics.',
-    time: '~8 min', status: 'soon', category: 'dev' },
-  { id: 'lovable-prompting', icon: '⚡', title: 'Lovable App Builder',
-    desc: 'Expert Lovable.dev prompting to build full apps — structured flows that get clean, working results fast.',
-    time: '~5 min', status: 'soon', category: 'dev' },
+    desc: 'Monthly profit & loss statement — itemized revenue/expenses, margins, ratios, and financial recommendations.',
+    time: '~2 min', status: 'active', skill: 'pnl-statement', category: 'business',
+    preview: '# P&L Statement: ProofPilot — January 2026\n\n## Revenue Summary\n| Client | Amount |\n|---|---|\n| Client A | $6,200 |\n| Client B | $2,000 |\n| Client C | $3,500 |\n| **Total Revenue** | **$11,700** |\n\n## Gross Profit: $9,100 (77.8%)\n## Net Income: $6,200 (53.0%)\n\n## Key Ratios\n| Ratio | Value | Benchmark |\n| Gross Margin | 77.8% | 50-70% |\n| Net Margin | 53.0% | 15-30% |\n\n## Recommendations\n1. Capacity for 3 more clients at current margins' },
   { id: 'property-mgmt-strategy', icon: '🏢', title: 'Property Mgmt Strategy',
-    desc: 'Website and SEO strategy for property management companies — local presence, lead gen focus, and conversion flow.',
-    time: '~6 min', status: 'soon', category: 'dev' },
-  { id: 'competitor-gap', icon: '🎯', title: 'Competitor Gap Analysis',
-    desc: 'Find keywords competitors rank for that you don\'t — instant opportunity list with difficulty scores.',
-    time: '~5 min', status: 'soon', category: 'dev' },
+    desc: 'Website and SEO strategy for property management companies — owner acquisition, tenant funnels, and local SEO.',
+    time: '~6 min', status: 'active', skill: 'property-mgmt-strategy', category: 'business',
+    preview: '# Property Management Marketing Strategy: ABC Properties — Phoenix, AZ\n\n## Market Assessment\n- Currently ranking for 12 keywords (vs competitor avg of 89)\n- Missing 47 high-value keywords\n\n## Website Strategy\n- Owner Portal: ROI calculator, management fee transparency, case studies\n- Tenant Portal: Online payments, maintenance requests, community info\n\n## SEO Strategy by Property Type\n- Residential: 24 target keywords, 8 location pages\n- Commercial: 12 target keywords, 4 service pages\n- HOA: 8 target keywords, 3 authority posts\n\n## 90-Day Roadmap\nWeek 1-2: Foundation pages...' },
 ];
 
 const JOBS = [];
@@ -450,6 +455,18 @@ function selectWorkflow(id) {
     'modalInputsServicePage':   id === 'service-page',
     'modalInputsLocationPage':  id === 'location-page',
     'modalInputsProgrammatic':  id === 'programmatic-content',
+    'modalInputsAISearch':      id === 'ai-search-report',
+    'modalInputsBacklinkAudit': id === 'backlink-audit',
+    'modalInputsOnpageAudit':   id === 'onpage-audit',
+    'modalInputsSEOResearch':   id === 'seo-research',
+    'modalInputsCompIntel':     id === 'competitor-intel',
+    'modalInputsMonthlyReport': id === 'monthly-report',
+    'modalInputsProposals':     id === 'proposals',
+    'modalInputsGoogleAds':     id === 'google-ads-copy',
+    'modalInputsSchema':        id === 'schema-generator',
+    'modalInputsContentStrategy': id === 'content-strategy',
+    'modalInputsPnl':           id === 'pnl-statement',
+    'modalInputsPropertyMgmt':  id === 'property-mgmt-strategy',
   };
   Object.entries(panels).forEach(([panelId, show]) => {
     const panel = document.getElementById(panelId);
@@ -472,7 +489,19 @@ function selectWorkflow(id) {
    'wfBlogBusinessType','wfBlogLocation','wfBlogKeyword','wfBlogAudience','wfBlogTone','wfBlogInternalLinks','wfBlogNotes',
    'wfSvcBusinessType','wfSvcService','wfSvcLocation','wfSvcDifferentiators','wfSvcPriceRange','wfSvcNotes',
    'wfLocBusinessType','wfLocPrimaryService','wfLocTargetLocation','wfLocHomeBase','wfLocLocalDetails','wfLocServicesList','wfLocNotes',
-   'wfProgContentType','wfProgBusinessType','wfProgPrimaryService','wfProgLocation','wfProgHomeBase','wfProgItemsList','wfProgServicesList','wfProgDifferentiators','wfProgNotes'].forEach(fid => {
+   'wfProgContentType','wfProgBusinessType','wfProgPrimaryService','wfProgLocation','wfProgHomeBase','wfProgItemsList','wfProgServicesList','wfProgDifferentiators','wfProgNotes',
+   'wfAIDomain','wfAIService','wfAILocation','wfAINotes',
+   'wfBLDomain','wfBLService','wfBLLocation','wfBLCompetitors','wfBLNotes',
+   'wfOPUrl','wfOPKeyword','wfOPLocation','wfOPNotes',
+   'wfSRDomain','wfSRService','wfSRLocation','wfSRCompetitors','wfSRNotes',
+   'wfCIDomain','wfCICompetitors','wfCIService','wfCILocation','wfCINotes',
+   'wfMRDomain','wfMRService','wfMRLocation','wfMRPeriod','wfMRHighlights','wfMRNotes',
+   'wfPRDomain','wfPRService','wfPRLocation','wfPRPackage','wfPRCompetitors','wfPRNotes',
+   'wfGAService','wfGALocation','wfGABusinessName','wfGAUsp','wfGALandingUrl','wfGABudget','wfGANotes',
+   'wfSCBusinessName','wfSCBusinessType','wfSCLocation','wfSCSchemaTypes','wfSCPhone','wfSCAddress','wfSCWebsite','wfSCServicesList','wfSCHours','wfSCNotes',
+   'wfCSBusinessType','wfCSService','wfCSLocation','wfCSAudience','wfCSGoals','wfCSNotes',
+   'wfPLPeriod','wfPLRevenue','wfPLExpenses','wfPLEntity','wfPLNotes',
+   'wfPMDomain','wfPMCompany','wfPMLocation','wfPMPropertyTypes','wfPMPortfolioSize','wfPMNotes'].forEach(fid => {
     const el = document.getElementById(fid);
     if (el) el.value = '';
   });
@@ -564,6 +593,79 @@ function checkRunReady() {
       ready = !!(businessType && primaryService && targetLocation && homeBase);
     }
 
+    if (selectedWorkflow === 'ai-search-report' && ready) {
+      const domain   = document.getElementById('wfAIDomain')?.value.trim();
+      const service  = document.getElementById('wfAIService')?.value.trim();
+      const location = document.getElementById('wfAILocation')?.value.trim();
+      ready = !!(domain && service && location);
+    }
+
+    if (selectedWorkflow === 'backlink-audit' && ready) {
+      const domain = document.getElementById('wfBLDomain')?.value.trim();
+      ready = !!domain;
+    }
+
+    if (selectedWorkflow === 'onpage-audit' && ready) {
+      const url = document.getElementById('wfOPUrl')?.value.trim();
+      ready = !!url;
+    }
+
+    if (selectedWorkflow === 'seo-research' && ready) {
+      const domain   = document.getElementById('wfSRDomain')?.value.trim();
+      const service  = document.getElementById('wfSRService')?.value.trim();
+      const location = document.getElementById('wfSRLocation')?.value.trim();
+      ready = !!(domain && service && location);
+    }
+
+    if (selectedWorkflow === 'competitor-intel' && ready) {
+      const domain = document.getElementById('wfCIDomain')?.value.trim();
+      ready = !!domain;
+    }
+
+    if (selectedWorkflow === 'monthly-report' && ready) {
+      const domain = document.getElementById('wfMRDomain')?.value.trim();
+      ready = !!domain;
+    }
+
+    if (selectedWorkflow === 'proposals' && ready) {
+      const domain   = document.getElementById('wfPRDomain')?.value.trim();
+      const service  = document.getElementById('wfPRService')?.value.trim();
+      const location = document.getElementById('wfPRLocation')?.value.trim();
+      ready = !!(domain && service && location);
+    }
+
+    if (selectedWorkflow === 'google-ads-copy' && ready) {
+      const service  = document.getElementById('wfGAService')?.value.trim();
+      const location = document.getElementById('wfGALocation')?.value.trim();
+      ready = !!(service && location);
+    }
+
+    if (selectedWorkflow === 'schema-generator' && ready) {
+      const businessType = document.getElementById('wfSCBusinessType')?.value.trim();
+      const location     = document.getElementById('wfSCLocation')?.value.trim();
+      ready = !!(businessType && location);
+    }
+
+    if (selectedWorkflow === 'content-strategy' && ready) {
+      const businessType = document.getElementById('wfCSBusinessType')?.value.trim();
+      const service      = document.getElementById('wfCSService')?.value.trim();
+      const location     = document.getElementById('wfCSLocation')?.value.trim();
+      ready = !!(businessType && service && location);
+    }
+
+    if (selectedWorkflow === 'pnl-statement' && ready) {
+      const period  = document.getElementById('wfPLPeriod')?.value.trim();
+      const revenue = document.getElementById('wfPLRevenue')?.value.trim();
+      const expenses = document.getElementById('wfPLExpenses')?.value.trim();
+      ready = !!(period && revenue && expenses);
+    }
+
+    if (selectedWorkflow === 'property-mgmt-strategy' && ready) {
+      const domain   = document.getElementById('wfPMDomain')?.value.trim();
+      const location = document.getElementById('wfPMLocation')?.value.trim();
+      ready = !!(domain && location);
+    }
+
     if (selectedWorkflow === 'programmatic-content' && ready) {
       const contentType  = document.getElementById('wfProgContentType')?.value;
       const businessType = document.getElementById('wfProgBusinessType')?.value.trim();
@@ -575,7 +677,7 @@ function checkRunReady() {
         const primaryService = document.getElementById('wfProgPrimaryService')?.value.trim();
         const homeBase       = document.getElementById('wfProgHomeBase')?.value.trim();
         ready = !!(primaryService && homeBase);
-      } else if (contentType === 'service-pages' || contentType === 'blog-posts') {
+      } else if (contentType === 'service-pages' || contentType === 'blog-posts' || contentType === 'comparison-posts' || contentType === 'cost-guides' || contentType === 'best-in-city') {
         const location = document.getElementById('wfProgLocation')?.value.trim();
         ready = !!location;
       }
@@ -627,6 +729,61 @@ function onAuditClientChange() {
   } else if (selectedWorkflow === 'location-page') {
     const homeBaseEl = document.getElementById('wfLocHomeBase');
     if (homeBaseEl && client.location) homeBaseEl.value = client.location;
+  } else if (selectedWorkflow === 'ai-search-report') {
+    const domainEl = document.getElementById('wfAIDomain');
+    if (domainEl && client.domain) domainEl.value = client.domain;
+    const locationEl = document.getElementById('wfAILocation');
+    if (locationEl && client.location) locationEl.value = client.location;
+    const serviceEl = document.getElementById('wfAIService');
+    if (serviceEl && client.service) serviceEl.value = client.service;
+  } else if (selectedWorkflow === 'backlink-audit') {
+    const domainEl = document.getElementById('wfBLDomain');
+    if (domainEl && client.domain) domainEl.value = client.domain;
+    const locationEl = document.getElementById('wfBLLocation');
+    if (locationEl && client.location) locationEl.value = client.location;
+    const serviceEl = document.getElementById('wfBLService');
+    if (serviceEl && client.service) serviceEl.value = client.service;
+  } else if (selectedWorkflow === 'onpage-audit') {
+    const urlEl = document.getElementById('wfOPUrl');
+    if (urlEl && client.domain) urlEl.value = client.domain;
+    const locationEl = document.getElementById('wfOPLocation');
+    if (locationEl && client.location) locationEl.value = client.location;
+  } else if (selectedWorkflow === 'seo-research') {
+    const domainEl = document.getElementById('wfSRDomain');
+    if (domainEl && client.domain) domainEl.value = client.domain;
+    const serviceEl = document.getElementById('wfSRService');
+    if (serviceEl && client.service) serviceEl.value = client.service;
+    const locationEl = document.getElementById('wfSRLocation');
+    if (locationEl && client.location) locationEl.value = client.location;
+  } else if (selectedWorkflow === 'competitor-intel') {
+    const domainEl = document.getElementById('wfCIDomain');
+    if (domainEl && client.domain) domainEl.value = client.domain;
+    const serviceEl = document.getElementById('wfCIService');
+    if (serviceEl && client.service) serviceEl.value = client.service;
+    const locationEl = document.getElementById('wfCILocation');
+    if (locationEl && client.location) locationEl.value = client.location;
+  } else if (selectedWorkflow === 'monthly-report') {
+    if (client.domain) document.getElementById('wfMRDomain').value = client.domain;
+    if (client.service) document.getElementById('wfMRService').value = client.service;
+    if (client.location) document.getElementById('wfMRLocation').value = client.location;
+  } else if (selectedWorkflow === 'proposals') {
+    if (client.domain) document.getElementById('wfPRDomain').value = client.domain;
+    if (client.service) document.getElementById('wfPRService').value = client.service;
+    if (client.location) document.getElementById('wfPRLocation').value = client.location;
+  } else if (selectedWorkflow === 'google-ads-copy') {
+    if (client.service) document.getElementById('wfGAService').value = client.service;
+    if (client.location) document.getElementById('wfGALocation').value = client.location;
+  } else if (selectedWorkflow === 'schema-generator') {
+    if (client.service) document.getElementById('wfSCBusinessType').value = client.service;
+    if (client.location) document.getElementById('wfSCLocation').value = client.location;
+    if (client.domain) document.getElementById('wfSCWebsite').value = client.domain;
+  } else if (selectedWorkflow === 'content-strategy') {
+    if (client.service) document.getElementById('wfCSBusinessType').value = client.service;
+    if (client.service) document.getElementById('wfCSService').value = client.service;
+    if (client.location) document.getElementById('wfCSLocation').value = client.location;
+  } else if (selectedWorkflow === 'property-mgmt-strategy') {
+    if (client.domain) document.getElementById('wfPMDomain').value = client.domain;
+    if (client.location) document.getElementById('wfPMLocation').value = client.location;
   }
   checkRunReady();
 }
@@ -743,6 +900,30 @@ function onProgContentTypeChange() {
     if (itemsLabel) itemsLabel.innerHTML = 'Keywords <span class="req">*</span>';
     if (itemsTextarea) itemsTextarea.placeholder = 'One target keyword per line, e.g.:\nhow much does a panel upgrade cost\nsigns you need to rewire your house\nwhen to call an emergency electrician\nEV charger installation guide';
     if (itemsHint) itemsHint.textContent = 'Each line becomes a unique blog post with keyword research data';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  } else if (contentType === 'comparison-posts') {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'block';
+    if (autoDiscover) autoDiscover.style.display = 'none';
+    if (itemsLabel) itemsLabel.innerHTML = 'Comparisons <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One comparison per line, e.g.:\ntankless vs tank water heater\n100 amp vs 200 amp panel\ncopper vs PEX piping\nductless mini split vs central air';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a unique "X vs Y" comparison post with SERP research';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  } else if (contentType === 'cost-guides') {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'block';
+    if (autoDiscover) autoDiscover.style.display = 'none';
+    if (itemsLabel) itemsLabel.innerHTML = 'Services to Price <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One service per line, e.g.:\npanel upgrade\nwhole house rewiring\nEV charger installation\nelectrical inspection\ngenerator installation';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a "How Much Does X Cost in [City]" pricing guide';
+    if (servicesWrap) servicesWrap.style.display = 'none';
+  } else if (contentType === 'best-in-city') {
+    if (locFields) locFields.style.display = 'none';
+    if (svcBlogFields) svcBlogFields.style.display = 'block';
+    if (autoDiscover) autoDiscover.style.display = 'none';
+    if (itemsLabel) itemsLabel.innerHTML = 'Service Types <span class="req">*</span>';
+    if (itemsTextarea) itemsTextarea.placeholder = 'One service type per line, e.g.:\nelectrician\nresidential electrician\ncommercial electrician\nemergency electrician';
+    if (itemsHint) itemsHint.textContent = 'Each line becomes a "Best [Service] in [City]" post with real Maps competitor data';
     if (servicesWrap) servicesWrap.style.display = 'none';
   } else {
     if (locFields) locFields.style.display = 'none';
@@ -861,6 +1042,111 @@ async function launchWorkflow() {
       services_list:    document.getElementById('wfLocServicesList')?.value.trim() || '',
       notes:            document.getElementById('wfLocNotes')?.value.trim() || '',
     };
+  } else if (selectedWorkflow === 'ai-search-report') {
+    inputs = {
+      domain:   document.getElementById('wfAIDomain')?.value.trim() || '',
+      service:  document.getElementById('wfAIService')?.value.trim() || '',
+      location: document.getElementById('wfAILocation')?.value.trim() || '',
+      notes:    document.getElementById('wfAINotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'backlink-audit') {
+    inputs = {
+      domain:      document.getElementById('wfBLDomain')?.value.trim() || '',
+      service:     document.getElementById('wfBLService')?.value.trim() || '',
+      location:    document.getElementById('wfBLLocation')?.value.trim() || '',
+      competitors: document.getElementById('wfBLCompetitors')?.value.trim() || '',
+      notes:       document.getElementById('wfBLNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'onpage-audit') {
+    inputs = {
+      url:      document.getElementById('wfOPUrl')?.value.trim() || '',
+      keyword:  document.getElementById('wfOPKeyword')?.value.trim() || '',
+      location: document.getElementById('wfOPLocation')?.value.trim() || '',
+      notes:    document.getElementById('wfOPNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'seo-research') {
+    inputs = {
+      domain:      document.getElementById('wfSRDomain')?.value.trim() || '',
+      service:     document.getElementById('wfSRService')?.value.trim() || '',
+      location:    document.getElementById('wfSRLocation')?.value.trim() || '',
+      competitors: document.getElementById('wfSRCompetitors')?.value.trim() || '',
+      notes:       document.getElementById('wfSRNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'competitor-intel') {
+    inputs = {
+      domain:      document.getElementById('wfCIDomain')?.value.trim() || '',
+      competitors: document.getElementById('wfCICompetitors')?.value.trim() || '',
+      service:     document.getElementById('wfCIService')?.value.trim() || '',
+      location:    document.getElementById('wfCILocation')?.value.trim() || '',
+      notes:       document.getElementById('wfCINotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'monthly-report') {
+    inputs = {
+      domain:           document.getElementById('wfMRDomain')?.value.trim() || '',
+      service:          document.getElementById('wfMRService')?.value.trim() || '',
+      location:         document.getElementById('wfMRLocation')?.value.trim() || '',
+      reporting_period: document.getElementById('wfMRPeriod')?.value.trim() || '',
+      highlights:       document.getElementById('wfMRHighlights')?.value.trim() || '',
+      notes:            document.getElementById('wfMRNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'proposals') {
+    inputs = {
+      domain:       document.getElementById('wfPRDomain')?.value.trim() || '',
+      service:      document.getElementById('wfPRService')?.value.trim() || '',
+      location:     document.getElementById('wfPRLocation')?.value.trim() || '',
+      package_tier: document.getElementById('wfPRPackage')?.value.trim() || 'growth-strategy',
+      competitors:  document.getElementById('wfPRCompetitors')?.value.trim() || '',
+      notes:        document.getElementById('wfPRNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'google-ads-copy') {
+    inputs = {
+      service:       document.getElementById('wfGAService')?.value.trim() || '',
+      location:      document.getElementById('wfGALocation')?.value.trim() || '',
+      business_name: document.getElementById('wfGABusinessName')?.value.trim() || '',
+      usp:           document.getElementById('wfGAUsp')?.value.trim() || '',
+      landing_url:   document.getElementById('wfGALandingUrl')?.value.trim() || '',
+      budget:        document.getElementById('wfGABudget')?.value.trim() || '',
+      notes:         document.getElementById('wfGANotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'schema-generator') {
+    inputs = {
+      business_name:  document.getElementById('wfSCBusinessName')?.value.trim() || '',
+      business_type:  document.getElementById('wfSCBusinessType')?.value.trim() || '',
+      location:       document.getElementById('wfSCLocation')?.value.trim() || '',
+      schema_types:   document.getElementById('wfSCSchemaTypes')?.value.trim() || 'LocalBusiness, FAQPage, Service',
+      phone:          document.getElementById('wfSCPhone')?.value.trim() || '',
+      address:        document.getElementById('wfSCAddress')?.value.trim() || '',
+      website:        document.getElementById('wfSCWebsite')?.value.trim() || '',
+      services_list:  document.getElementById('wfSCServicesList')?.value.trim() || '',
+      hours:          document.getElementById('wfSCHours')?.value.trim() || '',
+      notes:          document.getElementById('wfSCNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'content-strategy') {
+    inputs = {
+      business_type:   document.getElementById('wfCSBusinessType')?.value.trim() || '',
+      service:         document.getElementById('wfCSService')?.value.trim() || '',
+      location:        document.getElementById('wfCSLocation')?.value.trim() || '',
+      target_audience: document.getElementById('wfCSAudience')?.value.trim() || '',
+      content_goals:   document.getElementById('wfCSGoals')?.value.trim() || '',
+      notes:           document.getElementById('wfCSNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'pnl-statement') {
+    inputs = {
+      period:          document.getElementById('wfPLPeriod')?.value.trim() || '',
+      revenue_items:   document.getElementById('wfPLRevenue')?.value.trim() || '',
+      expense_items:   document.getElementById('wfPLExpenses')?.value.trim() || '',
+      business_entity: document.getElementById('wfPLEntity')?.value.trim() || 'ProofPilot',
+      notes:           document.getElementById('wfPLNotes')?.value.trim() || '',
+    };
+  } else if (selectedWorkflow === 'property-mgmt-strategy') {
+    inputs = {
+      domain:         document.getElementById('wfPMDomain')?.value.trim() || '',
+      company_name:   document.getElementById('wfPMCompany')?.value.trim() || '',
+      location:       document.getElementById('wfPMLocation')?.value.trim() || '',
+      property_types: document.getElementById('wfPMPropertyTypes')?.value.trim() || '',
+      portfolio_size: document.getElementById('wfPMPortfolioSize')?.value.trim() || '',
+      notes:          document.getElementById('wfPMNotes')?.value.trim() || '',
+    };
   } else if (selectedWorkflow === 'programmatic-content') {
     inputs = {
       content_type:     document.getElementById('wfProgContentType')?.value || '',
@@ -875,7 +1161,7 @@ async function launchWorkflow() {
     };
   }
 
-  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page', 'programmatic-content'];
+  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page', 'programmatic-content', 'ai-search-report', 'backlink-audit', 'onpage-audit', 'seo-research', 'competitor-intel', 'monthly-report', 'proposals', 'google-ads-copy', 'schema-generator', 'content-strategy', 'pnl-statement', 'property-mgmt-strategy'];
 
   if (liveWorkflows.includes(selectedWorkflow)) {
     const payload = {

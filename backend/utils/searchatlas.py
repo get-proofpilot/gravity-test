@@ -12,8 +12,9 @@ Never call: content_genius, digital_pr, linklab, otto_ppc, press_release,
             gbp_locations_deployment, Content_Publication_Tools
 """
 
+from __future__ import annotations
+
 import os
-import json
 import httpx
 
 SA_MCP_URL = "https://mcp.searchatlas.com/api/v1/mcp"

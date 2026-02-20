@@ -11,7 +11,7 @@ import asyncio
 from pathlib import Path
 
 import anthropic
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel
@@ -25,6 +25,18 @@ from workflows.seo_blog_post import run_seo_blog_post
 from workflows.service_page import run_service_page
 from workflows.location_page import run_location_page
 from workflows.programmatic_content import run_programmatic_content
+from workflows.ai_search_report import run_ai_search_report
+from workflows.backlink_audit import run_backlink_audit
+from workflows.onpage_audit import run_onpage_audit
+from workflows.seo_research_agent import run_seo_research_agent
+from workflows.competitor_intel import run_competitor_intel
+from workflows.monthly_report import run_monthly_report
+from workflows.proposals import run_proposals
+from workflows.google_ads_copy import run_google_ads_copy
+from workflows.schema_generator import run_schema_generator
+from workflows.content_strategy import run_content_strategy
+from workflows.pnl_statement import run_pnl_statement
+from workflows.property_mgmt_strategy import run_property_mgmt_strategy
 from utils.docx_generator import generate_docx
 from utils.db import (
     init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs,
@@ -47,23 +59,26 @@ app.add_middleware(
 init_db()
 
 WORKFLOW_TITLES = {
-    "home-service-content":   "Home Service SEO Content",
-    "seo-blog-generator":     "SEO Blog Generator",
-    "seo-blog-post":          "SEO Blog Post",
-    "service-page":           "Service Page",
-    "location-page":          "Location Page",
-    "website-seo-audit":      "Website & SEO Audit",
-    "prospect-audit":         "Prospect SEO Market Analysis",
-    "keyword-gap":            "Keyword Gap Analysis",
-    "proposals":              "Client Proposals",
-    "seo-strategy-sheet":     "SEO Strategy Spreadsheet",
-    "content-strategy-sheet": "Content Strategy Spreadsheet",
-    "brand-styling":          "Brand Styling",
-    "pnl-statement":          "P&L Statement",
-    "property-mgmt-strategy": "Property Mgmt Strategy",
-    "frontend-design":        "Frontend Interface Builder",
-    "lovable-prompting":      "Lovable App Builder",
-    "programmatic-content":   "Programmatic Content Agent",
+    "home-service-content":      "Home Service SEO Content",
+    "seo-blog-post":             "SEO Blog Post",
+    "service-page":              "Service Page",
+    "location-page":             "Location Page",
+    "website-seo-audit":         "Website & SEO Audit",
+    "prospect-audit":            "Prospect SEO Market Analysis",
+    "keyword-gap":               "Keyword Gap Analysis",
+    "programmatic-content":      "Programmatic Content Agent",
+    "ai-search-report":          "AI Search Visibility Report",
+    "backlink-audit":            "Backlink Audit",
+    "onpage-audit":              "On-Page Technical Audit",
+    "seo-research":              "SEO Research & Content Strategy",
+    "competitor-intel":          "Competitor Intelligence Report",
+    "monthly-report":            "Monthly Client Report",
+    "proposals":                 "Client Proposals",
+    "google-ads-copy":           "Google Ads Copy",
+    "schema-generator":          "Schema Generator",
+    "content-strategy":          "Content Strategy",
+    "pnl-statement":             "P&L Statement",
+    "property-mgmt-strategy":    "Property Mgmt Strategy",
 }
 
 
@@ -286,6 +301,90 @@ async def run_workflow(req: WorkflowRequest):
                 )
             elif req.workflow_id == "programmatic-content":
                 generator = run_programmatic_content(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "ai-search-report":
+                generator = run_ai_search_report(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "backlink-audit":
+                generator = run_backlink_audit(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "onpage-audit":
+                generator = run_onpage_audit(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "seo-research":
+                generator = run_seo_research_agent(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "competitor-intel":
+                generator = run_competitor_intel(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "monthly-report":
+                generator = run_monthly_report(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "proposals":
+                generator = run_proposals(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "google-ads-copy":
+                generator = run_google_ads_copy(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "schema-generator":
+                generator = run_schema_generator(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "content-strategy":
+                generator = run_content_strategy(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "pnl-statement":
+                generator = run_pnl_statement(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "property-mgmt-strategy":
+                generator = run_property_mgmt_strategy(
                     client=client,
                     inputs=req.inputs,
                     strategy_context=req.strategy_context or "",

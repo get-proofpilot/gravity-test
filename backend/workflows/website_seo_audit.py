@@ -18,6 +18,8 @@ inputs keys:
     notes       optional — specific focus areas, context for the agent
 """
 
+from __future__ import annotations
+
 import os
 import asyncio
 import re
@@ -250,7 +252,7 @@ async def run_website_seo_audit(
 
     sa_data, competitor_data, ranked_keywords = await asyncio.gather(sa_task, dfs_task, ranked_task)
 
-    yield f"> Data collected — generating audit with Claude Opus...\n\n"
+    yield "> Data collected — generating audit with Claude Opus...\n\n"
     yield "---\n\n"
 
     # ── Phase 3: Build context document ───────────────────────────────────

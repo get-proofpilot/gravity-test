@@ -71,7 +71,7 @@ async def run_home_service_content(
     # ── Build the user prompt ──────────────────────────────
     lines = [
         f"Write a full SEO article for **{client_name}**, a {business_type} serving {location}.",
-        f"",
+        "",
         f"**Primary keyword to target:** {keyword}",
     ]
 
@@ -80,14 +80,14 @@ async def run_home_service_content(
 
     if strategy_context and strategy_context.strip():
         lines += [
-            f"",
-            f"**Strategy direction — follow this carefully. This is what makes the article non-generic:**",
+            "",
+            "**Strategy direction — follow this carefully. This is what makes the article non-generic:**",
             f"{strategy_context.strip()}",
         ]
 
     lines += [
-        f"",
-        f"Write the complete article now. Start directly with the H1 title. No preamble.",
+        "",
+        "Write the complete article now. Start directly with the H1 title. No preamble.",
     ]
 
     user_prompt = "\n".join(lines)

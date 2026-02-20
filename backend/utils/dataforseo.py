@@ -303,6 +303,7 @@ async def get_domain_ranked_keywords(
             "rank":             se_item.get("rank_group"),
             "search_volume":    ki.get("search_volume") or 0,
             "traffic_estimate": round(item.get("etv") or 0, 1),
+            "cpc":              ki.get("cpc"),
             "url":              se_item.get("url", ""),
         })
 
@@ -895,3 +896,687 @@ def build_service_keyword_seeds(service: str, city: str, count: int = 10) -> lis
     ]
 
     return seeds[:count]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BACKLINKS API
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def get_backlink_summary(domain: str) -> dict:
+    """
+    Get high-level backlink stats for a domain.
+    Endpoint: backlinks/summary/live
+
+    Returns:
+        dict with: total_backlinks, referring_domains, referring_ips,
+        broken_backlinks, referring_domains_nofollow, rank
+    """
+    try:
+        data = await _dfs_post("backlinks/summary/live", [{
+            "target": domain,
+            "internal_list_limit": 0,
+            "backlinks_status_type": "all",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"] or []
+        except (KeyError, IndexError, TypeError):
+            return {"domain": domain}
+
+        if not items:
+            return {"domain": domain}
+
+        item = items[0]
+        return {
+            "domain":                    domain,
+            "total_backlinks":           item.get("total_backlinks", 0),
+            "referring_domains":         item.get("referring_domains", 0),
+            "referring_ips":             item.get("referring_ips", 0),
+            "broken_backlinks":          item.get("broken_backlinks", 0),
+            "referring_domains_nofollow": item.get("referring_domains_nofollow", 0),
+            "rank":                      item.get("rank", 0),
+            "backlinks_spam_score":      item.get("backlinks_spam_score", 0),
+        }
+    except Exception:
+        return {"domain": domain}
+
+
+async def get_referring_domains(
+    domain: str,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Get top referring domains linking to a target domain.
+    Endpoint: backlinks/referring_domains/live
+
+    Returns:
+        List of dicts: domain, backlinks_count, rank, is_broken, first_seen
+    """
+    try:
+        data = await _dfs_post("backlinks/referring_domains/live", [{
+            "target": domain,
+            "limit": limit,
+            "order_by": ["rank,desc"],
+            "backlinks_status_type": "live",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"][0]["items"] or []
+        except (KeyError, IndexError, TypeError):
+            return []
+
+        return [
+            {
+                "domain":          item.get("domain", ""),
+                "backlinks_count": item.get("backlinks", 0),
+                "rank":            item.get("rank", 0),
+                "is_broken":       item.get("broken_backlinks", 0) > 0,
+                "first_seen":      item.get("first_seen"),
+            }
+            for item in items if item
+        ]
+    except Exception:
+        return []
+
+
+async def get_backlink_anchors(
+    domain: str,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Get anchor text distribution for backlinks pointing to a domain.
+    Endpoint: backlinks/anchors/live
+
+    Returns:
+        List of dicts: anchor, backlinks_count, referring_domains, first_seen
+    """
+    try:
+        data = await _dfs_post("backlinks/anchors/live", [{
+            "target": domain,
+            "limit": limit,
+            "order_by": ["backlinks,desc"],
+            "backlinks_status_type": "live",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"][0]["items"] or []
+        except (KeyError, IndexError, TypeError):
+            return []
+
+        return [
+            {
+                "anchor":            item.get("anchor", ""),
+                "backlinks_count":   item.get("backlinks", 0),
+                "referring_domains": item.get("referring_domains", 0),
+                "first_seen":        item.get("first_seen"),
+            }
+            for item in items if item
+        ]
+    except Exception:
+        return []
+
+
+async def get_backlink_competitors(
+    domain: str,
+    limit: int = 10,
+) -> list[dict]:
+    """
+    Find domains that compete for the same backlink sources.
+    Endpoint: dataforseo_labs/google/competitors_domain/live
+
+    Returns:
+        List of dicts: domain, avg_position, keywords_count, etv, intersections
+    """
+    try:
+        data = await _dfs_post("dataforseo_labs/google/competitors_domain/live", [{
+            "target": domain,
+            "limit": limit,
+            "language_name": "English",
+            "location_name": "United States",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"][0]["items"] or []
+        except (KeyError, IndexError, TypeError):
+            return []
+
+        return [
+            {
+                "domain":         item.get("domain", ""),
+                "avg_position":   round(item.get("avg_position", 0) or 0, 1),
+                "keywords_count": item.get("se_keywords", 0),
+                "etv":            round(item.get("etv", 0) or 0, 0),
+                "intersections":  item.get("intersections", 0),
+            }
+            for item in items if item
+        ]
+    except Exception:
+        return []
+
+
+async def get_full_backlink_profile(domain: str) -> dict:
+    """
+    Run all backlink research in parallel — summary, referring domains,
+    anchors, and competitors.
+
+    Returns:
+        Dict with keys: summary, referring_domains, anchors, competitors
+    """
+    summary, ref_domains, anchors, competitors = await asyncio.gather(
+        get_backlink_summary(domain),
+        get_referring_domains(domain, 20),
+        get_backlink_anchors(domain, 20),
+        get_backlink_competitors(domain, 10),
+        return_exceptions=True,
+    )
+
+    if isinstance(summary, Exception):
+        summary = {"domain": domain}
+    if isinstance(ref_domains, Exception):
+        ref_domains = []
+    if isinstance(anchors, Exception):
+        anchors = []
+    if isinstance(competitors, Exception):
+        competitors = []
+
+    return {
+        "summary": summary,
+        "referring_domains": ref_domains,
+        "anchors": anchors,
+        "competitors": competitors,
+    }
+
+
+def format_backlink_summary(data: dict) -> str:
+    """Format backlink summary stats for Claude prompt."""
+    if not data or not data.get("total_backlinks"):
+        return "No backlink data available for this domain."
+
+    return (
+        f"Backlink Profile Summary for {data.get('domain', 'unknown')}:\n"
+        f"  Total Backlinks:       {data.get('total_backlinks', 0):,}\n"
+        f"  Referring Domains:     {data.get('referring_domains', 0):,}\n"
+        f"  Referring IPs:         {data.get('referring_ips', 0):,}\n"
+        f"  Broken Backlinks:      {data.get('broken_backlinks', 0):,}\n"
+        f"  Nofollow Ref Domains:  {data.get('referring_domains_nofollow', 0):,}\n"
+        f"  Domain Rank:           {data.get('rank', 0)}\n"
+        f"  Spam Score:            {data.get('backlinks_spam_score', 0)}"
+    )
+
+
+def format_referring_domains(data: list[dict]) -> str:
+    """Format top referring domains for Claude prompt."""
+    if not data:
+        return "No referring domain data available."
+
+    lines = [f"Top {len(data)} Referring Domains (by rank):\n"]
+    for rd in data:
+        status = " [BROKEN]" if rd.get("is_broken") else ""
+        lines.append(
+            f"  {rd['domain']} — {rd.get('backlinks_count', 0)} backlinks, "
+            f"Rank {rd.get('rank', 0)}{status}"
+        )
+    return "\n".join(lines)
+
+
+def format_backlink_anchors(data: list[dict]) -> str:
+    """Format anchor text distribution for Claude prompt."""
+    if not data:
+        return "No anchor text data available."
+
+    lines = ["Anchor Text Distribution (top anchors):\n"]
+    for a in data:
+        lines.append(
+            f"  \"{a['anchor']}\" — {a.get('backlinks_count', 0)} backlinks "
+            f"from {a.get('referring_domains', 0)} domains"
+        )
+    return "\n".join(lines)
+
+
+def format_backlink_competitors(data: list[dict]) -> str:
+    """Format backlink competitors for Claude prompt."""
+    if not data:
+        return "No backlink competitor data available."
+
+    lines = ["Backlink Competitors (domains competing for the same link sources):\n"]
+    for c in data:
+        lines.append(
+            f"  {c['domain']} — {c.get('keywords_count', 0):,} keywords, "
+            f"~{c.get('etv', 0):,.0f} est. traffic, "
+            f"{c.get('intersections', 0)} shared sources"
+        )
+    return "\n".join(lines)
+
+
+def format_full_backlink_profile(profile: dict) -> str:
+    """Format the complete backlink profile for Claude prompt injection."""
+    sections = ["## BACKLINK PROFILE ANALYSIS\n"]
+
+    summary = profile.get("summary", {})
+    if summary:
+        sections.append(format_backlink_summary(summary))
+
+    ref_domains = profile.get("referring_domains", [])
+    if ref_domains:
+        sections.append(format_referring_domains(ref_domains))
+
+    anchors = profile.get("anchors", [])
+    if anchors:
+        sections.append(format_backlink_anchors(anchors))
+
+    competitors = profile.get("competitors", [])
+    if competitors:
+        sections.append(format_backlink_competitors(competitors))
+
+    return "\n\n".join(sections)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ON-PAGE API — instant single-page audit
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def get_instant_page_audit(url: str) -> dict:
+    """
+    Run an instant on-page audit for a single URL.
+    Endpoint: on_page/instant_pages
+
+    Returns comprehensive page-level SEO data: meta tags, headings,
+    images, links, page speed metrics, schema, and more.
+    """
+    if not url.startswith("http"):
+        url = f"https://{url}"
+
+    try:
+        data = await _dfs_post("on_page/instant_pages", [{
+            "url": url,
+            "enable_javascript": True,
+            "enable_browser_rendering": True,
+        }])
+
+        try:
+            items = data["tasks"][0]["result"][0]["items"] or []
+        except (KeyError, IndexError, TypeError):
+            return {"url": url, "error": "No data returned"}
+
+        if not items:
+            return {"url": url, "error": "No data returned"}
+
+        page = items[0]
+        meta = page.get("meta", {}) or {}
+        onpage = page.get("page_timing", {}) or {}
+        checks = page.get("checks", {}) or {}
+
+        return {
+            "url":                 page.get("url", url),
+            "status_code":         page.get("status_code"),
+            "size":                page.get("size", 0),
+            "encoded_size":        page.get("encoded_size", 0),
+            "total_dom_size":      page.get("total_dom_size", 0),
+            "title":               meta.get("title", ""),
+            "title_length":        meta.get("title_length", 0),
+            "description":         meta.get("description", ""),
+            "description_length":  meta.get("description_length", 0),
+            "h1":                  meta.get("htags", {}).get("h1", []),
+            "h2":                  meta.get("htags", {}).get("h2", []),
+            "h3":                  meta.get("htags", {}).get("h3", []),
+            "canonical":           meta.get("canonical", ""),
+            "images_count":        meta.get("images_count", 0),
+            "images_without_alt":  meta.get("images_size", 0),
+            "internal_links":      meta.get("internal_links_count", 0),
+            "external_links":      meta.get("external_links_count", 0),
+            "scripts_count":       meta.get("scripts_count", 0),
+            "stylesheets_count":   meta.get("stylesheets_count", 0),
+            "content_charset":     meta.get("content_charset", ""),
+            "is_https":            page.get("url", "").startswith("https"),
+            "schema_types":        page.get("resource_errors", []),
+            "time_to_interactive": onpage.get("time_to_interactive"),
+            "dom_complete":        onpage.get("dom_complete"),
+            "largest_contentful_paint": onpage.get("largest_contentful_paint"),
+            "cumulative_layout_shift":  onpage.get("cumulative_layout_shift"),
+            "checks":              checks,
+        }
+    except Exception as e:
+        return {"url": url, "error": str(e)}
+
+
+def format_instant_page_audit(data: dict) -> str:
+    """Format on-page audit data for Claude prompt injection."""
+    if data.get("error"):
+        return f"On-page audit failed for {data.get('url', 'unknown')}: {data['error']}"
+
+    url = data.get("url", "unknown")
+    lines = [f"## ON-PAGE TECHNICAL AUDIT — {url}\n"]
+
+    # Status & basics
+    lines.append(f"Status Code: {data.get('status_code', '?')}")
+    lines.append(f"Page Size: {data.get('size', 0):,} bytes")
+    lines.append(f"HTTPS: {'Yes' if data.get('is_https') else 'NO — CRITICAL ISSUE'}")
+
+    # Meta tags
+    lines.append(f"\nTitle: \"{data.get('title', 'MISSING')}\" ({data.get('title_length', 0)} chars)")
+    lines.append(f"Description: \"{data.get('description', 'MISSING')}\" ({data.get('description_length', 0)} chars)")
+    lines.append(f"Canonical: {data.get('canonical') or 'Not set'}")
+
+    # Heading structure
+    h1s = data.get("h1", [])
+    h2s = data.get("h2", [])
+    h3s = data.get("h3", [])
+    lines.append("\nHeading Structure:")
+    if h1s:
+        for h in h1s[:3]:
+            lines.append(f"  H1: \"{h}\"")
+    else:
+        lines.append("  H1: MISSING — critical for SEO")
+    lines.append(f"  H2 count: {len(h2s)}")
+    lines.append(f"  H3 count: {len(h3s)}")
+
+    # Links & images
+    lines.append(f"\nInternal Links: {data.get('internal_links', 0)}")
+    lines.append(f"External Links: {data.get('external_links', 0)}")
+    lines.append(f"Images: {data.get('images_count', 0)}")
+
+    # Performance
+    tti = data.get("time_to_interactive")
+    lcp = data.get("largest_contentful_paint")
+    cls = data.get("cumulative_layout_shift")
+    if any([tti, lcp, cls]):
+        lines.append("\nCore Web Vitals:")
+        if tti:
+            lines.append(f"  Time to Interactive: {tti}ms")
+        if lcp:
+            lines.append(f"  Largest Contentful Paint: {lcp}ms")
+        if cls is not None:
+            lines.append(f"  Cumulative Layout Shift: {cls}")
+
+    # Checks (issues found)
+    checks = data.get("checks", {})
+    if checks:
+        issues = [k for k, v in checks.items() if v is True]
+        if issues:
+            lines.append(f"\nIssues Detected ({len(issues)}):")
+            for issue in issues[:15]:
+                lines.append(f"  - {issue.replace('_', ' ')}")
+
+    return "\n".join(lines)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SERP API — AI Overview / featured snippets
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def get_serp_with_ai_overview(
+    keyword: str,
+    location_name: str,
+) -> dict:
+    """
+    Get full SERP results including AI Overview, featured snippets,
+    people_also_ask, and knowledge graph for a keyword.
+
+    Uses serp/google/organic/live/advanced which returns all SERP features.
+
+    Returns:
+        Dict with: ai_overview, featured_snippet, organic, people_also_ask,
+        knowledge_graph, keyword, location
+    """
+    data = await _dfs_post("serp/google/organic/live/advanced", [{
+        "keyword": keyword,
+        "location_name": location_name,
+        "language_name": "English",
+        "depth": 20,
+    }])
+
+    try:
+        items = data["tasks"][0]["result"][0]["items"] or []
+    except (KeyError, IndexError, TypeError):
+        return {"keyword": keyword, "location": location_name, "organic": []}
+
+    result = {
+        "keyword": keyword,
+        "location": location_name,
+        "ai_overview": None,
+        "featured_snippet": None,
+        "organic": [],
+        "people_also_ask": [],
+        "knowledge_graph": None,
+        "local_pack": [],
+        "related_searches": [],
+    }
+
+    for item in items:
+        item_type = item.get("type", "")
+
+        if item_type == "ai_overview":
+            result["ai_overview"] = {
+                "text": item.get("text", ""),
+                "references": [
+                    {
+                        "title": ref.get("title", ""),
+                        "url": ref.get("url", ""),
+                        "domain": _domain_from_url(ref.get("url", "")),
+                    }
+                    for ref in (item.get("references") or item.get("items") or [])[:10]
+                ],
+            }
+
+        elif item_type == "featured_snippet":
+            result["featured_snippet"] = {
+                "title": item.get("title", ""),
+                "description": item.get("description", ""),
+                "url": item.get("url", ""),
+                "domain": _domain_from_url(item.get("url", "")),
+            }
+
+        elif item_type == "organic":
+            if len(result["organic"]) < 10:
+                result["organic"].append({
+                    "rank": item.get("rank_group", 0),
+                    "title": item.get("title", ""),
+                    "url": item.get("url", ""),
+                    "domain": _domain_from_url(item.get("url", "")),
+                    "description": item.get("description", ""),
+                })
+
+        elif item_type == "people_also_ask":
+            for q in (item.get("items") or [])[:8]:
+                result["people_also_ask"].append({
+                    "question": q.get("title", ""),
+                    "url": q.get("url", ""),
+                })
+
+        elif item_type == "knowledge_graph":
+            result["knowledge_graph"] = {
+                "title": item.get("title", ""),
+                "description": item.get("description", ""),
+                "type": item.get("sub_title", ""),
+            }
+
+        elif item_type == "local_pack":
+            for lp in (item.get("items") or [])[:5]:
+                result["local_pack"].append({
+                    "title": lp.get("title", ""),
+                    "rating": (lp.get("rating") or {}).get("value"),
+                    "reviews": (lp.get("rating") or {}).get("votes_count"),
+                    "domain": _domain_from_url(lp.get("url", "")),
+                })
+
+        elif item_type == "related_searches":
+            for rs in (item.get("items") or [])[:8]:
+                result["related_searches"].append(rs.get("title", ""))
+
+    return result
+
+
+async def get_ai_search_landscape(
+    keywords: list[str],
+    location_name: str,
+) -> list[dict]:
+    """
+    Run SERP analysis for multiple keywords in parallel, capturing
+    AI Overviews, featured snippets, and SERP features for each.
+
+    Used to build a complete picture of how AI search treats a topic.
+    """
+    tasks = [
+        get_serp_with_ai_overview(kw, location_name) for kw in keywords[:10]
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return [r for r in results if not isinstance(r, Exception)]
+
+
+def format_ai_search_landscape(data: list[dict], domain: str = "") -> str:
+    """Format AI search landscape data for Claude prompt injection."""
+    if not data:
+        return "No AI search landscape data available."
+
+    lines = ["## AI SEARCH LANDSCAPE ANALYSIS\n"]
+
+    mentioned_count = 0
+    total_keywords = len(data)
+    ai_overview_count = 0
+
+    for serp in data:
+        keyword = serp.get("keyword", "")
+        ai_ov = serp.get("ai_overview")
+        featured = serp.get("featured_snippet")
+        organic = serp.get("organic", [])
+
+        lines.append(f"### \"{keyword}\"")
+
+        # AI Overview
+        if ai_ov:
+            ai_overview_count += 1
+            text_preview = (ai_ov.get("text") or "")[:200]
+            refs = ai_ov.get("references", [])
+            ref_domains = [r.get("domain", "") for r in refs]
+            lines.append("  AI Overview: YES")
+            if text_preview:
+                lines.append(f"  Preview: {text_preview}...")
+            if ref_domains:
+                lines.append(f"  Referenced domains: {', '.join(ref_domains)}")
+                if domain and domain.lower() in [d.lower() for d in ref_domains]:
+                    mentioned_count += 1
+                    lines.append(f"  ✓ {domain} IS cited in this AI Overview")
+                elif domain:
+                    lines.append(f"  ✗ {domain} NOT cited in this AI Overview")
+        else:
+            lines.append("  AI Overview: None")
+
+        # Featured snippet
+        if featured:
+            lines.append(f"  Featured Snippet: {featured.get('domain', 'unknown')} — \"{featured.get('title', '')}\"")
+
+        # Top 3 organic
+        top3 = organic[:3]
+        if top3:
+            lines.append(f"  Top 3: {', '.join(r.get('domain', '') for r in top3)}")
+            if domain:
+                client_rank = next(
+                    (r["rank"] for r in organic if domain.lower() in (r.get("domain", "").lower())),
+                    None,
+                )
+                if client_rank:
+                    lines.append(f"  {domain} ranks #{client_rank}")
+                else:
+                    lines.append(f"  {domain} not in top 10")
+
+        # PAA
+        paa = serp.get("people_also_ask", [])
+        if paa:
+            lines.append(f"  People Also Ask: {', '.join(q['question'] for q in paa[:4])}")
+
+        lines.append("")
+
+    # Summary stats
+    lines.insert(1, f"Keywords analyzed: {total_keywords}")
+    lines.insert(2, f"AI Overviews present: {ai_overview_count}/{total_keywords}")
+    if domain:
+        lines.insert(3, f"Domain {domain} cited in AI Overviews: {mentioned_count}/{ai_overview_count}")
+    lines.insert(4, "")
+
+    return "\n".join(lines)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GOOGLE TRENDS (via DataForSEO Keywords Data API)
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def get_keyword_trends(
+    keywords: list[str],
+    location_name: str = "United States",
+) -> list[dict]:
+    """
+    Get Google Trends data for keywords — shows search interest over time.
+    Endpoint: keywords_data/google_trends/explore/live
+
+    Returns:
+        List of dicts: keyword, trend_data (list of date/value pairs)
+    """
+    if not keywords:
+        return []
+
+    try:
+        data = await _dfs_post("keywords_data/google_trends/explore/live", [{
+            "keywords": keywords[:5],  # Trends API max 5 per request
+            "location_name": location_name,
+            "language_name": "English",
+            "type": "web",
+            "time_range": "past_12_months",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"] or []
+        except (KeyError, IndexError, TypeError):
+            return []
+
+        results = []
+        for item in items:
+            if not item:
+                continue
+            keyword_data = item.get("data") or []
+            for kd in keyword_data:
+                keyword = kd.get("keyword", "")
+                values = kd.get("values") or []
+                trend_points = [
+                    {"date": v.get("date_from", ""), "value": v.get("value", 0)}
+                    for v in values
+                ]
+                if keyword and trend_points:
+                    # Calculate trend direction
+                    recent = [p["value"] for p in trend_points[-3:]]
+                    older = [p["value"] for p in trend_points[:3]]
+                    avg_recent = sum(recent) / len(recent) if recent else 0
+                    avg_older = sum(older) / len(older) if older else 0
+                    if avg_older > 0:
+                        change_pct = ((avg_recent - avg_older) / avg_older) * 100
+                    else:
+                        change_pct = 0
+
+                    results.append({
+                        "keyword": keyword,
+                        "trend_points": trend_points,
+                        "trend_direction": "rising" if change_pct > 15 else "declining" if change_pct < -15 else "stable",
+                        "change_pct": round(change_pct, 1),
+                        "peak_value": max(p["value"] for p in trend_points) if trend_points else 0,
+                    })
+
+        return results
+    except Exception:
+        return []
+
+
+def format_keyword_trends(data: list[dict]) -> str:
+    """Format Google Trends data for Claude prompt."""
+    if not data:
+        return "No Google Trends data available."
+
+    lines = ["Keyword Trend Analysis (Google Trends, 12 months):\n"]
+    for kw in data:
+        direction = kw.get("trend_direction", "stable")
+        arrow = "↑" if direction == "rising" else "↓" if direction == "declining" else "→"
+        change = kw.get("change_pct", 0)
+        peak = kw.get("peak_value", 0)
+        lines.append(
+            f"  \"{kw['keyword']}\": {arrow} {direction} ({change:+.1f}%), "
+            f"peak interest: {peak}/100"
+        )
+    return "\n".join(lines)

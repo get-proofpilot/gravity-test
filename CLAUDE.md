@@ -22,17 +22,29 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 ## Current State
 
 **Phase 1 (Core Platform): COMPLETE**
-- 8 live workflows with real-time SSE streaming
+- 20 live workflows with real-time SSE streaming
 - Branded `.docx` export on every job
 - SQLite persistence (jobs + clients) on Railway Volume
 - Content Library with client grouping, search, and filters
 - Per-client hub with activity tracking
 - Workflow categories with sample output previews
-- DataForSEO integration (14+ functions: SERP, Maps, Labs, Keywords, GBP, Difficulty)
+- DataForSEO integration (30+ functions: SERP, Maps, Labs, Keywords, GBP, Difficulty, Backlinks, On-Page, AI Overviews, Trends)
 - Search Atlas integration (organic data, backlinks, holistic audit scores)
-- Programmatic Content Agent (bulk location/service/blog generation)
+- Programmatic Content Agent (bulk location/service/blog/comparison/cost-guide/best-in-city generation)
 - Client CRUD API (`/api/clients` — create, read, update, soft-delete)
 - Job approval system (`/api/jobs/{id}/approve`)
+- Monthly Client Report workflow (data-backed, auto-pulls rankings + traffic + backlinks)
+- Client Proposals workflow (data-backed with competitor analysis + ROI projections)
+- Google Ads Copy generator (keyword data + headlines + extensions + negative keywords)
+- Schema Generator (JSON-LD for LocalBusiness, FAQPage, Service, Article, etc.)
+- Content Strategy ecosystem mapping (buyer personas, content pillars, 12-month calendar)
+- P&L Statement generator
+- Property Management marketing strategy
+- SEO Research Agent ("the brain" — keyword clustering, content roadmap, AI search analysis)
+- Competitor Intelligence Report (deep competitive teardown with gap analysis)
+- AI Search Visibility Report (AI Overviews, featured snippets, knowledge panels)
+- Backlink Audit (full backlink health with competitor comparison)
+- On-Page Technical Audit (60+ metrics per page)
 
 **Phase 2 (Client Data Layer): ~80% DONE**
 - [x] Client CRUD API + SQLite table
@@ -44,7 +56,6 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 
 **What's NOT built yet (high priority per growth plan):**
 - GBP Post workflow (Month 1 priority — highest client visibility)
-- Monthly Client Report workflow (Month 1 — justifies retainers)
 - Google Drive integration (Phase 3 — zero-friction content handoff to Jo Paula)
 - Scheduled automations / cron (makes the platform run without Matthew)
 
@@ -57,12 +68,10 @@ Ordered by business impact. Each item maps to the master growth plan at `~/Agenc
 | Priority | Feature | Why | Effort |
 |----------|---------|-----|--------|
 | 1 | **GBP Post Workflow** | Every client needs 8-12 posts/month. Currently manual. Highest visibility deliverable. | Low |
-| 2 | **Monthly Client Report** | Auto-pull SA + DFS data + job history → narrative report. Stops clients from forgetting what we do. | Medium |
-| 3 | **Google Drive Integration** | Approved content auto-uploads to client folders. Jo Paula's inbox becomes zero-friction. | Medium |
-| 4 | **Finish Phase 2** | Content approval filters, domain validation, temp_docs cleanup. | Low |
-| 5 | **On-Page Technical Audit** | Async DFS crawl → ranked issue list. Sells as one-time audit or recurring monitoring. | Medium |
-| 6 | **Scheduled Automations** | Monthly reports on the 1st, GBP posts on the 28th, competitor monitoring daily. | High |
-| 7 | **WordPress Direct Publish** | Push approved content straight to client WordPress sites as drafts. | Medium |
+| 2 | **Google Drive Integration** | Approved content auto-uploads to client folders. Jo Paula's inbox becomes zero-friction. | Medium |
+| 3 | **Finish Phase 2** | Content approval filters, domain validation, temp_docs cleanup. | Low |
+| 4 | **Scheduled Automations** | Monthly reports on the 1st, GBP posts on the 28th, competitor monitoring daily. | High |
+| 5 | **WordPress Direct Publish** | Push approved content straight to client WordPress sites as drafts. | Medium |
 
 Full roadmap with implementation details: `ROADMAP.md`
 
@@ -169,25 +178,37 @@ This CLAUDE.md is the project's memory. Update it when:
 ### Key Files
 ```
 backend/
-  server.py              — FastAPI app, routes, SSE streaming, workflow dispatch
+  server.py                     — FastAPI app, routes, SSE streaming, workflow dispatch (20 workflows)
   utils/
-    dataforseo.py        — DataForSEO API client (14+ functions)
-    searchatlas.py       — Search Atlas MCP wrapper
-    docx_generator.py    — Branded Word document output
-    db.py                — SQLite schema, CRUD operations, seed data
+    dataforseo.py               — DataForSEO API client (30+ functions: SERP, Labs, Keywords, Backlinks, On-Page, Trends)
+    searchatlas.py               — Search Atlas MCP wrapper
+    docx_generator.py            — Branded Word document output
+    db.py                        — SQLite schema, CRUD operations, seed data
   workflows/
-    website_seo_audit.py — Full site SEO audit (SA + DFS + Labs)
-    prospect_audit.py    — Sales-focused market analysis (SA + DFS + Keywords + GBP)
-    keyword_gap.py       — Competitor keyword gap (DFS Labs + SA)
-    seo_blog_post.py     — Blog post (Claude only)
-    service_page.py      — Service page (Claude only)
-    location_page.py     — Location page (Claude only)
-    home_service_content.py — Home service article (Claude only)
-    programmatic_content.py — Bulk generation agent (batch mode)
+    website_seo_audit.py         — Full site SEO audit (SA + DFS + Labs)
+    prospect_audit.py            — Sales-focused market analysis (SA + DFS + Keywords + GBP)
+    keyword_gap.py               — Competitor keyword gap (DFS Labs + SA)
+    ai_search_report.py          — AI Search Visibility Report (AI Overviews + SERP features)
+    backlink_audit.py            — Backlink health audit with competitor comparison
+    onpage_audit.py              — Single-page technical audit (60+ metrics)
+    seo_research_agent.py        — SEO Research & Content Strategy ("the brain")
+    competitor_intel.py          — Deep competitor intelligence teardown
+    monthly_report.py            — Monthly client performance report
+    proposals.py                 — Data-backed client proposals with ROI projections
+    google_ads_copy.py           — Google Ads copy with keyword data
+    schema_generator.py          — JSON-LD structured data generator
+    content_strategy.py          — Content ecosystem mapping
+    pnl_statement.py             — P&L statement generator
+    property_mgmt_strategy.py    — Property management marketing strategy
+    programmatic_content.py      — Bulk generation (6 types: location/service/blog/comparison/cost/best-in-city)
+    seo_blog_post.py             — Blog post (Claude only)
+    service_page.py              — Service page (Claude only)
+    location_page.py             — Location page (Claude only)
+    home_service_content.py      — Home service article (Claude only)
   static/
-    index.html           — Full SPA markup (all views, modals)
-    script.js            — WORKFLOWS array, view routing, SSE streaming, workflow launch
-    style.css            — Dark theme with ProofPilot brand system
+    index.html                   — Full SPA markup (all views, modals)
+    script.js                    — WORKFLOWS array, view routing, SSE streaming, workflow launch
+    style.css                    — Dark theme with ProofPilot brand system
 ```
 
 ---
@@ -216,18 +237,30 @@ backend/
 
 ---
 
-## Live Workflows (8 Active)
+## Live Workflows (20 Active)
 
 | Workflow ID | Title | Data Sources | File |
 |-------------|-------|-------------|------|
 | `website-seo-audit` | Website & SEO Audit | Search Atlas + DataForSEO + DFS Labs | `workflows/website_seo_audit.py` |
 | `prospect-audit` | Prospect SEO Market Analysis | SA + DFS SERP + Keywords + GBP + Difficulty | `workflows/prospect_audit.py` |
 | `keyword-gap` | Keyword Gap Analysis | DFS Labs (ranked keywords diff) + SA | `workflows/keyword_gap.py` |
+| `ai-search-report` | AI Search Visibility Report | DFS SERP AI Overviews + Keywords + Trends | `workflows/ai_search_report.py` |
+| `backlink-audit` | Backlink Audit | DFS Backlinks + Labs competitors | `workflows/backlink_audit.py` |
+| `onpage-audit` | On-Page Technical Audit | DFS On-Page + SERP + Keywords | `workflows/onpage_audit.py` |
+| `seo-research` | SEO Research & Content Strategy | DFS Labs + Keywords + AI + Trends + Backlinks | `workflows/seo_research_agent.py` |
+| `competitor-intel` | Competitor Intelligence Report | DFS Labs + Backlinks + SERP + Keywords | `workflows/competitor_intel.py` |
+| `schema-generator` | Schema Generator | Claude only | `workflows/schema_generator.py` |
+| `monthly-report` | Monthly Client Report | DFS Labs + Backlinks + Trends + Keywords | `workflows/monthly_report.py` |
+| `proposals` | Client Proposals | DFS Labs + SERP + Keywords | `workflows/proposals.py` |
+| `google-ads-copy` | Google Ads Copy | DFS Keywords (volumes + CPC) | `workflows/google_ads_copy.py` |
+| `content-strategy` | Content Strategy | DFS Keywords + Difficulty | `workflows/content_strategy.py` |
+| `pnl-statement` | P&L Statement | Claude only | `workflows/pnl_statement.py` |
+| `property-mgmt-strategy` | Property Mgmt Strategy | DFS Labs + Keywords | `workflows/property_mgmt_strategy.py` |
 | `home-service-content` | Home Service SEO Content | Claude only | `workflows/home_service_content.py` |
 | `seo-blog-post` | SEO Blog Post | Claude only | `workflows/seo_blog_post.py` |
 | `service-page` | Service Page | Claude only | `workflows/service_page.py` |
 | `location-page` | Location Page | Claude only | `workflows/location_page.py` |
-| `programmatic-content` | Programmatic Content Agent | Claude + optional DFS | `workflows/programmatic_content.py` |
+| `programmatic-content` | Programmatic Content Agent | Claude + DFS (6 content types) | `workflows/programmatic_content.py` |
 
 ### How Workflows Work
 1. Frontend POSTs to `/api/run-workflow` with `workflow_id`, `client_name`, `inputs`, `strategy_context`
@@ -372,26 +405,34 @@ type: "error" → { type, message }
 **Pricing:** ~$0.002/call live SERP, ~$0.0006 standard queue
 **Client:** `utils/dataforseo.py`
 
-### Implemented Functions
-| Function | Endpoint | Used In |
-|----------|----------|---------|
-| `get_local_pack()` | `serp/google/maps/live/advanced` | website-seo-audit, prospect-audit, keyword-gap |
-| `get_organic_serp()` | `serp/google/organic/live/advanced` | website-seo-audit, prospect-audit, keyword-gap |
-| `research_competitors()` | Maps + Organic in parallel | Both audits, keyword-gap |
-| `get_keyword_search_volumes()` | `keywords_data/google_ads/search_volume/live` | prospect-audit, keyword-gap |
-| `get_domain_ranked_keywords()` | `dataforseo_labs/google/ranked_keywords/live` | website-seo-audit, keyword-gap |
-| `get_bulk_keyword_difficulty()` | `dataforseo_labs/google/bulk_keyword_difficulty/live` | prospect-audit |
-| `get_competitor_gmb_profiles()` | `business_data/google/my_business_search/live` | prospect-audit |
-| `build_service_keyword_seeds()` | (utility) | prospect-audit, keyword-gap |
-| Format helpers | `format_keyword_volumes()`, `format_domain_ranked_keywords()`, `format_keyword_difficulty()`, `format_competitor_gmb_profiles()`, `format_full_competitor_section()` | Various |
+### Implemented Functions (30+)
+| Function | API Category | Used In |
+|----------|-------------|---------|
+| `get_local_pack()` | SERP — Maps | website-seo-audit, prospect-audit, keyword-gap |
+| `get_organic_serp()` | SERP — Organic | website-seo-audit, prospect-audit, keyword-gap, onpage-audit |
+| `get_serp_with_ai_overview()` | SERP — Advanced | ai-search-report |
+| `research_competitors()` | SERP — Maps + Organic | audits, keyword-gap, seo-research, competitor-intel, proposals |
+| `get_keyword_search_volumes()` | Keywords Data | prospect-audit, keyword-gap, seo-research, content-strategy, google-ads-copy |
+| `get_bulk_keyword_difficulty()` | Labs — Difficulty | prospect-audit, seo-research, content-strategy |
+| `get_domain_ranked_keywords()` | Labs — Rankings | website-seo-audit, keyword-gap, seo-research, competitor-intel, monthly-report |
+| `get_domain_rank_overview()` | Labs — Overview | seo-research, competitor-intel, monthly-report, proposals, property-mgmt |
+| `get_backlink_summary()` | Backlinks | backlink-audit, seo-research, competitor-intel, monthly-report |
+| `get_referring_domains()` | Backlinks | backlink-audit |
+| `get_backlink_anchors()` | Backlinks | backlink-audit |
+| `get_backlink_competitors()` | Labs — Competitors | backlink-audit, competitor-intel |
+| `get_full_backlink_profile()` | Backlinks (parallel) | backlink-audit |
+| `get_instant_page_audit()` | On-Page | onpage-audit |
+| `get_ai_search_landscape()` | SERP — AI Overviews | ai-search-report, seo-research, competitor-intel |
+| `get_keyword_trends()` | Trends — Google | ai-search-report, seo-research, monthly-report |
+| `get_competitor_gmb_profiles()` | Business Data | prospect-audit |
+| `get_location_research()` | SERP + Keywords | programmatic-content |
+| `build_service_keyword_seeds()` | (utility) | Multiple workflows |
+| Format helpers (15+) | (formatters) | All data-powered workflows |
 
-### Unused But Available
+### Still Available But Not Yet Used
 | Category | Endpoints | Use Case |
 |----------|----------|----------|
-| On-Page | `task_post`, `summary`, `pages` | Technical audit (async, 2-10 min) |
 | Business Data | `google/reviews` | Review intelligence |
-| Backlinks | `summary`, `referring_domains`, `competitors` | Link profile audit |
-| Trends | `google_trends/explore`, `subregion_interests` | Seasonality report |
 | Content Analysis | `search/live`, `rating/live` | Brand monitoring |
 
 ---

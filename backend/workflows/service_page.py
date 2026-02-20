@@ -74,7 +74,7 @@ async def run_service_page(
     # ── Build the user prompt ──────────────────────────────
     lines = [
         f"Write a conversion-optimized service page for **{client_name}**, a {business_type} serving {location}.",
-        f"",
+        "",
         f"**Service this page is for:** {service}",
         f"**Primary keyword to target:** {service} in {location}",
     ]
@@ -87,21 +87,21 @@ async def run_service_page(
 
     if notes:
         lines += [
-            f"",
-            f"**Specific emphasis and context:**",
+            "",
+            "**Specific emphasis and context:**",
             f"{notes}",
         ]
 
     if strategy_context and strategy_context.strip():
         lines += [
-            f"",
-            f"**Strategy direction from account manager — follow this:**",
+            "",
+            "**Strategy direction from account manager — follow this:**",
             f"{strategy_context.strip()}",
         ]
 
     lines += [
-        f"",
-        f"Write the complete service page now. Start immediately with the # H1. No preamble.",
+        "",
+        "Write the complete service page now. Start immediately with the # H1. No preamble.",
     ]
 
     user_prompt = "\n".join(lines)

@@ -85,7 +85,7 @@ async def run_location_page(
     # ── Build the user prompt ──────────────────────────────
     lines = [
         f"Write a geo-targeted location page for **{client_name}**, a {business_type} based in {home_base} serving {target_location}.",
-        f"",
+        "",
         f"**Primary service:** {primary_service}",
         f"**Target location (the city this page ranks for):** {target_location}",
         f"**Business home base:** {home_base}",
@@ -97,28 +97,28 @@ async def run_location_page(
 
     if local_details:
         lines += [
-            f"",
-            f"**Local details to use (makes the page feel genuinely local — use all of this):**",
+            "",
+            "**Local details to use (makes the page feel genuinely local — use all of this):**",
             f"{local_details}",
         ]
 
     if notes:
         lines += [
-            f"",
-            f"**Additional context and emphasis:**",
+            "",
+            "**Additional context and emphasis:**",
             f"{notes}",
         ]
 
     if strategy_context and strategy_context.strip():
         lines += [
-            f"",
-            f"**Strategy direction from account manager:**",
+            "",
+            "**Strategy direction from account manager:**",
             f"{strategy_context.strip()}",
         ]
 
     lines += [
-        f"",
-        f"Write the complete location page now. Start immediately with the # H1. No preamble.",
+        "",
+        "Write the complete location page now. Start immediately with the # H1. No preamble.",
         f"This page must feel like it was written by someone who actually knows {target_location} — not a template.",
     ]
 
