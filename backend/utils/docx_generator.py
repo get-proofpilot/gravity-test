@@ -2,6 +2,8 @@
 ProofPilot branded .docx generator
 Takes completed job content and produces a formatted Word document
 with ProofPilot brand colors, clean typography, and proper structure.
+
+Supports markdown tables: | Col | Col | syntax renders as branded Word tables.
 """
 
 import os
@@ -12,12 +14,17 @@ from datetime import datetime
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 # ── ProofPilot brand colors ────────────────────────────────
 DARK_BLUE  = RGBColor(0x00, 0x18, 0x4D)   # #00184D
 ELEC_BLUE  = RGBColor(0x00, 0x51, 0xFF)   # #0051FF
+NEON_GREEN = RGBColor(0xC8, 0xFF, 0x00)   # #C8FF00
 MID_GRAY   = RGBColor(0x66, 0x66, 0x88)   # subdued text
 LIGHT_GRAY = RGBColor(0xAA, 0xAA, 0xBB)   # footer / dividers
+WHITE      = RGBColor(0xFF, 0xFF, 0xFF)
+LIGHT_ROW  = RGBColor(0xF5, 0xF7, 0xFF)   # light blue-white for alternating rows
 
 BODY_FONT = "Calibri"
 DISPLAY_FONT = "Calibri"  # swap to "Bebas Neue" if installed on the server
@@ -57,7 +64,6 @@ def _set_margins(doc: Document) -> None:
 
 
 def _add_header_block(doc: Document, client_name: str, workflow_title: str) -> None:
-    # Brand name + workflow type
     header = doc.add_paragraph()
     header.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
@@ -87,13 +93,11 @@ def _add_header_block(doc: Document, client_name: str, workflow_title: str) -> N
     cli.font.color.rgb = MID_GRAY
     cli.font.name = BODY_FONT
 
-    # Thin divider line
     divider = doc.add_paragraph()
     d = divider.add_run("─" * 90)
     d.font.size = Pt(7)
     d.font.color.rgb = ELEC_BLUE
 
-    # Spacer
     spacer = doc.add_paragraph()
     spacer.space_after = Pt(4)
 
@@ -115,6 +119,132 @@ def _add_footer_block(doc: Document, client_name: str) -> None:
     f.font.name = BODY_FONT
 
 
+# ── Table helpers ──────────────────────────────────────────
+
+def _set_cell_background(cell, rgb: RGBColor) -> None:
+    """Set a table cell's background fill color."""
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    shd = OxmlElement("w:shd")
+    hex_color = f"{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), hex_color)
+    tcPr.append(shd)
+
+
+def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]]]:
+    """
+    Parse markdown pipe table lines into headers + rows.
+    Skips separator lines (|---|---|).
+    Returns (headers, rows) where each is a list of cell text strings.
+    """
+    headers: list[str] = []
+    rows: list[list[str]] = []
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        # Skip separator rows like |---|---|
+        if re.match(r"^\|[-:\s|]+\|$", stripped):
+            continue
+        # Parse cells: split on |, strip, drop empty edge elements
+        cells = [c.strip() for c in stripped.split("|")]
+        cells = [c for c in cells if c != "" or len(cells) > 2]
+        # Remove leading/trailing empty cells from pipe syntax
+        if cells and cells[0] == "":
+            cells = cells[1:]
+        if cells and cells[-1] == "":
+            cells = cells[:-1]
+        if not cells:
+            continue
+        if not headers:
+            headers = cells
+        else:
+            rows.append(cells)
+
+    return headers, rows
+
+
+def _add_brand_table(doc: Document, headers: list[str], rows: list[list[str]]) -> None:
+    """
+    Add a ProofPilot-branded table to the document.
+    - Header row: Dark Blue background, white bold text
+    - Body rows: alternating white / light-blue-white
+    - All cells: 10pt Calibri
+    """
+    if not headers:
+        return
+
+    num_cols = len(headers)
+    num_rows = 1 + len(rows)
+    table = doc.add_table(rows=num_rows, cols=num_cols)
+    table.style = "Table Grid"
+
+    # Style header row
+    hdr_row = table.rows[0]
+    for i, header_text in enumerate(headers):
+        cell = hdr_row.cells[i]
+        _set_cell_background(cell, DARK_BLUE)
+        p = cell.paragraphs[0]
+        # Clear existing runs
+        for run in p.runs:
+            run.text = ""
+        # Strip markdown bold from header text
+        clean = re.sub(r"\*\*([^*]+)\*\*", r"\1", header_text).strip()
+        run = p.add_run(clean)
+        run.bold = True
+        run.font.size = Pt(10)
+        run.font.color.rgb = WHITE
+        run.font.name = BODY_FONT
+        p.space_before = Pt(3)
+        p.space_after = Pt(3)
+
+    # Style body rows
+    for row_idx, row_data in enumerate(rows):
+        tbl_row = table.rows[row_idx + 1]
+        bg_color = LIGHT_ROW if row_idx % 2 == 1 else WHITE
+
+        for col_idx in range(num_cols):
+            cell = tbl_row.cells[col_idx]
+            _set_cell_background(cell, bg_color)
+            p = cell.paragraphs[0]
+            for run in p.runs:
+                run.text = ""
+            cell_text = row_data[col_idx] if col_idx < len(row_data) else ""
+            _inline_format_table(p, cell_text)
+            p.space_before = Pt(2)
+            p.space_after = Pt(2)
+
+    # Spacing after table
+    spacer = doc.add_paragraph()
+    spacer.space_after = Pt(6)
+
+
+def _inline_format_table(paragraph, text: str) -> None:
+    """Inline formatting for table cells — bold/italic/plain, 10pt."""
+    bold_parts = re.split(r"(\*\*[^*]+\*\*)", text)
+    for part in bold_parts:
+        if part.startswith("**") and part.endswith("**") and len(part) > 4:
+            r = paragraph.add_run(part[2:-2])
+            r.bold = True
+            r.font.name = BODY_FONT
+            r.font.size = Pt(10)
+        else:
+            italic_parts = re.split(r"(\*[^*]+\*)", part)
+            for sub in italic_parts:
+                if sub.startswith("*") and sub.endswith("*") and len(sub) > 2:
+                    r = paragraph.add_run(sub[1:-1])
+                    r.italic = True
+                    r.font.name = BODY_FONT
+                    r.font.size = Pt(10)
+                else:
+                    r = paragraph.add_run(sub)
+                    r.font.name = BODY_FONT
+                    r.font.size = Pt(10)
+
+
 # ── Markdown renderer ──────────────────────────────────────
 
 def _render_markdown(doc: Document, content: str) -> None:
@@ -124,6 +254,24 @@ def _render_markdown(doc: Document, content: str) -> None:
 
     while i < len(lines):
         line = lines[i]
+
+        # Skip workflow status lines ("> Pulling...", "> Fetching...")
+        if line.strip().startswith("> "):
+            i += 1
+            continue
+
+        # ── Markdown table detection ──────────────────────
+        # A table starts with a | character and continues until a non-| line
+        if line.strip().startswith("|") and not re.match(r"^\|[-:\s|]+\|$", line.strip()):
+            table_lines = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                table_lines.append(lines[i])
+                i += 1
+            headers, rows = _parse_table_lines(table_lines)
+            if headers:
+                _add_brand_table(doc, headers, rows)
+            prev_empty = False
+            continue
 
         # H1
         if line.startswith("# "):
@@ -211,7 +359,6 @@ def _inline_format(paragraph, text: str) -> None:
     Handle inline markdown: **bold**, *italic*, and plain text.
     Splits on bold markers first, then italic within plain segments.
     """
-    # Split on **bold**
     bold_parts = re.split(r"(\*\*[^*]+\*\*)", text)
 
     for part in bold_parts:
@@ -221,7 +368,6 @@ def _inline_format(paragraph, text: str) -> None:
             r.font.name = BODY_FONT
             r.font.size = Pt(11)
         else:
-            # Split on *italic*
             italic_parts = re.split(r"(\*[^*]+\*)", part)
             for sub in italic_parts:
                 if sub.startswith("*") and sub.endswith("*") and len(sub) > 2:

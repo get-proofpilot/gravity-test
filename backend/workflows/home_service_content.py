@@ -66,6 +66,8 @@ async def run_home_service_content(
     keyword        = inputs.get("keyword", "").strip()
     service_focus  = inputs.get("service_focus", "").strip()
 
+    yield f"> Generating SEO content for **{client_name}**...\n\n"
+
     # ── Build the user prompt ──────────────────────────────
     lines = [
         f"Write a full SEO article for **{client_name}**, a {business_type} serving {location}.",

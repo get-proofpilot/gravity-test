@@ -1,9 +1,18 @@
-.env
+# Database
+*.db
+*.sqlite3
+data/
+
+# Generated documents
+temp_docs/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 .venv/
 venv/
-temp_docs/
-*.docx
+.env
+
+# OS
 .DS_Store

@@ -415,7 +415,7 @@
     <div class="view" id="view-clients">
       <div class="clients-toolbar">
         <input type="text" class="table-search" placeholder="Search clients..." id="clientSearch" />
-        <button class="btn-primary-top" onclick="alert('Add client modal')">+ Add Client</button>
+        <button class="btn-primary-top" onclick="showAddClientModal()">+ Add Client</button>
       </div>
       <div class="table-wrapper">
         <table class="data-table" id="clientsTable">
@@ -631,7 +631,7 @@
         </div>
         <div class="wf-modal-field" id="wfClientFieldWrap">
           <label class="wf-field-label">Client <span class="req">*</span></label>
-          <select id="wfClientSelect" onchange="checkRunReady()">
+          <select id="wfClientSelect" onchange="onClientSelectChange()">
             <option value="">— Choose client —</option>
           </select>
         </div>
@@ -760,11 +760,6 @@
             <div class="wf-modal-field optional">
               <label class="wf-field-label">Service Focus <span class="opt">optional</span></label>
               <input type="text" id="wfServiceFocus" placeholder="e.g. panel upgrades, EV charging" />
-            </div>
-            <div class="wf-modal-field optional">
-              <label class="wf-field-label">Strategy Direction <span class="opt">optional</span></label>
-              <textarea id="wfStrategyContext" rows="4"
-                placeholder="Add specific context, client talking points, competitor angles, local hooks, or anything that should make this article stand out from generic AI content..."></textarea>
             </div>
           </div>
         </div>
@@ -995,9 +990,167 @@
         </div>
       </div>
 
+        <!-- Shared strategy context — auto-fills from client profile -->
+        <div id="wfStrategyCtxWrap" class="wf-modal-field wf-strategy-section">
+          <label class="wf-field-label">Strategy Context <span class="opt">optional</span></label>
+          <textarea id="wfStrategyCtx" rows="3"
+            placeholder="Client talking points, competitive angles, local hooks... auto-fills from client profile"></textarea>
+        </div>
+      </div>
+
       <div class="wf-modal-footer">
         <button class="btn-modal-cancel" onclick="closeWorkflowModal()">Cancel</button>
         <button class="btn-run" id="wfRunBtn" disabled onclick="launchWorkflow()">▷ Run Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Add Client Modal ── -->
+  <div class="wf-modal-overlay" id="addClientModal" onclick="hideAddClientModal(event)">
+    <div class="wf-modal">
+      <div class="wf-modal-header">
+        <div class="wf-modal-identity">
+          <span class="wf-modal-icon">➕</span>
+          <div class="wf-modal-meta">
+            <div class="wf-modal-title">Add Client</div>
+            <div class="wf-modal-desc">Add a new client to your roster</div>
+          </div>
+        </div>
+        <button class="wf-modal-close" onclick="hideAddClientModal()">✕</button>
+      </div>
+      <div class="wf-modal-body">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Client Name <span class="req">*</span></label>
+              <input type="text" id="acName" placeholder="e.g. All Thingz Electric" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="acDomain" placeholder="e.g. allthingzelectric.com" />
+            </div>
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional</div>
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Service Type <span class="opt">optional</span></label>
+                <input type="text" id="acService" placeholder="e.g. electrician, plumber, HVAC" />
+              </div>
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Service Area <span class="opt">optional</span></label>
+                <input type="text" id="acLocation" placeholder="e.g. Chandler, AZ" />
+              </div>
+            </div>
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Plan <span class="opt">optional</span></label>
+                <select id="acPlan">
+                  <option value="Starter">Starter</option>
+                  <option value="Agency">Agency</option>
+                  <option value="Enterprise">Enterprise</option>
+                </select>
+              </div>
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Monthly Revenue <span class="opt">optional</span></label>
+                <input type="text" id="acRevenue" placeholder="e.g. $45,000/month" />
+              </div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Avg Job Value <span class="opt">optional</span></label>
+              <input type="text" id="acJobValue" placeholder="e.g. $850" />
+              <div class="client-field-hint">Average ticket size for this client</div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <textarea id="acNotes" rows="2" placeholder="Internal notes about this client..."></textarea>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Strategy Context <span class="opt">optional</span></label>
+              <textarea id="acStrategyCtx" rows="3"
+                placeholder="Client talking points, competitive angles, local hooks — auto-populates the workflow modal when this client is selected"></textarea>
+              <div class="client-field-hint">Saves to client profile and auto-fills the workflow modal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-modal-footer">
+        <button class="btn-modal-cancel" onclick="hideAddClientModal()">Cancel</button>
+        <button class="btn-run" onclick="submitAddClient()">Add Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edit Client Modal ── -->
+  <div class="wf-modal-overlay" id="editClientModal" onclick="hideEditClientModal(event)">
+    <div class="wf-modal">
+      <div class="wf-modal-header">
+        <div class="wf-modal-identity">
+          <span class="wf-modal-icon">✏️</span>
+          <div class="wf-modal-meta">
+            <div class="wf-modal-title">Edit Client</div>
+            <div class="wf-modal-desc" id="editClientModalDesc">Edit client details</div>
+          </div>
+        </div>
+        <button class="wf-modal-close" onclick="hideEditClientModal()">✕</button>
+      </div>
+      <div class="wf-modal-body">
+        <input type="hidden" id="ecId" />
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Client Name <span class="req">*</span></label>
+              <input type="text" id="ecName" placeholder="e.g. All Thingz Electric" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Domain <span class="req">*</span></label>
+              <input type="text" id="ecDomain" placeholder="e.g. allthingzelectric.com" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service Type <span class="opt">optional</span></label>
+              <input type="text" id="ecService" placeholder="e.g. electrician, plumber, HVAC" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service Area <span class="opt">optional</span></label>
+              <input type="text" id="ecLocation" placeholder="e.g. Chandler, AZ" />
+            </div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Plan <span class="opt">optional</span></label>
+              <select id="ecPlan">
+                <option value="Starter">Starter</option>
+                <option value="Agency">Agency</option>
+                <option value="Enterprise">Enterprise</option>
+              </select>
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Monthly Revenue <span class="opt">optional</span></label>
+              <input type="text" id="ecRevenue" placeholder="e.g. $45,000/month" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Avg Job Value <span class="opt">optional</span></label>
+            <input type="text" id="ecJobValue" placeholder="e.g. $850" />
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+            <textarea id="ecNotes" rows="2" placeholder="Internal notes about this client..."></textarea>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Strategy Context <span class="opt">optional</span></label>
+            <textarea id="ecStrategyCtx" rows="3"
+              placeholder="Client talking points, competitive angles, local hooks — auto-populates the workflow modal when this client is selected"></textarea>
+            <div class="client-field-hint">Saves to client profile and auto-fills the workflow modal</div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-modal-footer">
+        <button class="btn-modal-delete" onclick="deleteClientFromModal()">Delete Client</button>
+        <button class="btn-modal-cancel" onclick="hideEditClientModal()">Cancel</button>
+        <button class="btn-run" onclick="submitEditClient()">Save Changes</button>
       </div>
     </div>
   </div>

@@ -345,6 +345,48 @@ async def get_bulk_keyword_difficulty(
     ]
 
 
+# ── DataForSEO Labs — domain rank overview ────────────────────────────────────
+
+async def get_domain_rank_overview(
+    domain: str,
+    location_name: str,
+) -> dict:
+    """
+    Get summary organic stats for a domain: estimated traffic, traffic value, keyword count.
+    Uses dataforseo_labs/google/domain_rank_overview/live.
+
+    Returns:
+        dict: domain, keywords, etv (est. monthly traffic), etv_cost (traffic value $)
+    """
+    try:
+        data = await _dfs_post("dataforseo_labs/google/domain_rank_overview/live", [{
+            "target": domain,
+            "location_name": location_name,
+            "language_name": "English",
+        }])
+
+        try:
+            items = data["tasks"][0]["result"][0]["items"] or []
+        except (KeyError, IndexError, TypeError):
+            return {"domain": domain, "keywords": 0, "etv": 0, "etv_cost": 0}
+
+        if not items:
+            return {"domain": domain, "keywords": 0, "etv": 0, "etv_cost": 0}
+
+        item = items[0]
+        metrics = item.get("metrics") or {}
+        organic = metrics.get("organic") or {}
+
+        return {
+            "domain":    domain,
+            "keywords":  organic.get("count", 0) or 0,
+            "etv":       round(organic.get("etv", 0) or 0, 0),
+            "etv_cost":  round(organic.get("estimated_paid_traffic_cost", 0) or 0, 0),
+        }
+    except Exception:
+        return {"domain": domain, "keywords": 0, "etv": 0, "etv_cost": 0}
+
+
 # ── Combined competitor research ──────────────────────────────────────────────
 
 async def research_competitors(

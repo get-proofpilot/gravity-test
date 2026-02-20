@@ -26,7 +26,11 @@ from workflows.service_page import run_service_page
 from workflows.location_page import run_location_page
 from workflows.programmatic_content import run_programmatic_content
 from utils.docx_generator import generate_docx
-from utils.db import init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs
+from utils.db import (
+    init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs,
+    create_client, get_client as db_get_client, get_all_clients,
+    update_client, delete_client, approve_job, unapprove_job,
+)
 
 # ── App setup ─────────────────────────────────────────────
 app = FastAPI(title="ProofPilot Agency Hub API", version="1.0.0")
@@ -63,7 +67,7 @@ WORKFLOW_TITLES = {
 }
 
 
-# ── Request schema ────────────────────────────────────────
+# ── Request / response schemas ─────────────────────────────
 class WorkflowRequest(BaseModel):
     workflow_id: str
     client_id: int
@@ -75,6 +79,92 @@ class WorkflowRequest(BaseModel):
 class DiscoverCitiesRequest(BaseModel):
     city: str
     radius: int = 15
+
+
+class ClientCreate(BaseModel):
+    name: str
+    domain: str = ""
+    service: str = ""
+    location: str = ""
+    plan: str = "Starter"
+    monthly_revenue: str = ""
+    avg_job_value: str = ""
+    notes: str = ""
+    strategy_context: str = ""
+
+
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    domain: Optional[str] = None
+    service: Optional[str] = None
+    location: Optional[str] = None
+    plan: Optional[str] = None
+    monthly_revenue: Optional[str] = None
+    avg_job_value: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    strategy_context: Optional[str] = None
+
+
+# ── Client routes ──────────────────────────────────────────
+
+@app.get("/api/clients")
+async def list_clients():
+    """Return all active/inactive clients (excludes soft-deleted)."""
+    clients = await asyncio.to_thread(get_all_clients)
+    return {"clients": clients}
+
+
+@app.post("/api/clients", status_code=201)
+async def add_client(body: ClientCreate):
+    """Create a new client and return the full row."""
+    client = await asyncio.to_thread(create_client, body.model_dump())
+    return client
+
+
+@app.get("/api/clients/{client_id}")
+async def get_client_detail(client_id: int):
+    client = await asyncio.to_thread(db_get_client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return client
+
+
+@app.patch("/api/clients/{client_id}")
+async def patch_client(client_id: int, body: ClientUpdate):
+    """Partial update — only supplied non-null fields are written."""
+    updated = await asyncio.to_thread(
+        update_client, client_id, body.model_dump(exclude_none=True)
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return updated
+
+
+@app.delete("/api/clients/{client_id}", status_code=204)
+async def remove_client(client_id: int):
+    """Soft-delete: marks status='deleted'."""
+    ok = await asyncio.to_thread(delete_client, client_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+
+# ── Job approval routes ────────────────────────────────────
+
+@app.post("/api/jobs/{job_id}/approve")
+async def approve_content(job_id: str):
+    ok = await asyncio.to_thread(approve_job, job_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"approved": True}
+
+
+@app.delete("/api/jobs/{job_id}/approve")
+async def unapprove_content(job_id: str):
+    ok = await asyncio.to_thread(unapprove_job, job_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"approved": False}
 
 
 # ── Routes ────────────────────────────────────────────────
@@ -219,6 +309,7 @@ async def run_workflow(req: WorkflowRequest):
                 "workflow_title": WORKFLOW_TITLES[req.workflow_id],
                 "workflow_id": req.workflow_id,
                 "inputs": req.inputs,
+                "client_id": req.client_id,
             }
 
             # Persist to SQLite and generate docx (both run off the event loop)
@@ -285,6 +376,8 @@ def list_content():
             "workflow_id": job.get("workflow_id", ""),
             "has_docx": bool(job.get("docx_path")),
             "content_preview": content_str[:200] + "..." if len(content_str) > 200 else content_str,
+            "approved": bool(job.get("approved", 0)),
+            "approved_at": job.get("approved_at"),
         })
     return {"items": items}  # already sorted newest-first by get_all_jobs()
 
@@ -301,6 +394,8 @@ def get_job_detail(job_id: str):
         "workflow_title": job["workflow_title"],
         "has_docx": bool(job.get("docx_path")),
         "content_preview": content[:300] + "..." if len(content) > 300 else content,
+        "approved": bool(job.get("approved", 0)),
+        "approved_at": job.get("approved_at"),
     }
 
 

@@ -319,7 +319,7 @@ async def run_keyword_gap(
             return []
 
     competitor_kw_results_raw, seed_volumes = await asyncio.gather(
-        asyncio.gather(*competitor_kw_tasks, return_exceptions=True) if competitor_kw_tasks else asyncio.sleep(0),
+        asyncio.gather(*competitor_kw_tasks, return_exceptions=True),
         _get_seed_volumes(),
         return_exceptions=True,
     )

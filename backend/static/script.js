@@ -5,22 +5,50 @@
 
 /* ── DATA MODELS ── */
 
-const CLIENTS = [
-  { id: 1,  name: 'All Thingz Electric',           domain: 'allthingzelectric.com',          plan: 'Starter',    score: 74, trend: '+5',  avgRank: 9.2,  lastJob: '1 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AE' },
-  { id: 2,  name: 'Adam Levinstein Photography',   domain: 'adamlevinstein.com',             plan: 'Starter',    score: 62, trend: '+1',  avgRank: 14.1, lastJob: '2 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AL' },
-  { id: 3,  name: 'Dolce Electric',                domain: 'dolceelectric.com',              plan: 'Starter',    score: 69, trend: '→0',  avgRank: 11.8, lastJob: '3 hr ago',    status: 'active',   color: '#7C3AED', initials: 'DE' },
-  { id: 4,  name: 'Integrative Sports and Spine',  domain: 'integrativesportsandspine.com',  plan: 'Agency',     score: 81, trend: '+6',  avgRank: 7.3,  lastJob: '30 min ago',  status: 'active',   color: '#0D9488', initials: 'IS' },
-  { id: 5,  name: 'Saiyan Electric',               domain: 'saiyanelectric.com',             plan: 'Starter',    score: 71, trend: '+2',  avgRank: 10.6, lastJob: '4 hr ago',    status: 'active',   color: '#7C3AED', initials: 'SE' },
-  { id: 6,  name: 'Cedar Gold Group',              domain: 'cedargoldgroup.com',             plan: 'Agency',     score: 85, trend: '+4',  avgRank: 6.9,  lastJob: '1 hr ago',    status: 'active',   color: '#0D9488', initials: 'CG' },
-  { id: 7,  name: 'Pelican Coast Electric',        domain: 'pelicancoastelectric.com',       plan: 'Starter',    score: 67, trend: '-1',  avgRank: 13.4, lastJob: '5 hr ago',    status: 'active',   color: '#7C3AED', initials: 'PC' },
-  { id: 8,  name: 'ProofPilot',                    domain: 'proofpilot.com',                 plan: 'Agency',     score: 94, trend: '+8',  avgRank: 4.1,  lastJob: '12 min ago',  status: 'active',   color: '#0051FF', initials: 'PP' },
-  { id: 9,  name: 'Xsite Belize',                  domain: 'xsitebelize.com',                plan: 'Starter',    score: 58, trend: '+3',  avgRank: 16.2, lastJob: '1 day ago',   status: 'active',   color: '#7C3AED', initials: 'XB' },
-  { id: 10, name: 'Power Route Electric',          domain: 'powerrouteelectric.com',         plan: 'Starter',    score: 73, trend: '+4',  avgRank: 10.1, lastJob: '3 hr ago',    status: 'active',   color: '#7C3AED', initials: 'PR' },
-  { id: 11, name: 'Alpha Property Management',     domain: 'alphapropertymgmt.com',          plan: 'Agency',     score: 79, trend: '+2',  avgRank: 8.5,  lastJob: '2 hr ago',    status: 'active',   color: '#7C3AED', initials: 'AP' },
-  { id: 12, name: 'Trading Academy',               domain: 'tradingacademy.com',             plan: 'Enterprise', score: 91, trend: '+5',  avgRank: 5.0,  lastJob: '20 min ago',  status: 'active',   color: '#7C3AED', initials: 'TA' },
-  { id: 13, name: 'Youth Link',                    domain: 'youthlink.org',                  plan: 'Starter',    score: 55, trend: '→0',  avgRank: 18.7, lastJob: '2 days ago',  status: 'inactive', color: '#F59E3B', initials: 'YL' },
-  { id: 14, name: 'LAF Counseling',                domain: 'lafcounseling.com',              plan: 'Starter',    score: 61, trend: '+1',  avgRank: 15.3, lastJob: '1 day ago',   status: 'active',   color: '#EA580C', initials: 'LC' },
-];
+let CLIENTS = [];
+
+function _autoInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function mapApiClient(c) {
+  return {
+    id: c.client_id,
+    name: c.name,
+    domain: c.domain || '',
+    service: c.service || '',
+    location: c.location || '',
+    plan: c.plan || 'Starter',
+    monthly_revenue: c.monthly_revenue || '',
+    avg_job_value: c.avg_job_value || '',
+    status: c.status || 'active',
+    color: c.color || '#0051FF',
+    initials: c.initials || _autoInitials(c.name),
+    notes: c.notes || '',
+    strategy_context: c.strategy_context || '',
+    // Display-only placeholders (computed from jobs in a future phase)
+    score: 0,
+    trend: '→',
+    avgRank: '–',
+    lastJob: '–',
+  };
+}
+
+async function loadClients() {
+  try {
+    const res = await fetch(`${API_BASE}/api/clients`);
+    if (!res.ok) return;
+    const data = await res.json();
+    CLIENTS = data.clients.map(mapApiClient);
+    renderClients();
+    renderClientSelect();
+    renderRoster();
+    updateClientsBadge();
+  } catch (e) {
+    // Server not available — CLIENTS stays empty
+  }
+}
 
 const WORKFLOWS = [
   /* ── SEO ANALYSIS ── */
@@ -428,14 +456,16 @@ function selectWorkflow(id) {
     if (panel) panel.style.display = show ? 'flex' : 'none';
   });
 
-  // Hide client dropdown for prospect-audit (prospects aren't clients yet)
+  // Hide client dropdown and strategy context for prospect-audit (prospects aren't clients yet)
   const clientFieldWrap = document.getElementById('wfClientFieldWrap');
   if (clientFieldWrap) clientFieldWrap.style.display = id === 'prospect-audit' ? 'none' : '';
+  const strategyWrap = document.getElementById('wfStrategyCtxWrap');
+  if (strategyWrap) strategyWrap.style.display = id === 'prospect-audit' ? 'none' : '';
 
   // Reset form fields
   const clientSel = document.getElementById('wfClientSelect');
   if (clientSel) clientSel.value = '';
-  ['wfBusinessType','wfLocation','wfKeyword','wfServiceFocus','wfStrategyContext',
+  ['wfBusinessType','wfLocation','wfKeyword','wfServiceFocus','wfStrategyCtx',
    'wfAuditDomain','wfAuditService','wfAuditLocation','wfAuditNotes',
    'wfProspectName','wfProspectDomain','wfProspectService','wfProspectLocation','wfProspectRevenue','wfProspectJobValue','wfProspectNotes',
    'wfGapDomain','wfGapService','wfGapLocation','wfGapCompetitors','wfGapNotes',
@@ -560,6 +590,15 @@ function checkRunReady() {
   }
 
   btn.disabled = !ready;
+}
+
+function onClientSelectChange() {
+  const id = parseInt(document.getElementById('wfClientSelect')?.value);
+  const client = CLIENTS.find(c => c.id === id);
+  const ta = document.getElementById('wfStrategyCtx');
+  if (ta && client) ta.value = client.strategy_context || '';
+  checkRunReady();
+  onAuditClientChange();
 }
 
 function onAuditClientChange() {
@@ -760,7 +799,7 @@ async function launchWorkflow() {
 
   // Build inputs + strategy context per workflow
   let inputs = {};
-  let strategyContext = '';
+  const strategyContext = document.getElementById('wfStrategyCtx')?.value.trim() || '';
 
   if (selectedWorkflow === 'home-service-content') {
     inputs = {
@@ -769,7 +808,6 @@ async function launchWorkflow() {
       keyword:       document.getElementById('wfKeyword')?.value.trim() || '',
       service_focus: document.getElementById('wfServiceFocus')?.value.trim() || '',
     };
-    strategyContext = document.getElementById('wfStrategyContext')?.value.trim() || '';
   } else if (selectedWorkflow === 'website-seo-audit') {
     inputs = {
       domain:   document.getElementById('wfAuditDomain')?.value.trim() || '',
@@ -1047,8 +1085,8 @@ function renderClients(filter = '') {
         </td>
         <td style="font-family:var(--mono);font-size:10px;color:var(--text3);">${c.domain}</td>
         <td style="color:var(--text3);">${c.plan}</td>
-        <td><span class="seo-score ${scoreClass}">${c.score}</span></td>
-        <td style="font-family:var(--mono);color:var(--text3);">#${c.avgRank}</td>
+        <td><span class="seo-score ${scoreClass}">${c.score || '–'}</span></td>
+        <td style="font-family:var(--mono);color:var(--text3);">${c.avgRank !== '–' ? '#' + c.avgRank : '–'}</td>
         <td style="font-family:var(--mono);font-size:10px;color:var(--text3);">${c.lastJob}</td>
         <td>
           <span class="pill ${isActive ? 'pill-act' : 'pill-inactive'} pill-toggle"
@@ -1059,6 +1097,7 @@ function renderClients(filter = '') {
         </td>
         <td style="display:flex;gap:6px;">
           <button class="tbl-btn" onclick="showClientHub(${c.id})">Hub</button>
+          <button class="tbl-btn" onclick="showEditClientModal(${c.id})">Edit</button>
           <button class="tbl-btn" onclick="selectWorkflowForClient(${c.id})" ${isActive ? '' : 'disabled'}>Run</button>
         </td>
       </tr>
@@ -1372,17 +1411,151 @@ function selectWorkflowForClient(clientId) {
   }, 80);
 }
 
-function toggleClientStatus(id) {
+async function toggleClientStatus(id) {
   const client = CLIENTS.find(c => c.id === id);
   if (!client) return;
-  client.status = client.status === 'active' ? 'inactive' : 'active';
+  const newStatus = client.status === 'active' ? 'inactive' : 'active';
+  try {
+    await fetch(`${API_BASE}/api/clients/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  } catch (e) { /* ignore network errors */ }
+  await loadClients();
+}
 
-  // Refresh all views that depend on client status
-  const searchEl = document.getElementById('clientSearch');
-  renderClients(searchEl ? searchEl.value.toLowerCase() : '');
-  renderClientSelect();   // workflow dropdown: active clients only
-  renderRoster();         // dashboard roster: dim inactive
-  updateClientsBadge();   // sidebar badge
+/* ── Add / Edit Client modals ── */
+
+function showAddClientModal() {
+  ['acName','acDomain','acService','acLocation','acRevenue','acJobValue','acNotes','acStrategyCtx'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const planEl = document.getElementById('acPlan');
+  if (planEl) planEl.value = 'Starter';
+  document.getElementById('addClientModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideAddClientModal(e) {
+  if (e && e.target !== document.getElementById('addClientModal')) return;
+  document.getElementById('addClientModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitAddClient() {
+  const name = document.getElementById('acName')?.value.trim();
+  const domain = document.getElementById('acDomain')?.value.trim();
+  if (!name || !domain) {
+    showToast('Client Name and Domain are required');
+    return;
+  }
+  const payload = {
+    name,
+    domain,
+    service:          document.getElementById('acService')?.value.trim() || '',
+    location:         document.getElementById('acLocation')?.value.trim() || '',
+    plan:             document.getElementById('acPlan')?.value || 'Starter',
+    monthly_revenue:  document.getElementById('acRevenue')?.value.trim() || '',
+    avg_job_value:    document.getElementById('acJobValue')?.value.trim() || '',
+    notes:            document.getElementById('acNotes')?.value.trim() || '',
+    strategy_context: document.getElementById('acStrategyCtx')?.value.trim() || '',
+  };
+  try {
+    const res = await fetch(`${API_BASE}/api/clients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create client');
+    document.getElementById('addClientModal').classList.remove('open');
+    document.body.style.overflow = '';
+    await loadClients();
+    showToast(`✓ ${name} added`);
+  } catch (e) {
+    showToast('Error adding client — please try again');
+  }
+}
+
+function showEditClientModal(clientId) {
+  const client = CLIENTS.find(c => c.id === clientId);
+  if (!client) return;
+
+  document.getElementById('ecId').value = clientId;
+  document.getElementById('ecName').value = client.name || '';
+  document.getElementById('ecDomain').value = client.domain || '';
+  document.getElementById('ecService').value = client.service || '';
+  document.getElementById('ecLocation').value = client.location || '';
+  document.getElementById('ecPlan').value = client.plan || 'Starter';
+  document.getElementById('ecRevenue').value = client.monthly_revenue || '';
+  document.getElementById('ecJobValue').value = client.avg_job_value || '';
+  document.getElementById('ecNotes').value = client.notes || '';
+  document.getElementById('ecStrategyCtx').value = client.strategy_context || '';
+
+  const descEl = document.getElementById('editClientModalDesc');
+  if (descEl) descEl.textContent = `Editing: ${client.name}`;
+
+  document.getElementById('editClientModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideEditClientModal(e) {
+  if (e && e.target !== document.getElementById('editClientModal')) return;
+  document.getElementById('editClientModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitEditClient() {
+  const clientId = parseInt(document.getElementById('ecId')?.value);
+  const name = document.getElementById('ecName')?.value.trim();
+  const domain = document.getElementById('ecDomain')?.value.trim();
+  if (!clientId || !name || !domain) {
+    showToast('Client Name and Domain are required');
+    return;
+  }
+  const payload = {
+    name,
+    domain,
+    service:          document.getElementById('ecService')?.value.trim() || '',
+    location:         document.getElementById('ecLocation')?.value.trim() || '',
+    plan:             document.getElementById('ecPlan')?.value || 'Starter',
+    monthly_revenue:  document.getElementById('ecRevenue')?.value.trim() || '',
+    avg_job_value:    document.getElementById('ecJobValue')?.value.trim() || '',
+    notes:            document.getElementById('ecNotes')?.value.trim() || '',
+    strategy_context: document.getElementById('ecStrategyCtx')?.value.trim() || '',
+  };
+  try {
+    const res = await fetch(`${API_BASE}/api/clients/${clientId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to update client');
+    document.getElementById('editClientModal').classList.remove('open');
+    document.body.style.overflow = '';
+    await loadClients();
+    showToast(`✓ ${name} updated`);
+  } catch (e) {
+    showToast('Error saving changes — please try again');
+  }
+}
+
+async function deleteClientFromModal() {
+  const clientId = parseInt(document.getElementById('ecId')?.value);
+  const name = document.getElementById('ecName')?.value.trim();
+  if (!clientId) return;
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/clients/${clientId}`, { method: 'DELETE' });
+    if (!res.ok && res.status !== 204) throw new Error('Failed to delete client');
+    document.getElementById('editClientModal').classList.remove('open');
+    document.body.style.overflow = '';
+    await loadClients();
+    showToast(`${name} deleted`);
+  } catch (e) {
+    showToast('Error deleting client — please try again');
+  }
 }
 
 /* ── JOBS ── */
@@ -1576,6 +1749,11 @@ function renderContentLibrary(items) {
   }).join('');
 }
 
+async function approveContentItem(jobId) {
+  await fetch(`${API_BASE}/api/jobs/${jobId}/approve`, { method: 'POST' });
+  await syncContentLibrary();
+}
+
 function _contentCard(item) {
   const icon = wfIcon(item.workflow_id);
   const typeLabel = wfTypeLabel(item.workflow_id);
@@ -1585,6 +1763,10 @@ function _contentCard(item) {
          .docx
        </button>`
     : '';
+
+  const approvalEl = item.approved
+    ? `<span class="cl-approved-badge">✓ Approved</span>`
+    : `<button class="cl-card-btn cl-card-btn-approve" onclick="event.stopPropagation(); approveContentItem('${item.job_id}')">✓ Approve</button>`;
 
   return `
     <div class="cl-card" onclick="viewContentItem('${item.job_id}')">
@@ -1601,6 +1783,7 @@ function _contentCard(item) {
           View
         </button>
         ${downloadBtn}
+        ${approvalEl}
       </div>
     </div>`;
 }
@@ -1683,7 +1866,12 @@ async function syncContentLibrary() {
     if (!res.ok) return;
     const data = await res.json();
     data.items.forEach(item => {
-      if (!CONTENT_ITEMS.find(c => c.job_id === item.job_id)) {
+      const existing = CONTENT_ITEMS.find(c => c.job_id === item.job_id);
+      if (existing) {
+        // Update approval status on existing entries
+        existing.approved = !!item.approved;
+        existing.approved_at = item.approved_at || null;
+      } else {
         CONTENT_ITEMS.push({
           id: item.job_id,
           job_id: item.job_id,
@@ -1694,6 +1882,8 @@ async function syncContentLibrary() {
           has_docx: item.has_docx,
           preview: item.content_preview || '',
           created_at: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          approved: !!item.approved,
+          approved_at: item.approved_at || null,
         });
       }
     });
@@ -1943,8 +2133,7 @@ document.getElementById('clientSearch')?.addEventListener('input', e => {
 
 // Workflow client select
 document.getElementById('wfClientSelect')?.addEventListener('change', () => {
-  checkRunReady();
-  onAuditClientChange();
+  onClientSelectChange();
 });
 
 // Workflow input fields — re-validate run button as user types
@@ -1960,7 +2149,7 @@ document.getElementById('wfClientSelect')?.addEventListener('change', () => {
 });
 
 /* ── INIT ── */
-updateClientsBadge();
 updateJobsBadge();
 showView('dashboard');
 startTerminal();
+loadClients();
