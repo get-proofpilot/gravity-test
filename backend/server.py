@@ -35,6 +35,10 @@ from utils.db import (
     update_client, delete_client, approve_job, unapprove_job,
     get_client_by_token, get_jobs_by_client,
 )
+from utils.dataforseo import (
+    get_domain_rank_overview, build_location_name,
+)
+from utils.searchatlas import sa_call
 
 # ── App setup ─────────────────────────────────────────────
 app = FastAPI(title="ProofPilot Agency Hub API", version="1.0.0")
@@ -484,6 +488,56 @@ async def portal_data(token: str):
         },
         "items": items,
     }
+
+
+@app.get("/api/portal/{token}/metrics")
+async def portal_metrics(token: str):
+    """Pull live SEO metrics for the portal dashboard. Async — may take a few seconds."""
+    client_info = await asyncio.to_thread(get_client_by_token, token)
+    if not client_info:
+        raise HTTPException(status_code=404, detail="Portal not found")
+
+    domain = client_info.get("domain", "")
+    location = client_info.get("location", "")
+
+    if not domain:
+        return {"metrics": None, "reason": "no_domain"}
+
+    metrics = {}
+
+    # Pull DFS domain overview + SA pillar scores in parallel
+    async def safe_dfs_overview():
+        try:
+            loc = build_location_name(location) if location else "United States"
+            return await get_domain_rank_overview(domain, loc)
+        except Exception:
+            return None
+
+    async def safe_sa_pillars():
+        try:
+            result = await sa_call(
+                "Site_Explorer_Holistic_Audit_Tool",
+                "get_holistic_seo_pillar_scores",
+                {"domain": domain},
+            )
+            return result
+        except Exception:
+            return None
+
+    dfs_result, sa_pillars = await asyncio.gather(
+        safe_dfs_overview(), safe_sa_pillars(),
+        return_exceptions=True,
+    )
+
+    if isinstance(dfs_result, dict) and dfs_result:
+        metrics["keywords"] = dfs_result.get("keywords", 0)
+        metrics["traffic"] = round(dfs_result.get("etv", 0))
+        metrics["traffic_value"] = round(dfs_result.get("etv_cost", 0))
+
+    if isinstance(sa_pillars, str) and sa_pillars and "unavailable" not in sa_pillars.lower():
+        metrics["pillar_scores_raw"] = sa_pillars
+
+    return {"metrics": metrics if metrics else None}
 
 
 # ── Static files ──────────────────────────────────────────
