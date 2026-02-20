@@ -24,6 +24,7 @@ from utils.dataforseo import (
     build_service_keyword_seeds,
 )
 from utils.db import get_jobs_by_client
+from utils.localfalcon import list_scan_reports, get_scan_report, format_scan_for_report, format_scans_summary
 
 # ── Industry benchmarks for ROI framing ──────────────────────────────────────
 # Source: WebFX 2026 Home Services Marketing Benchmarks, LocaliQ, First Page Sage
@@ -105,6 +106,8 @@ You write monthly client reports that busy business owners actually read. Your r
 ## Local Search Visibility
 
 [How the client appears in Google Maps/Local Pack. Who are the top 3-5 competitors? What's the gap? Rating comparison, review count comparison.]
+
+[If Local Falcon grid data is available, include a Local Rank Tracking subsection. Report ARP (Average Rank Position), SoLV (Share of Local Voice), and describe how the business performs across the geographic grid — where they're strong (top 3 positions) and where they're weak. This is critical data for home service businesses because it shows how visibility varies across their service area.]
 
 ---
 
@@ -304,9 +307,41 @@ async def run_monthly_report(
 
     yield f"> Analyzing local competitors and market position...\n\n"
 
-    sa_data, dfs_data, job_history = await asyncio.gather(
+    # Local Falcon scan data (optional — only if API key is configured)
+    async def _gather_lf_data() -> dict:
+        try:
+            if not os.environ.get("LOCALFALCON_API_KEY"):
+                return {}
+            scans = await list_scan_reports(limit=10)
+            if not scans:
+                return {"scans": []}
+
+            # Try to get detailed grid data for the most recent scans
+            detailed = []
+            for scan in scans[:3]:
+                key = (
+                    scan.get("report_key")
+                    or scan.get("reportKey")
+                    or scan.get("key")
+                    or scan.get("id")
+                    or ""
+                )
+                if not key:
+                    continue
+                try:
+                    report = await get_scan_report(str(key))
+                    detailed.append(report)
+                except Exception:
+                    pass
+
+            return {"scans": scans, "detailed": detailed}
+        except Exception:
+            return {}
+
+    sa_data, dfs_data, job_history, lf_data = await asyncio.gather(
         sa_task, dfs_task,
         asyncio.to_thread(get_jobs_by_client, client_id),
+        _gather_lf_data(),
         return_exceptions=True,
     )
 
@@ -317,6 +352,8 @@ async def run_monthly_report(
         dfs_data = {}
     if isinstance(job_history, Exception):
         job_history = []
+    if isinstance(lf_data, Exception):
+        lf_data = {}
 
     yield f"> Building business performance report...\n\n"
     yield "---\n\n"
@@ -433,6 +470,19 @@ async def run_monthly_report(
             val = sa_data.get(key, "")
             if val and "unavailable" not in val.lower():
                 context_sections.append(f"### {label}\n{val}")
+
+    # Local Falcon rank tracking data
+    if lf_data:
+        lf_detailed = lf_data.get("detailed", [])
+        lf_scans = lf_data.get("scans", [])
+
+        if lf_detailed:
+            for scan in lf_detailed[:3]:
+                scan_text = format_scan_for_report(scan)
+                if scan_text:
+                    context_sections.append(scan_text)
+        elif lf_scans:
+            context_sections.append(format_scans_summary(lf_scans))
 
     # Job history — deliverables completed
     if job_history:

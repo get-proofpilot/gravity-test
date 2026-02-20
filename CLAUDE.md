@@ -50,6 +50,14 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 - [x] Portal link copy button in Client Hub
 - [x] Content type filters for GBP Posts + Monthly Reports
 
+**Phase 3.5 (Local Falcon Integration): COMPLETE**
+- [x] Local Falcon MCP client (`utils/localfalcon.py` — scan reports, grid data, locations, campaigns)
+- [x] Heatmap grid visualization (CSS grid, color-coded ranks 1-20+, ARP/SoLV/ATRP metrics)
+- [x] Local Falcon API endpoints (`/api/localfalcon/scans`, `/scans/{key}`, `/locations`, `/campaigns`)
+- [x] Client Hub heatmap section (async loading, auto-renders in Client Hub view)
+- [x] Portal heatmap section (`/api/portal/{token}/heatmap` — client-matched scan data)
+- [x] Monthly report integration (Local Falcon data injected into Claude context for reporting)
+
 **What's NOT built yet (high priority per growth plan):**
 - Google Drive integration (Phase 4 — zero-friction content handoff to Jo Paula)
 - Scheduled automations / cron (makes the platform run without Matthew)
@@ -168,6 +176,7 @@ This CLAUDE.md is the project's memory. Update it when:
 | Export | `python-docx` → branded `.docx` files |
 | SEO Data | DataForSEO (SERP, Labs, Keywords, GBP, On-Page) |
 | SEO Data | Search Atlas MCP (organic, backlinks, holistic audit, local SEO) |
+| Rank Tracking | Local Falcon MCP (geo-grid heatmaps, ARP, SoLV, campaign trends) |
 | Deploy | Railway — auto-deploy on push, Dockerfile in `/backend` |
 
 ### Key Files
@@ -177,6 +186,7 @@ backend/
   utils/
     dataforseo.py        — DataForSEO API client (14+ functions)
     searchatlas.py       — Search Atlas MCP wrapper
+    localfalcon.py       — Local Falcon MCP client (heatmaps, scan reports, campaigns)
     docx_generator.py    — Branded Word document output
     db.py                — SQLite schema, CRUD operations, seed data
   workflows/
@@ -322,6 +332,13 @@ Add a `div#modalInputs{Name}` with input fields matching the workflow's input sc
 | `/api/clients/{id}` | DELETE | Soft-delete client |
 | `/api/discover-cities` | POST | Find nearby cities (Haiku-powered) |
 | `/api/portal/{token}` | GET | Client portal data (client info + jobs) |
+| `/api/portal/{token}/heatmap` | GET | Local Falcon heatmap data for portal client |
+| `/api/localfalcon/status` | GET | Check if Local Falcon API key is configured |
+| `/api/localfalcon/scans` | GET | List all Local Falcon scan reports |
+| `/api/localfalcon/scans/{key}` | GET | Get single scan report with grid data |
+| `/api/localfalcon/locations` | GET | List tracked Local Falcon locations |
+| `/api/localfalcon/campaigns` | GET | List campaign (recurring scan) reports |
+| `/api/localfalcon/account` | GET | Local Falcon account info |
 | `/portal/{token}` | GET | Client portal page (public-facing) |
 
 ### SSE Event Types
@@ -440,6 +457,33 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 
 ---
 
+## Local Falcon Integration
+
+**MCP endpoint:** `https://mcp.localfalcon.com/mcp`
+**Auth:** API key as query parameter (`local_falcon_api_key=KEY`)
+**Client:** `utils/localfalcon.py`
+**Env var:** `LOCALFALCON_API_KEY`
+
+### Available Tools
+| Tool | Description | Used In |
+|------|-------------|---------|
+| `listLocalFalconScanReports` | All scan reports in account | Dashboard, Portal |
+| `getLocalFalconReport` | Single scan with full grid data (ranks, lat/lng) | Heatmap visualization |
+| `listAllLocalFalconLocations` | All tracked GBP locations | Dashboard |
+| `listLocalFalconCampaignReports` | Recurring campaign data (trends) | Dashboard |
+| `viewLocalFalconAccountInformation` | Account details, credits | Status check |
+
+### Key Metrics
+- **ARP** — Average Rank Position (average of pins ranking ≤20)
+- **ATRP** — Average Total Rank Position (average of ALL pins, 20+ = not found)
+- **SoLV** — Share of Local Voice (% of grid points where business ranks top 3)
+
+### Heatmap Color Scale
+Green (#059669) → ranks 1-3, Light green (#A7F3D0) → 4-6, Yellow (#FDE68A) → 7-9,
+Amber (#F59E0B) → 10-12, Red (#DC2626) → 13-20, Gray → not found
+
+---
+
 ## Frontend Views
 
 | View | Description |
@@ -463,6 +507,7 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 | `SEARCHATLAS_API_KEY` | Yes | Search Atlas MCP API key |
 | `DATAFORSEO_LOGIN` | Yes | DataForSEO account email |
 | `DATAFORSEO_PASSWORD` | Yes | DataForSEO account password |
+| `LOCALFALCON_API_KEY` | No | Local Falcon API key (enables rank heatmaps) |
 | `DATABASE_PATH` | No | SQLite path (default: `./data/jobs.db`) |
 
 ---

@@ -39,6 +39,10 @@ from utils.dataforseo import (
     get_domain_rank_overview, build_location_name,
 )
 from utils.searchatlas import sa_call
+from utils.localfalcon import (
+    list_scan_reports, get_scan_report, list_locations,
+    list_campaign_reports, get_account_info, extract_grid_data,
+)
 
 # ── App setup ─────────────────────────────────────────────
 app = FastAPI(title="ProofPilot Agency Hub API", version="1.0.0")
@@ -447,6 +451,66 @@ def get_job_detail(job_id: str):
     }
 
 
+# ── Local Falcon API ──────────────────────────────────────────────
+
+@app.get("/api/localfalcon/status")
+async def localfalcon_status():
+    """Check if Local Falcon API key is configured."""
+    key = os.environ.get("LOCALFALCON_API_KEY", "")
+    return {"configured": bool(key)}
+
+
+@app.get("/api/localfalcon/scans")
+async def localfalcon_scans():
+    """List all Local Falcon scan reports."""
+    try:
+        scans = await list_scan_reports(limit=100)
+        return {"scans": scans}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/scans/{report_key}")
+async def localfalcon_scan_detail(report_key: str):
+    """Get a single scan report with full grid data for heatmap rendering."""
+    try:
+        report = await get_scan_report(report_key)
+        grid = extract_grid_data(report)
+        return {"report": report, "grid": grid}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/locations")
+async def localfalcon_locations():
+    """List all tracked Local Falcon locations."""
+    try:
+        locations = await list_locations()
+        return {"locations": locations}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/campaigns")
+async def localfalcon_campaigns():
+    """List Local Falcon campaign (recurring scan) reports."""
+    try:
+        campaigns = await list_campaign_reports(limit=50)
+        return {"campaigns": campaigns}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/account")
+async def localfalcon_account():
+    """Get Local Falcon account info (credits, subscription)."""
+    try:
+        info = await get_account_info()
+        return info
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ── Serve frontend ────────────────────────────────────────────────
 # Explicit routes instead of StaticFiles mount — prevents the mount from
 # intercepting /api/* routes (known FastAPI/Starlette issue with root mounts).
@@ -538,6 +602,61 @@ async def portal_metrics(token: str):
         metrics["pillar_scores_raw"] = sa_pillars
 
     return {"metrics": metrics if metrics else None}
+
+
+@app.get("/api/portal/{token}/heatmap")
+async def portal_heatmap(token: str):
+    """Pull Local Falcon heatmap data for a portal client's tracked keywords."""
+    client_info = await asyncio.to_thread(get_client_by_token, token)
+    if not client_info:
+        raise HTTPException(status_code=404, detail="Portal not found")
+
+    if not os.environ.get("LOCALFALCON_API_KEY"):
+        return {"heatmaps": [], "reason": "localfalcon_not_configured"}
+
+    try:
+        scans = await list_scan_reports(limit=50)
+        if not scans:
+            return {"heatmaps": []}
+
+        # Match scans to this client by domain or business name
+        domain = (client_info.get("domain") or "").lower()
+        name = (client_info.get("name") or "").lower()
+
+        client_scans = []
+        for scan in scans:
+            scan_str = json.dumps(scan).lower()
+            if (domain and domain in scan_str) or (name and name in scan_str):
+                client_scans.append(scan)
+
+        # If no match by domain/name, return all (small accounts likely have one business)
+        if not client_scans:
+            client_scans = scans[:5]
+
+        # Get detailed grid data for each scan
+        heatmaps = []
+        for scan in client_scans[:5]:
+            report_key = (
+                scan.get("report_key")
+                or scan.get("reportKey")
+                or scan.get("key")
+                or scan.get("id")
+                or ""
+            )
+            if not report_key:
+                continue
+            try:
+                report = await get_scan_report(str(report_key))
+                grid = extract_grid_data(report)
+                if grid.get("grid"):
+                    heatmaps.append(grid)
+            except Exception:
+                continue
+
+        return {"heatmaps": heatmaps}
+
+    except Exception:
+        return {"heatmaps": [], "reason": "api_error"}
 
 
 # ── Static files ──────────────────────────────────────────

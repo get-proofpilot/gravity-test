@@ -1438,6 +1438,21 @@ function renderClientHub() {
 
     </div>
 
+    <!-- Local Falcon Heat Maps -->
+    <div class="lf-section">
+      <div class="lf-section-header">
+        <div class="lf-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="10" r="3"/>
+            <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
+          </svg>
+          Local Rank Heat Maps
+        </div>
+        <span class="lf-section-badge">Local Falcon</span>
+      </div>
+      <div id="lfClientHubScans"></div>
+    </div>
+
     <!-- Content Library Strip -->
     <div class="ch-content-strip">
       <div class="ch-strip-header">
@@ -1455,6 +1470,9 @@ function renderClientHub() {
       </div>
     </div>
   `;
+
+  // Load Local Falcon heatmaps async
+  loadLocalFalconScans('lfClientHubScans');
 }
 
 function copyPortalLink(token) {
@@ -2237,6 +2255,168 @@ document.getElementById('wfClientSelect')?.addEventListener('change', () => {
  'wfProgContentType', 'wfProgBusinessType', 'wfProgPrimaryService', 'wfProgLocation', 'wfProgHomeBase', 'wfProgItemsList'].forEach(id => {
   document.getElementById(id)?.addEventListener('input', checkRunReady);
 });
+
+/* ═══════════════════════════════════════════════════════
+   LOCAL FALCON HEATMAP — Grid visualization component
+═══════════════════════════════════════════════════════ */
+
+function rankToClass(rank) {
+  if (!rank || rank > 20) return 'lf-rank-none';
+  return `lf-rank-${rank}`;
+}
+
+function rankDisplay(rank) {
+  if (!rank || rank > 20) return '–';
+  return rank;
+}
+
+function arpClass(arp) {
+  if (arp <= 5) return 'arp-good';
+  if (arp <= 12) return 'arp-ok';
+  return 'arp-bad';
+}
+
+function renderHeatmapGrid(gridData) {
+  /* gridData: { keyword, grid_size, arp, atrp, solv, scan_date, center, grid (2D array) } */
+  const size = gridData.grid_size || 0;
+  const grid = gridData.grid || [];
+  if (!size || !grid.length) return '<div class="lf-empty"><div class="lf-empty-text">No grid data available</div></div>';
+
+  const centerIdx = Math.floor(size / 2);
+
+  let cellsHTML = '';
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < (grid[r] || []).length; c++) {
+      const rank = grid[r][c];
+      const isCenter = (r === centerIdx && c === centerIdx);
+      const cls = `lf-cell ${rankToClass(rank)} ${isCenter ? 'lf-center' : ''}`;
+      cellsHTML += `<div class="${cls}" title="Rank: ${rank <= 20 ? rank : 'Not found'}">${rankDisplay(rank)}</div>`;
+    }
+  }
+
+  const arp = gridData.arp || 0;
+  const solv = gridData.solv || 0;
+  const atrp = gridData.atrp || 0;
+
+  return `
+    <div class="lf-scan-card">
+      <div class="lf-scan-header">
+        <div class="lf-scan-keyword" title="${gridData.keyword || ''}">"${gridData.keyword || 'Unknown keyword'}"</div>
+        <div class="lf-scan-date">${(gridData.scan_date || '').slice(0, 10)}</div>
+      </div>
+      <div class="lf-heatmap">
+        <div class="lf-grid" style="grid-template-columns: repeat(${size}, 36px);">
+          ${cellsHTML}
+        </div>
+      </div>
+      <div class="lf-metrics">
+        <div class="lf-metric">
+          <div class="lf-metric-val ${arp ? arpClass(arp) : ''}">${arp ? arp.toFixed(1) : '–'}</div>
+          <div class="lf-metric-label">ARP</div>
+        </div>
+        <div class="lf-metric">
+          <div class="lf-metric-val" style="color: var(--elec-blue);">${solv ? solv.toFixed(0) + '%' : '–'}</div>
+          <div class="lf-metric-label">SoLV</div>
+        </div>
+        <div class="lf-metric">
+          <div class="lf-metric-val">${atrp ? atrp.toFixed(1) : '–'}</div>
+          <div class="lf-metric-label">ATRP</div>
+        </div>
+        <div class="lf-metric">
+          <div class="lf-metric-val">${size}×${size}</div>
+          <div class="lf-metric-label">Grid</div>
+        </div>
+      </div>
+      <div class="lf-legend">
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:#059669;"></div>1-3</div>
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:#A7F3D0;"></div>4-6</div>
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:#FDE68A;"></div>7-9</div>
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:#F59E0B;"></div>10-12</div>
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:#DC2626;"></div>13-20</div>
+        <div class="lf-legend-item"><div class="lf-legend-dot" style="background:var(--bg3);"></div>20+</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadLocalFalconScans(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = '<div class="lf-loading">Loading Local Falcon data</div>';
+
+  try {
+    // Check if configured
+    const statusRes = await fetch(`${API_BASE}/api/localfalcon/status`);
+    const statusData = await statusRes.json();
+
+    if (!statusData.configured) {
+      el.innerHTML = `
+        <div class="lf-empty">
+          <div class="lf-empty-icon">📡</div>
+          <div class="lf-empty-text">
+            Local Falcon not configured yet.<br>
+            Set <code>LOCALFALCON_API_KEY</code> in your environment to enable rank tracking heat maps.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Fetch scans
+    const res = await fetch(`${API_BASE}/api/localfalcon/scans`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const scans = data.scans || [];
+
+    if (!scans.length) {
+      el.innerHTML = `
+        <div class="lf-empty">
+          <div class="lf-empty-icon">📍</div>
+          <div class="lf-empty-text">No scan reports found. Run a scan in Local Falcon to see heat maps here.</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Load detailed grid data for each scan
+    const heatmaps = [];
+    for (const scan of scans.slice(0, 6)) {
+      const key = scan.report_key || scan.reportKey || scan.key || scan.id || '';
+      if (!key) continue;
+      try {
+        const detailRes = await fetch(`${API_BASE}/api/localfalcon/scans/${key}`);
+        if (detailRes.ok) {
+          const detail = await detailRes.json();
+          if (detail.grid && detail.grid.grid && detail.grid.grid.length) {
+            heatmaps.push(detail.grid);
+          }
+        }
+      } catch (e) { /* skip failed scans */ }
+    }
+
+    if (!heatmaps.length) {
+      el.innerHTML = `
+        <div class="lf-empty">
+          <div class="lf-empty-icon">📍</div>
+          <div class="lf-empty-text">${scans.length} scan(s) found, but no grid data could be loaded. Check your Local Falcon API plan.</div>
+        </div>
+      `;
+      return;
+    }
+
+    el.innerHTML = `<div class="lf-scans-grid">${heatmaps.map(h => renderHeatmapGrid(h)).join('')}</div>`;
+
+  } catch (e) {
+    el.innerHTML = `
+      <div class="lf-empty">
+        <div class="lf-empty-icon">⚠️</div>
+        <div class="lf-empty-text">Could not load Local Falcon data: ${e.message}</div>
+      </div>
+    `;
+  }
+}
+
 
 /* ── INIT ── */
 updateJobsBadge();
