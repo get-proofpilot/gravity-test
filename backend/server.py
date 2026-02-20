@@ -40,8 +40,14 @@ from utils.dataforseo import (
 )
 from utils.searchatlas import sa_call
 from utils.localfalcon import (
-    list_scan_reports, get_scan_report, list_locations,
-    list_campaign_reports, get_account_info, extract_grid_data,
+    list_scan_reports, get_scan_report, get_grid, list_locations,
+    list_campaign_reports, get_campaign_report, list_trend_reports,
+    get_trend_report, get_competitor_reports, get_competitor_report,
+    list_guard_reports, get_guard_report, list_keyword_reports,
+    get_keyword_report, list_location_reports, get_location_report,
+    list_reviews_reports, get_reviews_report, get_gbp_locations,
+    list_auto_scans, get_account_info, extract_grid_data,
+    extract_trend_data, extract_competitor_data,
 )
 
 # ── App setup ─────────────────────────────────────────────
@@ -460,6 +466,8 @@ async def localfalcon_status():
     return {"configured": bool(key)}
 
 
+# ── Scans ──
+
 @app.get("/api/localfalcon/scans")
 async def localfalcon_scans():
     """List all Local Falcon scan reports."""
@@ -481,15 +489,7 @@ async def localfalcon_scan_detail(report_key: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/localfalcon/locations")
-async def localfalcon_locations():
-    """List all tracked Local Falcon locations."""
-    try:
-        locations = await list_locations()
-        return {"locations": locations}
-    except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+# ── Campaigns ──
 
 @app.get("/api/localfalcon/campaigns")
 async def localfalcon_campaigns():
@@ -500,6 +500,186 @@ async def localfalcon_campaigns():
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/api/localfalcon/campaigns/{campaign_id}")
+async def localfalcon_campaign_detail(campaign_id: str):
+    """Get a single campaign report with scan history."""
+    try:
+        report = await get_campaign_report(campaign_id)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Trends ──
+
+@app.get("/api/localfalcon/trends")
+async def localfalcon_trends():
+    """List trend reports showing rank changes over time."""
+    try:
+        trends = await list_trend_reports(limit=50)
+        return {"trends": trends}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/trends/{report_key}")
+async def localfalcon_trend_detail(report_key: str):
+    """Get a single trend report with historical data points."""
+    try:
+        report = await get_trend_report(report_key)
+        trend_data = extract_trend_data(report)
+        return {"report": report, "trend": trend_data}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Competitors ──
+
+@app.get("/api/localfalcon/competitors/{report_key}")
+async def localfalcon_competitors(report_key: str):
+    """Get competitor rankings for a specific scan."""
+    try:
+        competitors = await get_competitor_reports(report_key)
+        normalized = extract_competitor_data(competitors)
+        return {"competitors": normalized, "raw": competitors}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/competitor/{report_key}")
+async def localfalcon_competitor_detail(report_key: str):
+    """Get detailed single competitor report."""
+    try:
+        report = await get_competitor_report(report_key)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Guard (rank monitoring) ──
+
+@app.get("/api/localfalcon/guards")
+async def localfalcon_guards():
+    """List guard reports (rank change monitoring alerts)."""
+    try:
+        guards = await list_guard_reports(limit=50)
+        return {"guards": guards}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/guards/{report_key}")
+async def localfalcon_guard_detail(report_key: str):
+    """Get a single guard report with rank change details."""
+    try:
+        report = await get_guard_report(report_key)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Keywords ──
+
+@app.get("/api/localfalcon/keywords")
+async def localfalcon_keywords():
+    """List keyword-level tracking reports."""
+    try:
+        keywords = await list_keyword_reports(limit=50)
+        return {"keywords": keywords}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/keywords/{report_key}")
+async def localfalcon_keyword_detail(report_key: str):
+    """Get detailed keyword tracking report."""
+    try:
+        report = await get_keyword_report(report_key)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Locations ──
+
+@app.get("/api/localfalcon/locations")
+async def localfalcon_locations():
+    """List all tracked Local Falcon locations."""
+    try:
+        locations = await list_locations()
+        return {"locations": locations}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/location-reports")
+async def localfalcon_location_reports():
+    """List per-location tracking reports."""
+    try:
+        reports = await list_location_reports(limit=50)
+        return {"reports": reports}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/location-reports/{report_key}")
+async def localfalcon_location_report_detail(report_key: str):
+    """Get detailed location-level report."""
+    try:
+        report = await get_location_report(report_key)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Reviews ──
+
+@app.get("/api/localfalcon/reviews")
+async def localfalcon_reviews():
+    """List reviews analysis reports."""
+    try:
+        reviews = await list_reviews_reports(limit=50)
+        return {"reviews": reviews}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/localfalcon/reviews/{report_key}")
+async def localfalcon_review_detail(report_key: str):
+    """Get detailed reviews analysis report."""
+    try:
+        report = await get_reviews_report(report_key)
+        return report
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── GBP Locations ──
+
+@app.get("/api/localfalcon/gbp-locations")
+async def localfalcon_gbp_locations():
+    """Get Google Business Profile locations connected to Local Falcon."""
+    try:
+        locations = await get_gbp_locations()
+        return {"locations": locations}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Auto-scans ──
+
+@app.get("/api/localfalcon/auto-scans")
+async def localfalcon_auto_scans():
+    """List configured automatic/scheduled scans."""
+    try:
+        auto_scans = await list_auto_scans(limit=50)
+        return {"auto_scans": auto_scans}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Account ──
 
 @app.get("/api/localfalcon/account")
 async def localfalcon_account():
@@ -606,18 +786,18 @@ async def portal_metrics(token: str):
 
 @app.get("/api/portal/{token}/heatmap")
 async def portal_heatmap(token: str):
-    """Pull Local Falcon heatmap data for a portal client's tracked keywords."""
+    """Pull Local Falcon heatmap + competitor data for a portal client."""
     client_info = await asyncio.to_thread(get_client_by_token, token)
     if not client_info:
         raise HTTPException(status_code=404, detail="Portal not found")
 
     if not os.environ.get("LOCALFALCON_API_KEY"):
-        return {"heatmaps": [], "reason": "localfalcon_not_configured"}
+        return {"heatmaps": [], "competitors": [], "reason": "localfalcon_not_configured"}
 
     try:
         scans = await list_scan_reports(limit=50)
         if not scans:
-            return {"heatmaps": []}
+            return {"heatmaps": [], "competitors": []}
 
         # Match scans to this client by domain or business name
         domain = (client_info.get("domain") or "").lower()
@@ -635,6 +815,7 @@ async def portal_heatmap(token: str):
 
         # Get detailed grid data for each scan
         heatmaps = []
+        first_report_key = ""
         for scan in client_scans[:5]:
             report_key = (
                 scan.get("report_key")
@@ -645,6 +826,8 @@ async def portal_heatmap(token: str):
             )
             if not report_key:
                 continue
+            if not first_report_key:
+                first_report_key = str(report_key)
             try:
                 report = await get_scan_report(str(report_key))
                 grid = extract_grid_data(report)
@@ -653,10 +836,19 @@ async def portal_heatmap(token: str):
             except Exception:
                 continue
 
-        return {"heatmaps": heatmaps}
+        # Get competitor data for the most recent scan
+        competitors = []
+        if first_report_key:
+            try:
+                raw_competitors = await get_competitor_reports(first_report_key)
+                competitors = extract_competitor_data(raw_competitors)
+            except Exception:
+                pass
+
+        return {"heatmaps": heatmaps, "competitors": competitors}
 
     except Exception:
-        return {"heatmaps": [], "reason": "api_error"}
+        return {"heatmaps": [], "competitors": [], "reason": "api_error"}
 
 
 # ── Static files ──────────────────────────────────────────

@@ -4044,6 +4044,262 @@ body {
   text-decoration: none;
 }
 
+/* ── LF Tab Navigation ── */
+.lf-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lf-tab {
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.lf-tab:hover {
+  color: var(--text1);
+}
+
+.lf-tab.active {
+  color: var(--elec-blue);
+  border-bottom-color: var(--elec-blue);
+}
+
+.lf-tab-panel {
+  display: none;
+}
+
+.lf-tab-panel.active {
+  display: block;
+}
+
+/* ── LF Competitor Table ── */
+.lf-comp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lf-comp-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lf-comp-table td {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.lf-comp-table tr:hover td {
+  background: rgba(0, 81, 255, 0.03);
+}
+
+.lf-comp-name {
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.lf-comp-rank {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.lf-comp-rank.rank-good { color: #059669; }
+.lf-comp-rank.rank-ok   { color: #F59E0B; }
+.lf-comp-rank.rank-bad  { color: #DC2626; }
+
+.lf-comp-stars {
+  color: #FBBF24;
+  font-size: 12px;
+}
+
+/* ── LF Trend Mini-chart ── */
+.lf-trend-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.lf-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lf-trend-keyword {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.lf-trend-direction {
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.lf-trend-direction.improving {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.lf-trend-direction.declining {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
+.lf-trend-direction.stable {
+  background: rgba(245, 158, 11, 0.08);
+  color: #F59E0B;
+}
+
+.lf-trend-chart {
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  height: 60px;
+  padding: 4px 0;
+}
+
+.lf-trend-bar {
+  flex: 1;
+  min-width: 8px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+  position: relative;
+}
+
+.lf-trend-bar:hover::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-family: var(--mono);
+  white-space: nowrap;
+  padding: 2px 4px;
+  background: var(--dark-blue);
+  color: var(--text1);
+  border-radius: 3px;
+  margin-bottom: 4px;
+}
+
+.lf-trend-metrics {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.lf-trend-stat {
+  text-align: center;
+}
+
+.lf-trend-stat-val {
+  font-family: var(--display);
+  font-size: 16px;
+  color: var(--text1);
+}
+
+.lf-trend-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+/* ── LF Location Cards ── */
+.lf-locations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.lf-location-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  transition: border-color var(--t-fast);
+}
+
+.lf-location-card:hover {
+  border-color: var(--elec-blue);
+}
+
+.lf-location-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text1);
+  margin-bottom: 4px;
+}
+
+.lf-location-address {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+/* ── LF Guard Alerts ── */
+.lf-guard-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lf-guard-item:last-child {
+  border-bottom: none;
+}
+
+.lf-guard-icon {
+  font-size: 16px;
+}
+
+.lf-guard-text {
+  font-size: 12px;
+  color: var(--text2);
+  flex: 1;
+}
+
+.lf-guard-change {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lf-guard-change.rank-up { color: #059669; }
+.lf-guard-change.rank-down { color: #DC2626; }
+
 /* ── Responsive ── */
 @media (max-width: 800px) {
   .lf-scans-grid {
@@ -4053,5 +4309,12 @@ body {
     width: 28px;
     height: 28px;
     font-size: 9px;
+  }
+  .lf-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lf-locations-grid {
+    grid-template-columns: 1fr;
   }
 }

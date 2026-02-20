@@ -1438,7 +1438,7 @@ function renderClientHub() {
 
     </div>
 
-    <!-- Local Falcon Heat Maps -->
+    <!-- Local Falcon Dashboard -->
     <div class="lf-section">
       <div class="lf-section-header">
         <div class="lf-section-title">
@@ -1446,11 +1446,22 @@ function renderClientHub() {
             <circle cx="12" cy="10" r="3"/>
             <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/>
           </svg>
-          Local Rank Heat Maps
+          Local Rank Tracking
         </div>
         <span class="lf-section-badge">Local Falcon</span>
       </div>
-      <div id="lfClientHubScans"></div>
+      <div class="lf-tabs" id="lfTabs">
+        <button class="lf-tab active" onclick="switchLfTab('heatmaps')">Heat Maps</button>
+        <button class="lf-tab" onclick="switchLfTab('trends')">Trends</button>
+        <button class="lf-tab" onclick="switchLfTab('competitors')">Competitors</button>
+        <button class="lf-tab" onclick="switchLfTab('locations')">Locations</button>
+        <button class="lf-tab" onclick="switchLfTab('guards')">Alerts</button>
+      </div>
+      <div id="lfPanelHeatmaps" class="lf-tab-panel active"><div id="lfClientHubScans"></div></div>
+      <div id="lfPanelTrends" class="lf-tab-panel"><div id="lfClientHubTrends"></div></div>
+      <div id="lfPanelCompetitors" class="lf-tab-panel"><div id="lfClientHubCompetitors"></div></div>
+      <div id="lfPanelLocations" class="lf-tab-panel"><div id="lfClientHubLocations"></div></div>
+      <div id="lfPanelGuards" class="lf-tab-panel"><div id="lfClientHubGuards"></div></div>
     </div>
 
     <!-- Content Library Strip -->
@@ -1471,8 +1482,12 @@ function renderClientHub() {
     </div>
   `;
 
-  // Load Local Falcon heatmaps async
+  // Load Local Falcon data async
   loadLocalFalconScans('lfClientHubScans');
+  loadLocalFalconTrends('lfClientHubTrends');
+  loadLocalFalconCompetitors('lfClientHubCompetitors');
+  loadLocalFalconLocations('lfClientHubLocations');
+  loadLocalFalconGuards('lfClientHubGuards');
 }
 
 function copyPortalLink(token) {
@@ -2414,6 +2429,274 @@ async function loadLocalFalconScans(containerId) {
         <div class="lf-empty-text">Could not load Local Falcon data: ${e.message}</div>
       </div>
     `;
+  }
+}
+
+function switchLfTab(tab) {
+  document.querySelectorAll('.lf-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.lf-tab-panel').forEach(p => p.classList.remove('active'));
+
+  const tabMap = { heatmaps: 'Heatmaps', trends: 'Trends', competitors: 'Competitors', locations: 'Locations', guards: 'Guards' };
+  const panel = document.getElementById('lfPanel' + tabMap[tab]);
+  if (panel) panel.classList.add('active');
+
+  document.querySelectorAll('.lf-tab').forEach(t => {
+    if (t.textContent.trim().toLowerCase().replace(/\s/g, '') === tab.replace(/s$/, '') ||
+        t.textContent.trim().toLowerCase() === tab ||
+        t.textContent.trim().toLowerCase().startsWith(tab.slice(0, 4))) {
+      t.classList.add('active');
+    }
+  });
+}
+
+async function loadLocalFalconTrends(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = '<div class="lf-loading">Loading trend data</div>';
+
+  try {
+    const statusRes = await fetch(`${API_BASE}/api/localfalcon/status`);
+    const statusData = await statusRes.json();
+    if (!statusData.configured) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">Local Falcon not configured.</div></div>';
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/localfalcon/trends`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const trends = data.trends || [];
+
+    if (!trends.length) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">📈</div><div class="lf-empty-text">No trend reports available yet. Trend data builds over time as scans repeat.</div></div>';
+      return;
+    }
+
+    let html = '';
+    for (const trend of trends.slice(0, 5)) {
+      const key = trend.report_key || trend.reportKey || trend.key || trend.id || '';
+      if (!key) continue;
+
+      try {
+        const detailRes = await fetch(`${API_BASE}/api/localfalcon/trends/${key}`);
+        if (!detailRes.ok) continue;
+        const detail = await detailRes.json();
+        const td = detail.trend || {};
+        const points = td.data_points || [];
+
+        if (points.length < 2) continue;
+
+        const firstArp = points[0].arp || 0;
+        const lastArp = points[points.length - 1].arp || 0;
+        const firstSolv = points[0].solv || 0;
+        const lastSolv = points[points.length - 1].solv || 0;
+        const arpChange = firstArp - lastArp;
+        const direction = arpChange > 0.5 ? 'improving' : arpChange < -0.5 ? 'declining' : 'stable';
+        const dirLabel = arpChange > 0.5 ? 'ARP ↓' + arpChange.toFixed(1) : arpChange < -0.5 ? 'ARP ↑' + Math.abs(arpChange).toFixed(1) : 'Stable';
+
+        // Build mini bar chart (SoLV as bars)
+        const maxSolv = Math.max(...points.map(p => p.solv || 0), 1);
+        const barsHTML = points.slice(-12).map(p => {
+          const h = Math.max(4, ((p.solv || 0) / maxSolv) * 56);
+          const color = (p.solv || 0) >= 50 ? '#059669' : (p.solv || 0) >= 25 ? '#F59E0B' : '#DC2626';
+          return `<div class="lf-trend-bar" style="height:${h}px;background:${color};" data-label="${(p.date||'').slice(5,10)} SoLV:${(p.solv||0).toFixed(0)}%"></div>`;
+        }).join('');
+
+        html += `
+          <div class="lf-trend-card">
+            <div class="lf-trend-header">
+              <div class="lf-trend-keyword">"${td.keyword || trend.keyword || trend.search_keyword || 'Unknown'}"</div>
+              <span class="lf-trend-direction ${direction}">${dirLabel}</span>
+            </div>
+            <div class="lf-trend-chart">${barsHTML}</div>
+            <div class="lf-trend-metrics">
+              <div class="lf-trend-stat">
+                <div class="lf-trend-stat-val">${lastArp ? lastArp.toFixed(1) : '–'}</div>
+                <div class="lf-trend-stat-label">Current ARP</div>
+              </div>
+              <div class="lf-trend-stat">
+                <div class="lf-trend-stat-val">${lastSolv ? lastSolv.toFixed(0) + '%' : '–'}</div>
+                <div class="lf-trend-stat-label">Current SoLV</div>
+              </div>
+              <div class="lf-trend-stat">
+                <div class="lf-trend-stat-val">${points.length}</div>
+                <div class="lf-trend-stat-label">Data Points</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (e) { /* skip failed trend */ }
+    }
+
+    el.innerHTML = html || '<div class="lf-empty"><div class="lf-empty-icon">📈</div><div class="lf-empty-text">Trend reports found but no detailed data available yet.</div></div>';
+
+  } catch (e) {
+    el.innerHTML = `<div class="lf-empty"><div class="lf-empty-icon">⚠️</div><div class="lf-empty-text">Could not load trend data: ${e.message}</div></div>`;
+  }
+}
+
+async function loadLocalFalconCompetitors(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = '<div class="lf-loading">Loading competitor data</div>';
+
+  try {
+    const statusRes = await fetch(`${API_BASE}/api/localfalcon/status`);
+    const statusData = await statusRes.json();
+    if (!statusData.configured) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">Local Falcon not configured.</div></div>';
+      return;
+    }
+
+    // Get the most recent scan to pull competitors for
+    const scansRes = await fetch(`${API_BASE}/api/localfalcon/scans`);
+    if (!scansRes.ok) throw new Error(`HTTP ${scansRes.status}`);
+    const scansData = await scansRes.json();
+    const scans = scansData.scans || [];
+
+    if (!scans.length) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">🏢</div><div class="lf-empty-text">No scan reports to pull competitor data from.</div></div>';
+      return;
+    }
+
+    const key = scans[0].report_key || scans[0].reportKey || scans[0].key || scans[0].id || '';
+    if (!key) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">No report key found.</div></div>';
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/localfalcon/competitors/${key}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const competitors = data.competitors || [];
+
+    if (!competitors.length) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">🏢</div><div class="lf-empty-text">No competitor data available for this scan.</div></div>';
+      return;
+    }
+
+    const keyword = scans[0].keyword || scans[0].search_keyword || 'recent scan';
+    let rowsHTML = competitors.map(c => {
+      const rankCls = c.rank <= 3 ? 'rank-good' : c.rank <= 10 ? 'rank-ok' : 'rank-bad';
+      const stars = c.rating ? '★'.repeat(Math.round(c.rating)) + ` ${c.rating.toFixed(1)}` : '–';
+      return `
+        <tr>
+          <td><span class="lf-comp-rank ${rankCls}">#${c.rank || '–'}</span></td>
+          <td><span class="lf-comp-name">${c.name}</span></td>
+          <td>${c.arp ? c.arp.toFixed(1) : '–'}</td>
+          <td>${c.solv ? c.solv.toFixed(0) + '%' : '–'}</td>
+          <td>${c.reviews ? c.reviews.toLocaleString() : '–'}</td>
+          <td><span class="lf-comp-stars">${stars}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-family:var(--mono);">
+        Competitors for "${keyword}"
+      </div>
+      <table class="lf-comp-table">
+        <thead><tr><th>Rank</th><th>Business</th><th>ARP</th><th>SoLV</th><th>Reviews</th><th>Rating</th></tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+    `;
+
+  } catch (e) {
+    el.innerHTML = `<div class="lf-empty"><div class="lf-empty-icon">⚠️</div><div class="lf-empty-text">Could not load competitor data: ${e.message}</div></div>`;
+  }
+}
+
+async function loadLocalFalconLocations(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = '<div class="lf-loading">Loading locations</div>';
+
+  try {
+    const statusRes = await fetch(`${API_BASE}/api/localfalcon/status`);
+    const statusData = await statusRes.json();
+    if (!statusData.configured) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">Local Falcon not configured.</div></div>';
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/localfalcon/locations`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const locations = data.locations || [];
+
+    if (!locations.length) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">📍</div><div class="lf-empty-text">No tracked locations found in Local Falcon.</div></div>';
+      return;
+    }
+
+    const cardsHTML = locations.map(loc => {
+      const name = loc.name || loc.business_name || loc.location_name || 'Unknown Location';
+      const address = loc.address || loc.formatted_address || '';
+      const keywords = loc.keywords || loc.keyword_count || '';
+      return `
+        <div class="lf-location-card">
+          <div class="lf-location-name">${name}</div>
+          ${address ? `<div class="lf-location-address">${address}</div>` : ''}
+          ${keywords ? `<div class="lf-location-address" style="margin-top:4px;">Keywords tracked: ${keywords}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    el.innerHTML = `<div class="lf-locations-grid">${cardsHTML}</div>`;
+
+  } catch (e) {
+    el.innerHTML = `<div class="lf-empty"><div class="lf-empty-icon">⚠️</div><div class="lf-empty-text">Could not load locations: ${e.message}</div></div>`;
+  }
+}
+
+async function loadLocalFalconGuards(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = '<div class="lf-loading">Loading guard alerts</div>';
+
+  try {
+    const statusRes = await fetch(`${API_BASE}/api/localfalcon/status`);
+    const statusData = await statusRes.json();
+    if (!statusData.configured) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-text">Local Falcon not configured.</div></div>';
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/localfalcon/guards`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const guards = data.guards || [];
+
+    if (!guards.length) {
+      el.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">🛡️</div><div class="lf-empty-text">No guard alerts found. Guard reports track significant rank changes across your keywords.</div></div>';
+      return;
+    }
+
+    const itemsHTML = guards.slice(0, 20).map(g => {
+      const keyword = g.keyword || g.search_keyword || 'Unknown';
+      const oldRank = g.old_rank || g.previous_rank || '?';
+      const newRank = g.new_rank || g.current_rank || '?';
+      const date = (g.date || g.detected_at || g.created_at || '').slice(0, 10);
+      const improved = (typeof newRank === 'number' && typeof oldRank === 'number') ? newRank < oldRank : false;
+      const icon = improved ? '📈' : '📉';
+      const changeCls = improved ? 'rank-up' : 'rank-down';
+      return `
+        <div class="lf-guard-item">
+          <div class="lf-guard-icon">${icon}</div>
+          <div class="lf-guard-text">"${keyword}" <span style="color:var(--text3);font-size:11px;">${date}</span></div>
+          <div class="lf-guard-change ${changeCls}">#${oldRank} → #${newRank}</div>
+        </div>
+      `;
+    }).join('');
+
+    el.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;">${itemsHTML}</div>`;
+
+  } catch (e) {
+    el.innerHTML = `<div class="lf-empty"><div class="lf-empty-icon">⚠️</div><div class="lf-empty-text">Could not load guard data: ${e.message}</div></div>`;
   }
 }
 

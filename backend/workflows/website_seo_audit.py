@@ -32,6 +32,7 @@ from utils.dataforseo import (
     get_domain_ranked_keywords,
     format_domain_ranked_keywords,
 )
+from utils.localfalcon import gather_full_lf_data, format_full_lf_context
 
 
 # ── State abbreviation → full name (for DataForSEO location_name) ────────────
@@ -229,6 +230,8 @@ async def run_website_seo_audit(
         yield f"> Searching Google for **\"{search_keyword}\"** competitors...\n\n"
     if location_name and os.environ.get("DATAFORSEO_LOGIN"):
         yield f"> Fetching ranked keywords for **{domain}** from DataForSEO Labs...\n\n"
+    if os.environ.get("LOCALFALCON_API_KEY"):
+        yield f"> Pulling Local Falcon rank tracking data...\n\n"
 
     # ── Phase 2: Gather all data in parallel ──────────────────────────────
     async def _no_competitor_data():
@@ -247,8 +250,11 @@ async def run_website_seo_audit(
     sa_task      = _gather_sa_data(domain)
     dfs_task     = _gather_competitor_data(service, location_name) if (service and location_name) else _no_competitor_data()
     ranked_task  = _gather_ranked_keywords()
+    lf_task      = gather_full_lf_data(limit_scans=3)
 
-    sa_data, competitor_data, ranked_keywords = await asyncio.gather(sa_task, dfs_task, ranked_task)
+    sa_data, competitor_data, ranked_keywords, lf_data = await asyncio.gather(
+        sa_task, dfs_task, ranked_task, lf_task
+    )
 
     yield f"> Data collected — generating audit with Claude Opus...\n\n"
     yield "---\n\n"
@@ -323,6 +329,15 @@ async def run_website_seo_audit(
             "DataForSEO not configured — competitor SERP data not available for this audit.",
         ]
 
+    # Local Falcon — GBP rank tracking, competitors, trends
+    lf_context = format_full_lf_context(lf_data) if lf_data else ""
+    if lf_context:
+        context_sections += [
+            "", "---", "",
+            "## LOCAL RANK TRACKING (Local Falcon — Google Business Profile)",
+            lf_context,
+        ]
+
     context_doc = "\n".join(context_sections)
 
     # ── Phase 4: Build Claude prompt ──────────────────────────────────────
@@ -330,6 +345,7 @@ async def run_website_seo_audit(
         competitor_data and not competitor_data.get("error") and
         (competitor_data.get("maps") or competitor_data.get("organic"))
     )
+    has_lf_data = bool(lf_context)
 
     prompt_lines = [
         f"Write a comprehensive Website & SEO Audit report for **{client_name}** ({domain}).",
@@ -370,12 +386,25 @@ async def run_website_seo_audit(
             "5. Keyword Gap Analysis (keywords they should be targeting based on their market)",
         ]
 
-    report_sections += [
-        "6. Backlink Profile (authority score, referring domains, quality assessment)",
-        "7. Priority Recommendations (top 5-7 actions ranked by revenue impact — each with "
-        "a specific, actionable next step)",
-        "8. 90-Day Action Plan (Month 1 / Month 2 / Month 3 phased roadmap)",
-    ]
+    if has_lf_data:
+        report_sections.append(
+            "6. Local Rank Visibility (Local Falcon grid data — where the business ranks "
+            "across the service area, ARP/SoLV trends, geographic strengths and weaknesses, "
+            "and how local competitors compare in the Google Maps pack)"
+        )
+        report_sections.append("7. Backlink Profile (authority score, referring domains, quality assessment)")
+        report_sections += [
+            "8. Priority Recommendations (top 5-7 actions ranked by revenue impact — each with "
+            "a specific, actionable next step)",
+            "9. 90-Day Action Plan (Month 1 / Month 2 / Month 3 phased roadmap)",
+        ]
+    else:
+        report_sections += [
+            "6. Backlink Profile (authority score, referring domains, quality assessment)",
+            "7. Priority Recommendations (top 5-7 actions ranked by revenue impact — each with "
+            "a specific, actionable next step)",
+            "8. 90-Day Action Plan (Month 1 / Month 2 / Month 3 phased roadmap)",
+        ]
 
     prompt_lines += [
         "",

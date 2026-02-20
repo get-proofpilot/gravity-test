@@ -640,6 +640,48 @@
       animation: spin 0.7s linear infinite;
     }
 
+    /* ── Portal Competitor Table ── */
+    .hm-comp-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 10px;
+    }
+    .hm-comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .hm-comp-table th {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-500);
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .hm-comp-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+    }
+    .hm-comp-table tr:hover td {
+      background: var(--gray-50);
+    }
+    .hm-comp-name {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+    .hm-comp-rank {
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .hm-comp-rank.r-good { color: #059669; }
+    .hm-comp-rank.r-ok   { color: #F59E0B; }
+    .hm-comp-rank.r-bad  { color: #DC2626; }
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -845,6 +887,7 @@
       html += `<div class="heatmap-section" id="heatmapSection" style="display:none">
         <h3>Local Rank Heat Maps <span>Local Falcon</span></h3>
         <div id="heatmapGrid" class="hm-scans"><div class="hm-loading">Loading rank data</div></div>
+        <div id="heatmapCompetitors" style="display:none;margin-top:20px;"></div>
       </div>`;
 
       // ── Client Info Bar ──
@@ -1104,14 +1147,48 @@
         if (!res.ok) return;
         const data = await res.json();
         const heatmaps = data.heatmaps || [];
-        if (!heatmaps.length) return;
+        const competitors = data.competitors || [];
+
+        if (!heatmaps.length && !competitors.length) return;
 
         const section = document.getElementById('heatmapSection');
         const grid = document.getElementById('heatmapGrid');
         if (!section || !grid) return;
 
         section.style.display = '';
-        grid.innerHTML = heatmaps.map(h => renderHeatmap(h)).join('');
+
+        if (heatmaps.length) {
+          grid.innerHTML = heatmaps.map(h => renderHeatmap(h)).join('');
+        } else {
+          grid.style.display = 'none';
+        }
+
+        // Render competitor table if available
+        if (competitors.length) {
+          const compEl = document.getElementById('heatmapCompetitors');
+          if (compEl) {
+            const rows = competitors.map(c => {
+              const rkCls = c.rank <= 3 ? 'r-good' : c.rank <= 10 ? 'r-ok' : 'r-bad';
+              const stars = c.rating ? '★' + c.rating.toFixed(1) : '–';
+              return `<tr>
+                <td><span class="hm-comp-rank ${rkCls}">#${c.rank || '–'}</span></td>
+                <td><span class="hm-comp-name">${c.name}</span></td>
+                <td>${c.arp ? c.arp.toFixed(1) : '–'}</td>
+                <td>${c.solv ? c.solv.toFixed(0) + '%' : '–'}</td>
+                <td>${c.reviews ? c.reviews.toLocaleString() : '–'}</td>
+                <td>${stars}</td>
+              </tr>`;
+            }).join('');
+            compEl.style.display = '';
+            compEl.innerHTML = `
+              <div class="hm-comp-title">Local Pack Competitors</div>
+              <table class="hm-comp-table">
+                <thead><tr><th>Rank</th><th>Business</th><th>ARP</th><th>SoLV</th><th>Reviews</th><th>Rating</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            `;
+          }
+        }
       } catch (e) {
         // Heatmaps are optional — portal works without them
       }

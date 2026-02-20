@@ -50,13 +50,16 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 - [x] Portal link copy button in Client Hub
 - [x] Content type filters for GBP Posts + Monthly Reports
 
-**Phase 3.5 (Local Falcon Integration): COMPLETE**
-- [x] Local Falcon MCP client (`utils/localfalcon.py` — scan reports, grid data, locations, campaigns)
+**Phase 3.5 (Local Falcon — Full Integration): COMPLETE**
+- [x] Local Falcon MCP client (`utils/localfalcon.py` — all 25 MCP tools: scans, campaigns, trends, competitors, guards, keywords, locations, reviews, auto-scans, GBP locations, account)
 - [x] Heatmap grid visualization (CSS grid, color-coded ranks 1-20+, ARP/SoLV/ATRP metrics)
-- [x] Local Falcon API endpoints (`/api/localfalcon/scans`, `/scans/{key}`, `/locations`, `/campaigns`)
-- [x] Client Hub heatmap section (async loading, auto-renders in Client Hub view)
-- [x] Portal heatmap section (`/api/portal/{token}/heatmap` — client-matched scan data)
-- [x] Monthly report integration (Local Falcon data injected into Claude context for reporting)
+- [x] 20+ Local Falcon API endpoints (scans, campaigns, trends, competitors, guards, keywords, locations, reviews, GBP locations, auto-scans, account)
+- [x] Client Hub tabbed Local Falcon dashboard (Heat Maps / Trends / Competitors / Locations / Alerts tabs)
+- [x] Portal heatmap section with competitor table (`/api/portal/{token}/heatmap` — heatmaps + competitors)
+- [x] Website SEO Audit integration (Local Falcon grid data, competitors, trends injected into audit context)
+- [x] Monthly report integration (comprehensive Local Falcon data — scans, trends, competitors, reviews, guards)
+- [x] Aggregated data gathering (`gather_full_lf_data()` — fetches all LF data in parallel for workflows)
+- [x] Formatting suite (`format_full_lf_context()` — converts all LF data to Claude prompt context)
 
 **What's NOT built yet (high priority per growth plan):**
 - Google Drive integration (Phase 4 — zero-friction content handoff to Jo Paula)
@@ -336,8 +339,23 @@ Add a `div#modalInputs{Name}` with input fields matching the workflow's input sc
 | `/api/localfalcon/status` | GET | Check if Local Falcon API key is configured |
 | `/api/localfalcon/scans` | GET | List all Local Falcon scan reports |
 | `/api/localfalcon/scans/{key}` | GET | Get single scan report with grid data |
+| `/api/localfalcon/campaigns` | GET | List campaign reports |
+| `/api/localfalcon/campaigns/{id}` | GET | Get single campaign report |
+| `/api/localfalcon/trends` | GET | List trend reports |
+| `/api/localfalcon/trends/{key}` | GET | Get trend report with historical data |
+| `/api/localfalcon/competitors/{key}` | GET | Get competitor rankings for a scan |
+| `/api/localfalcon/competitor/{key}` | GET | Get detailed single competitor report |
+| `/api/localfalcon/guards` | GET | List guard (rank change) alerts |
+| `/api/localfalcon/guards/{key}` | GET | Get single guard report |
+| `/api/localfalcon/keywords` | GET | List keyword tracking reports |
+| `/api/localfalcon/keywords/{key}` | GET | Get keyword tracking detail |
 | `/api/localfalcon/locations` | GET | List tracked Local Falcon locations |
-| `/api/localfalcon/campaigns` | GET | List campaign (recurring scan) reports |
+| `/api/localfalcon/location-reports` | GET | List per-location reports |
+| `/api/localfalcon/location-reports/{key}` | GET | Get location report detail |
+| `/api/localfalcon/reviews` | GET | List reviews analysis reports |
+| `/api/localfalcon/reviews/{key}` | GET | Get reviews analysis detail |
+| `/api/localfalcon/gbp-locations` | GET | Get GBP locations from Local Falcon |
+| `/api/localfalcon/auto-scans` | GET | List configured auto-scans |
 | `/api/localfalcon/account` | GET | Local Falcon account info |
 | `/portal/{token}` | GET | Client portal page (public-facing) |
 
@@ -464,14 +482,29 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 **Client:** `utils/localfalcon.py`
 **Env var:** `LOCALFALCON_API_KEY`
 
-### Available Tools
-| Tool | Description | Used In |
-|------|-------------|---------|
-| `listLocalFalconScanReports` | All scan reports in account | Dashboard, Portal |
-| `getLocalFalconReport` | Single scan with full grid data (ranks, lat/lng) | Heatmap visualization |
-| `listAllLocalFalconLocations` | All tracked GBP locations | Dashboard |
-| `listLocalFalconCampaignReports` | Recurring campaign data (trends) | Dashboard |
-| `viewLocalFalconAccountInformation` | Account details, credits | Status check |
+### Available MCP Tools (25 total)
+| Category | Tools | Used In |
+|----------|-------|---------|
+| Scans | `listLocalFalconScanReports`, `getLocalFalconReport`, `getLocalFalconGrid` | Dashboard, Portal, Audits, Reports |
+| Campaigns | `listLocalFalconCampaignReports`, `getLocalFalconCampaignReport` | Dashboard, Reports |
+| Trends | `listLocalFalconTrendReports`, `getLocalFalconTrendReport` | Client Hub Trends tab, Reports |
+| Competitors | `getLocalFalconCompetitorReports`, `getLocalFalconCompetitorReport` | Client Hub Competitors tab, Portal, Audits |
+| Guards | `listLocalFalconGuardReports`, `getLocalFalconGuardReport` | Client Hub Alerts tab, Reports |
+| Keywords | `listLocalFalconKeywordReports`, `getLocalFalconKeywordReport`, `getLocalFalconKeywordAtCoordinate` | Dashboard |
+| Locations | `listAllLocalFalconLocations`, `listLocalFalconLocationReports`, `getLocalFalconLocationReport` | Client Hub Locations tab |
+| Rankings | `getLocalFalconRankingAtCoordinate` | Coordinate-level checks |
+| Reviews | `listLocalFalconReviewsAnalysisReports`, `getLocalFalconReviewsAnalysisReport` | Reports, Audits |
+| GBP | `getLocalFalconGoogleBusinessLocations` | Dashboard |
+| Auto-scans | `listLocalFalconAutoScans` | Dashboard |
+| Actions | `runLocalFalconScan`, `runLocalFalconCampaign` | Not exposed (manual only) |
+| Account | `viewLocalFalconAccountInformation` | Status check |
+
+### Key Functions
+- `gather_full_lf_data()` — Fetches all LF data in parallel (scans, trends, competitors, guards, reviews, locations)
+- `format_full_lf_context()` — Formats all LF data into Claude prompt context for workflows
+- `extract_grid_data()` — Normalizes scan data into heatmap-ready format
+- `extract_trend_data()` — Normalizes trend data for chart rendering
+- `extract_competitor_data()` — Normalizes competitor data for tables
 
 ### Key Metrics
 - **ARP** — Average Rank Position (average of pins ranking ≤20)
@@ -481,6 +514,13 @@ Configured in Claude Code global config. Key: `SEARCHATLAS_API_KEY`.
 ### Heatmap Color Scale
 Green (#059669) → ranks 1-3, Light green (#A7F3D0) → 4-6, Yellow (#FDE68A) → 7-9,
 Amber (#F59E0B) → 10-12, Red (#DC2626) → 13-20, Gray → not found
+
+### Client Hub Tabs
+- **Heat Maps** — Scan grid visualizations with rank colors and ARP/SoLV/ATRP metrics
+- **Trends** — Historical ARP/SoLV trend charts with direction indicators
+- **Competitors** — Competitor ranking table (business name, rank, ARP, SoLV, reviews, rating)
+- **Locations** — Tracked GBP locations with address and keyword count
+- **Alerts** — Guard reports showing rank changes (up/down) with timestamps
 
 ---
 
