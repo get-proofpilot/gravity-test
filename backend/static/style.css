@@ -3760,3 +3760,376 @@ body {
   margin-top: 4px;
   font-family: var(--mono);
 }
+
+/* ══════════════════════════════════════ DOCUMENT VIEWER ══ */
+
+/* ── View toggle buttons ── */
+.jm-view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-left: 12px;
+}
+
+.jm-toggle-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.jm-toggle-btn:hover {
+  color: var(--text2);
+  background: rgba(255,255,255,0.03);
+}
+.jm-toggle-btn.active {
+  color: var(--neon-green);
+  background: rgba(200,255,0,0.06);
+}
+
+/* ── Document wrap (mirrors jm-terminal-wrap) ── */
+.jm-doc-wrap {
+  flex: 1;
+  overflow: hidden;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+}
+
+/* ── Document panel — rendered markdown ── */
+.doc-panel {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  max-height: none;
+  padding: 32px 40px;
+  background: #050E1A;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: #C8D6E5;
+  font-family: var(--body);
+  font-size: 14.5px;
+  line-height: 1.75;
+}
+
+/* Scrollbar */
+.doc-panel::-webkit-scrollbar { width: 6px; }
+.doc-panel::-webkit-scrollbar-track { background: transparent; }
+.doc-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── Markdown element styles ── */
+.doc-panel h1 {
+  font-family: var(--display);
+  font-size: 28px;
+  letter-spacing: .04em;
+  color: #FFFFFF;
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--elec-blue);
+  line-height: 1.2;
+}
+.doc-panel h2 {
+  font-family: var(--display);
+  font-size: 20px;
+  letter-spacing: .04em;
+  color: var(--elec-blue);
+  margin: 28px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0,81,255,0.2);
+  line-height: 1.25;
+}
+.doc-panel h3 {
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 700;
+  color: #E0E8F0;
+  margin: 22px 0 8px;
+  line-height: 1.3;
+}
+.doc-panel h4 {
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--neon-green);
+  margin: 18px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.doc-panel p {
+  margin: 0 0 14px;
+}
+.doc-panel strong {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+.doc-panel em {
+  color: #A0B8D0;
+}
+.doc-panel a {
+  color: var(--elec-blue);
+  text-decoration: none;
+}
+.doc-panel a:hover {
+  text-decoration: underline;
+}
+.doc-panel ul, .doc-panel ol {
+  margin: 0 0 14px;
+  padding-left: 24px;
+}
+.doc-panel li {
+  margin-bottom: 6px;
+}
+.doc-panel li::marker {
+  color: var(--elec-blue);
+}
+.doc-panel blockquote {
+  margin: 14px 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--elec-blue);
+  background: rgba(0,81,255,0.04);
+  color: #A0B8D0;
+  font-style: italic;
+}
+.doc-panel hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, var(--elec-blue), transparent 70%);
+  margin: 24px 0;
+}
+.doc-panel code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: rgba(0,81,255,0.08);
+  color: var(--neon-green);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.doc-panel pre {
+  margin: 14px 0;
+  padding: 16px 20px;
+  background: #000A14;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.doc-panel pre code {
+  background: none;
+  padding: 0;
+  color: #8AACC8;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.doc-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13px;
+}
+.doc-panel th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(0,81,255,0.08);
+  color: var(--elec-blue);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border2);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.doc-panel td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: #C0D0E0;
+}
+.doc-panel tr:hover td {
+  background: rgba(0,81,255,0.03);
+}
+
+/* ── Streaming cursor in document view ── */
+.doc-panel .doc-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--neon-green);
+  animation: blink 1s steps(1) infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+/* ── Empty state ── */
+.doc-panel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════ DOCUMENT VIEWER MODAL ══ */
+
+.doc-viewer-modal {
+  width: 90vw;
+  max-width: 900px;
+  height: 85vh;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.doc-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--panel-header);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.doc-viewer-meta h2 {
+  font-family: var(--display);
+  font-size: 18px;
+  letter-spacing: .04em;
+  color: #FFFFFF;
+  margin: 0;
+}
+.doc-viewer-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+.doc-viewer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.doc-viewer-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text2);
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+.doc-viewer-btn:hover {
+  border-color: var(--elec-blue);
+  color: var(--elec-blue);
+}
+.doc-viewer-close {
+  font-size: 16px;
+  padding: 4px 10px;
+}
+.doc-viewer-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Edit prompt bar ── */
+.doc-edit-bar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 0;
+  flex-shrink: 0;
+}
+.doc-edit-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: var(--body);
+  color: #FFFFFF;
+  background: #0A1530;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.doc-edit-input:focus {
+  border-color: var(--elec-blue);
+}
+.doc-edit-input::placeholder {
+  color: var(--text3);
+  font-size: 12px;
+}
+.doc-edit-submit {
+  padding: 10px 20px;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: #060D1F;
+  background: var(--neon-green);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+  white-space: nowrap;
+}
+.doc-edit-submit:hover {
+  opacity: 0.9;
+}
+.doc-edit-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Version navigation bar ── */
+.doc-version-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+.doc-version-btn {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text3);
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+.doc-version-btn:hover:not(:disabled) {
+  border-color: var(--elec-blue);
+  color: var(--elec-blue);
+}
+.doc-version-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.doc-version-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── Edit bar inside modal (needs bottom padding) ── */
+.doc-viewer-modal .doc-edit-bar {
+  padding: 12px 24px 16px;
+}
+.doc-viewer-modal .doc-version-bar {
+  padding: 8px 24px 0;
+}

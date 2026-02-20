@@ -11,6 +11,9 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=Martian+Mono:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <!-- Markdown rendering + sanitization for document viewer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 
 <body>
@@ -479,10 +482,33 @@
           <span class="jm-sep">·</span>
           <span class="jm-client" id="jmClient"></span>
         </div>
+        <!-- View toggle: Terminal / Document -->
+        <div class="jm-view-toggle" id="jmViewToggle">
+          <button class="jm-toggle-btn active" data-mode="terminal" onclick="toggleDocView('terminal')">Terminal</button>
+          <button class="jm-toggle-btn" data-mode="document" onclick="toggleDocView('document')">Document</button>
+        </div>
         <span class="jm-status-badge running" id="jmStatusBadge">RUNNING</span>
       </div>
-      <div class="jm-terminal-wrap">
+      <!-- Terminal view (existing) -->
+      <div class="jm-terminal-wrap" id="jmTerminalWrap">
         <div class="terminal" id="monitorTerminal"></div>
+      </div>
+      <!-- Document view (new — rendered markdown) -->
+      <div class="jm-doc-wrap" id="jmDocWrap" style="display:none;">
+        <div class="doc-panel" id="docPanel"></div>
+        <!-- Version navigation -->
+        <div class="doc-version-bar" id="docVersionBar" style="display:none;">
+          <button class="doc-version-btn" onclick="docVersionNav(-1)" id="docVerPrev" disabled>← Previous</button>
+          <span class="doc-version-label" id="docVerLabel">Version 1 of 1</span>
+          <button class="doc-version-btn" onclick="docVersionNav(1)" id="docVerNext" disabled>Next →</button>
+        </div>
+        <!-- Edit prompt bar -->
+        <div class="doc-edit-bar" id="docEditBar" style="display:none;">
+          <input type="text" id="docEditInput" class="doc-edit-input"
+            placeholder="Make the intro more aggressive... Add a section about emergency services..."
+            onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); submitDocEdit(); }" />
+          <button class="doc-edit-submit" id="docEditSubmit" onclick="submitDocEdit()">Apply Edit</button>
+        </div>
       </div>
       <div class="jm-done-bar" id="jmDoneBar" style="display:none;">
         <span class="jm-done-check">✓</span>
@@ -604,6 +630,38 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Document Viewer Modal (full-screen rendered markdown) -->
+  <div class="modal-overlay" id="docViewerModal" onclick="closeDocViewer()">
+    <div class="doc-viewer-modal" onclick="event.stopPropagation()">
+      <div class="doc-viewer-header">
+        <div class="doc-viewer-meta">
+          <h2 id="docViewerTitle">Document</h2>
+          <span class="doc-viewer-sub" id="docViewerSub"></span>
+        </div>
+        <div class="doc-viewer-actions">
+          <a id="docViewerDownload" class="doc-viewer-btn" href="#" target="_blank">↓ Download .docx</a>
+          <button class="doc-viewer-btn doc-viewer-close" onclick="closeDocViewer()">✕</button>
+        </div>
+      </div>
+      <div class="doc-viewer-body">
+        <div class="doc-panel" id="docViewerPanel"></div>
+      </div>
+      <!-- Version navigation in modal -->
+      <div class="doc-version-bar" id="modalVersionBar" style="display:none;">
+        <button class="doc-version-btn" onclick="modalVersionNav(-1)" id="modalVerPrev" disabled>← Previous</button>
+        <span class="doc-version-label" id="modalVerLabel">Version 1 of 1</span>
+        <button class="doc-version-btn" onclick="modalVersionNav(1)" id="modalVerNext" disabled>Next →</button>
+      </div>
+      <!-- Edit prompt bar in modal -->
+      <div class="doc-edit-bar" id="modalEditBar">
+        <input type="text" id="modalEditInput" class="doc-edit-input"
+          placeholder="Describe changes... e.g. Make the intro more aggressive"
+          onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); submitModalEdit(); }" />
+        <button class="doc-edit-submit" id="modalEditSubmit" onclick="submitModalEdit()">Apply Edit</button>
+      </div>
     </div>
   </div>
 

@@ -143,6 +143,16 @@ def update_docx_path(job_id: str, docx_path: str) -> None:
         conn.commit()
 
 
+def update_job_content(job_id: str, content: str) -> None:
+    """Update the content field of an existing job (used by document editing)."""
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE jobs SET content = ? WHERE job_id = ?",
+            (content, job_id),
+        )
+        conn.commit()
+
+
 def get_job(job_id: str) -> Optional[dict]:
     """Return a single job dict or None if not found."""
     with _connect() as conn:

@@ -39,7 +39,8 @@ from workflows.pnl_statement import run_pnl_statement
 from workflows.property_mgmt_strategy import run_property_mgmt_strategy
 from utils.docx_generator import generate_docx
 from utils.db import (
-    init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs,
+    init_db, save_job, update_docx_path, update_job_content,
+    get_job as db_get_job, get_all_jobs,
     create_client, get_client as db_get_client, get_all_clients,
     update_client, delete_client, approve_job, unapprove_job,
 )
@@ -89,6 +90,12 @@ class WorkflowRequest(BaseModel):
     client_name: str
     inputs: dict
     strategy_context: Optional[str] = ""
+
+
+class EditDocumentRequest(BaseModel):
+    job_id: str
+    instruction: str
+    current_content: str
 
 
 class DiscoverCitiesRequest(BaseModel):
@@ -491,11 +498,87 @@ def get_job_detail(job_id: str):
         "job_id": job_id,
         "client_name": job["client_name"],
         "workflow_title": job["workflow_title"],
+        "workflow_id": job.get("workflow_id", ""),
         "has_docx": bool(job.get("docx_path")),
+        "content": content,
         "content_preview": content[:300] + "..." if len(content) > 300 else content,
         "approved": bool(job.get("approved", 0)),
         "approved_at": job.get("approved_at"),
     }
+
+
+# ── Document editing (conversational) ─────────────────────────────
+
+EDIT_SYSTEM_PROMPT = """You are a document editor for a digital marketing agency called ProofPilot.
+
+When given a document and an edit instruction, return the COMPLETE updated document with the requested changes applied.
+
+Rules:
+- Preserve ALL existing formatting (markdown headings, bold, bullets, tables, etc.)
+- Only change what the instruction asks for — leave everything else intact
+- Maintain the same professional tone and style throughout
+- Do NOT include any preamble, explanation, or commentary — return ONLY the document content
+- Start your response immediately with the document content"""
+
+
+@app.post("/api/edit-document")
+async def edit_document(req: EditDocumentRequest):
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+
+    client = anthropic.AsyncAnthropic(api_key=api_key)
+
+    async def event_stream():
+        edited_content: list[str] = []
+
+        try:
+            user_prompt = (
+                f"Here is the current document:\n\n"
+                f"<document>\n{req.current_content}\n</document>\n\n"
+                f"Edit instruction: {req.instruction}\n\n"
+                f"Return the COMPLETE updated document with the requested changes applied."
+            )
+
+            async with client.messages.stream(
+                model="claude-opus-4-6",
+                max_tokens=16000,
+                thinking={"type": "adaptive"},
+                system=EDIT_SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": user_prompt}],
+            ) as stream:
+                async for text in stream.text_stream:
+                    edited_content.append(text)
+                    yield f"data: {json.dumps({'type': 'token', 'text': text})}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            return
+
+        # Save the edited content back to the job
+        new_content = "".join(edited_content)
+        try:
+            job = db_get_job(req.job_id)
+            if job:
+                await asyncio.to_thread(update_job_content, req.job_id, new_content)
+                # Regenerate the docx with updated content
+                job_data = {
+                    "client_name": job["client_name"],
+                    "workflow_title": job["workflow_title"],
+                    "workflow_id": job.get("workflow_id", ""),
+                    "inputs": job["inputs"],
+                    "content": new_content,
+                    "created_at": job.get("created_at", ""),
+                    "client_id": job.get("client_id", 0),
+                }
+                docx_path = await asyncio.to_thread(generate_docx, req.job_id, job_data)
+                await asyncio.to_thread(update_docx_path, req.job_id, str(docx_path))
+        except Exception:
+            pass  # Non-fatal — the streamed edit still worked
+
+        yield f"data: {json.dumps({'type': 'done', 'job_id': req.job_id})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 # ── Serve frontend ────────────────────────────────────────────────

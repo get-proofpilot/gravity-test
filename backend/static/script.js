@@ -163,6 +163,11 @@ let activeTerminalEl = null;
 let monitorJobId = null;
 const activeSSEJobs = new Set();
 
+/* ── DOCUMENT VIEWER STATE ── */
+let markdownBuffer = '';          // Accumulates raw markdown during streaming
+let docViewMode = 'terminal';     // 'terminal' or 'document'
+let currentDocContent = '';       // Full markdown of the current/last completed document
+
 function showView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -207,7 +212,7 @@ function showJobMonitor(jobId) {
   updateMonitorStatus(job.status);
 
   const doneBar = document.getElementById('jmDoneBar');
-  if (doneBar) doneBar.style.display = 'none';
+  if (doneBar) doneBar.style.display = 'none'; // Reset — will be shown below if completed
 
   // Switch view manually so we can keep nav-jobs highlighted
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -220,6 +225,40 @@ function showJobMonitor(jobId) {
   currentView = 'job-monitor';
 
   activeTerminalEl = document.getElementById('monitorTerminal');
+
+  // If the job is completed and has cached doc content, show document view
+  if (job.status === 'completed' && job.docContent) {
+    currentDocContent = job.docContent;
+    markdownBuffer = job.docContent;
+    toggleDocView('document');
+
+    // Initialize version history and edit bar for completed jobs
+    if (job.server_job_id) {
+      activeEditJobId = job.server_job_id;
+      docVersions = [{ content: job.docContent, instruction: 'Original' }];
+      docVersionIndex = 0;
+      _updateVersionBar('monitor');
+      const editBar = document.getElementById('docEditBar');
+      if (editBar) editBar.style.display = 'flex';
+
+      // Show done bar with download link
+      const dlLink = document.getElementById('jmDownloadLink');
+      const doneMsg = document.getElementById('jmDoneMsg');
+      if (doneBar && dlLink && doneMsg) {
+        doneMsg.textContent = `Job ${job.server_job_id} complete — output ready`;
+        dlLink.href = `${API_BASE}/api/download/${job.server_job_id}`;
+        doneBar.style.display = 'flex';
+      }
+    }
+  } else if (job.status === 'running') {
+    // For running jobs, show terminal view
+    toggleDocView('terminal');
+  } else {
+    // Default: hide edit bar and show terminal
+    toggleDocView('terminal');
+    const editBar = document.getElementById('docEditBar');
+    if (editBar) editBar.style.display = 'none';
+  }
 }
 
 function updateMonitorStatus(status) {
@@ -227,6 +266,277 @@ function updateMonitorStatus(status) {
   if (!badge) return;
   badge.textContent = status.toUpperCase();
   badge.className = `jm-status-badge ${status}`;
+}
+
+/* ── Document View Toggle ── */
+function toggleDocView(mode) {
+  docViewMode = mode;
+  const termWrap = document.getElementById('jmTerminalWrap');
+  const docWrap = document.getElementById('jmDocWrap');
+  if (!termWrap || !docWrap) return;
+
+  // Toggle visibility
+  termWrap.style.display = mode === 'terminal' ? 'flex' : 'none';
+  docWrap.style.display = mode === 'document' ? 'flex' : 'none';
+
+  // Toggle button active state
+  document.querySelectorAll('.jm-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+
+  // If switching to document view, render current buffer
+  if (mode === 'document') {
+    renderDocPanel();
+  }
+}
+
+function renderDocPanel() {
+  const panel = document.getElementById('docPanel');
+  if (!panel) return;
+  const content = markdownBuffer || currentDocContent;
+  if (!content) {
+    panel.innerHTML = '<div class="doc-panel-empty">No document content yet</div>';
+    return;
+  }
+  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    panel.innerHTML = DOMPurify.sanitize(marked.parse(content));
+  } else {
+    panel.innerHTML = `<pre style="white-space:pre-wrap;">${content}</pre>`;
+  }
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function renderDocViewerModal(content, title, subtitle, downloadUrl, jobId) {
+  const panel = document.getElementById('docViewerPanel');
+  const titleEl = document.getElementById('docViewerTitle');
+  const subEl = document.getElementById('docViewerSub');
+  const dlBtn = document.getElementById('docViewerDownload');
+  const overlay = document.getElementById('docViewerModal');
+  if (!panel || !overlay) return;
+
+  titleEl.textContent = title || 'Document';
+  subEl.textContent = subtitle || '';
+  if (downloadUrl) {
+    dlBtn.href = downloadUrl;
+    dlBtn.style.display = '';
+  } else {
+    dlBtn.style.display = 'none';
+  }
+
+  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    panel.innerHTML = DOMPurify.sanitize(marked.parse(content));
+  } else {
+    panel.innerHTML = `<pre style="white-space:pre-wrap;">${content}</pre>`;
+  }
+
+  // Initialize modal version history and editing
+  modalEditJobId = jobId || null;
+  modalVersions = [{ content, instruction: 'Original' }];
+  modalVersionIndex = 0;
+  _updateVersionBar('modal');
+
+  // Show/hide edit bar based on whether we have a job ID
+  const editBar = document.getElementById('modalEditBar');
+  if (editBar) editBar.style.display = jobId ? 'flex' : 'none';
+
+  overlay.classList.add('open');
+}
+
+function closeDocViewer() {
+  const overlay = document.getElementById('docViewerModal');
+  if (overlay) overlay.classList.remove('open');
+}
+
+/* ── Document Version History ── */
+let docVersions = [];       // Array of {content, instruction} — version history
+let docVersionIndex = -1;   // Current version being viewed
+let activeEditJobId = null; // Job ID being edited
+
+// Modal version state (separate from job monitor)
+let modalVersions = [];
+let modalVersionIndex = -1;
+let modalEditJobId = null;
+
+function _pushVersion(content, instruction, target) {
+  const versions = target === 'modal' ? modalVersions : docVersions;
+  versions.push({ content, instruction: instruction || 'Original' });
+  if (target === 'modal') {
+    modalVersionIndex = versions.length - 1;
+    _updateVersionBar('modal');
+  } else {
+    docVersionIndex = versions.length - 1;
+    _updateVersionBar('monitor');
+  }
+}
+
+function _updateVersionBar(target) {
+  const isModal = target === 'modal';
+  const versions = isModal ? modalVersions : docVersions;
+  const index = isModal ? modalVersionIndex : docVersionIndex;
+  const bar = document.getElementById(isModal ? 'modalVersionBar' : 'docVersionBar');
+  const label = document.getElementById(isModal ? 'modalVerLabel' : 'docVerLabel');
+  const prev = document.getElementById(isModal ? 'modalVerPrev' : 'docVerPrev');
+  const next = document.getElementById(isModal ? 'modalVerNext' : 'docVerNext');
+  if (!bar) return;
+
+  if (versions.length <= 1) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  label.textContent = `Version ${index + 1} of ${versions.length}`;
+  prev.disabled = index <= 0;
+  next.disabled = index >= versions.length - 1;
+}
+
+function docVersionNav(dir) {
+  const newIndex = docVersionIndex + dir;
+  if (newIndex < 0 || newIndex >= docVersions.length) return;
+  docVersionIndex = newIndex;
+  currentDocContent = docVersions[newIndex].content;
+  markdownBuffer = currentDocContent;
+  renderDocPanel();
+  _updateVersionBar('monitor');
+}
+
+function modalVersionNav(dir) {
+  const newIndex = modalVersionIndex + dir;
+  if (newIndex < 0 || newIndex >= modalVersions.length) return;
+  modalVersionIndex = newIndex;
+  const panel = document.getElementById('docViewerPanel');
+  if (panel && typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    panel.innerHTML = DOMPurify.sanitize(marked.parse(modalVersions[newIndex].content));
+  }
+  _updateVersionBar('modal');
+}
+
+/* ── Submit Document Edits ── */
+async function submitDocEdit() {
+  const input = document.getElementById('docEditInput');
+  const btn = document.getElementById('docEditSubmit');
+  if (!input || !input.value.trim()) return;
+
+  const instruction = input.value.trim();
+  const jobId = activeEditJobId || currentJobId;
+  if (!jobId || !currentDocContent) return;
+
+  input.value = '';
+  btn.disabled = true;
+  btn.textContent = 'Editing...';
+
+  try {
+    const newContent = await _streamDocEdit(jobId, instruction, currentDocContent, 'docPanel');
+    if (newContent) {
+      currentDocContent = newContent;
+      markdownBuffer = newContent;
+      // Cache on job object
+      const job = JOBS.find(j => j.server_job_id === jobId);
+      if (job) job.docContent = newContent;
+      _pushVersion(newContent, instruction, 'monitor');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Apply Edit';
+  }
+}
+
+async function submitModalEdit() {
+  const input = document.getElementById('modalEditInput');
+  const btn = document.getElementById('modalEditSubmit');
+  if (!input || !input.value.trim()) return;
+
+  const instruction = input.value.trim();
+  const jobId = modalEditJobId;
+  if (!jobId) return;
+
+  const currentContent = modalVersions.length > 0
+    ? modalVersions[modalVersionIndex].content
+    : '';
+  if (!currentContent) return;
+
+  input.value = '';
+  btn.disabled = true;
+  btn.textContent = 'Editing...';
+
+  try {
+    const newContent = await _streamDocEdit(jobId, instruction, currentContent, 'docViewerPanel');
+    if (newContent) {
+      _pushVersion(newContent, instruction, 'modal');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Apply Edit';
+  }
+}
+
+async function _streamDocEdit(jobId, instruction, currentContent, panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return null;
+
+  let editBuffer = '';
+  let editRenderTimer = null;
+  const EDIT_RENDER_INTERVAL = 120; // ms — throttle edit renders
+
+  function renderEdit() {
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+      panel.innerHTML = DOMPurify.sanitize(marked.parse(editBuffer));
+      panel.scrollTop = panel.scrollHeight;
+    }
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/edit-document`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id: jobId,
+        instruction,
+        current_content: currentContent,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let sseEditBuffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      sseEditBuffer += decoder.decode(value, { stream: true });
+      const lines = sseEditBuffer.split('\n');
+      sseEditBuffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'token') {
+            editBuffer += data.text;
+            // Throttled render
+            if (!editRenderTimer) {
+              editRenderTimer = setTimeout(() => { editRenderTimer = null; renderEdit(); }, EDIT_RENDER_INTERVAL);
+            }
+          } else if (data.type === 'done') {
+            // Final render — clear throttle timer and do immediate render
+            if (editRenderTimer) { clearTimeout(editRenderTimer); editRenderTimer = null; }
+            renderEdit();
+            showToast('Document updated');
+          } else if (data.type === 'error') {
+            showToast(`Edit failed: ${data.message}`);
+            return null;
+          }
+        } catch (e) { /* skip malformed */ }
+      }
+    }
+
+    return editBuffer || null;
+  } catch (err) {
+    showToast(`Edit error: ${err.message}`);
+    return null;
+  }
 }
 
 function updateClientsBadge() {
@@ -1228,6 +1538,12 @@ async function launchWorkflow() {
 function startStreamingTerminal(jobId, wfTitle, clientName) {
   terminalStreaming = true;
   streamDiv = null;
+  markdownBuffer = '';
+  currentDocContent = '';
+  // Reset document panel and start in terminal view
+  const docPanel = document.getElementById('docPanel');
+  if (docPanel) docPanel.innerHTML = '<div class="doc-panel-empty">Generating document...</div>';
+  toggleDocView('terminal');
   sseBuffer = '';
 
   const tb = activeTerminalEl || document.getElementById('terminal');
@@ -1255,15 +1571,35 @@ function startStreamingTerminal(jobId, wfTitle, clientName) {
 }
 
 function appendTokenToTerminal(text) {
+  // Always accumulate into markdown buffer (for document view)
+  markdownBuffer += text;
+
+  // Terminal view: raw text append
   const tb = activeTerminalEl || document.getElementById('terminal');
-  if (!tb) return;
-  if (!streamDiv) {
-    streamDiv = document.createElement('div');
-    streamDiv.className = 'tl-stream';
-    tb.appendChild(streamDiv);
+  if (tb) {
+    if (!streamDiv) {
+      streamDiv = document.createElement('div');
+      streamDiv.className = 'tl-stream';
+      tb.appendChild(streamDiv);
+    }
+    streamDiv.textContent += text;
+    tb.scrollTop = tb.scrollHeight;
   }
-  streamDiv.textContent += text;
-  tb.scrollTop = tb.scrollHeight;
+
+  // Document view: re-render markdown (throttled)
+  if (docViewMode === 'document') {
+    _scheduleDocRender();
+  }
+}
+
+/* Throttle document re-renders to every 120ms for performance */
+let _docRenderTimer = null;
+function _scheduleDocRender() {
+  if (_docRenderTimer) return;
+  _docRenderTimer = setTimeout(() => {
+    _docRenderTimer = null;
+    renderDocPanel();
+  }, 120);
 }
 
 function appendErrorLineToTerminal(msg) {
@@ -1294,10 +1630,25 @@ function processSSEChunk(chunk, job) {
         terminalStreaming = false;
         streamDiv = null;
 
+        // Save final document content and render
+        currentDocContent = markdownBuffer;
+        renderDocPanel();
+        // Auto-switch to document view on completion
+        toggleDocView('document');
+
+        // Initialize version history and show edit bar
+        activeEditJobId = data.job_id;
+        docVersions = [{ content: currentDocContent, instruction: 'Original' }];
+        docVersionIndex = 0;
+        _updateVersionBar('monitor');
+        const editBar = document.getElementById('docEditBar');
+        if (editBar) editBar.style.display = 'flex';
+
         if (job) {
           job.status = 'completed';
           job.output = 'Complete — ready to download';
           job.server_job_id = data.job_id; // store server UUID for later lookup
+          job.docContent = currentDocContent; // cache for later viewing
           jobProgresses[job.id] = 100;
         }
 
@@ -2104,28 +2455,43 @@ function downloadContentItem(jobId) {
   window.open(`${API_BASE}/api/download/${jobId}`, '_blank');
 }
 
-function viewContentItem(jobId) {
+async function viewContentItem(jobId) {
   // JOBS entries use "JOB-NNNN" local IDs; content library uses 8-char server UUIDs.
   // Match via server_job_id which is stored on the job object when the done SSE event fires.
   const job = JOBS.find(j => j.server_job_id === jobId);
+  const item = CONTENT_ITEMS.find(c => c.job_id === jobId);
 
-  if (job) {
-    showJobMonitor(job.id);
-    // Show the done bar for completed jobs
-    updateMonitorStatus('completed');
-    const doneBar = document.getElementById('jmDoneBar');
-    const dlLink = document.getElementById('jmDownloadLink');
-    const doneMsg = document.getElementById('jmDoneMsg');
-    if (doneBar && dlLink && doneMsg) {
-      doneMsg.textContent = `Job ${jobId} complete — output ready`;
-      dlLink.href = `${API_BASE}/api/download/${jobId}`;
-      doneBar.style.display = 'flex';
-    }
+  // If we have cached doc content from this session, show it immediately
+  if (job && job.docContent) {
+    const title = item ? `${item.workflow_title}` : job.wf || 'Document';
+    const subtitle = item ? item.client_name : job.client || '';
+    const dlUrl = `${API_BASE}/api/download/${jobId}`;
+    renderDocViewerModal(job.docContent, title, subtitle, dlUrl, jobId);
     return;
   }
 
-  // No matching JOBS entry (loaded from server after refresh) — open job API in modal
-  const item = CONTENT_ITEMS.find(c => c.job_id === jobId);
+  // Fetch full content from server API
+  try {
+    const res = await fetch(`${API_BASE}/api/jobs/${jobId}`);
+    if (!res.ok) throw new Error(`${res.status}`);
+    const data = await res.json();
+
+    if (data.content) {
+      const title = data.workflow_title || (item ? item.workflow_title : 'Document');
+      const subtitle = data.client_name || (item ? item.client_name : '');
+      const dlUrl = data.has_docx ? `${API_BASE}/api/download/${jobId}` : null;
+      renderDocViewerModal(data.content, title, subtitle, dlUrl, jobId);
+    } else {
+      // Fallback: content not available, show basic info modal
+      _showBasicJobModal(jobId, item);
+    }
+  } catch (e) {
+    // Server error — fallback to basic modal
+    _showBasicJobModal(jobId, item);
+  }
+}
+
+function _showBasicJobModal(jobId, item) {
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
   const overlay = document.getElementById('jobModal');
