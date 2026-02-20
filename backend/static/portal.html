@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Portal — ProofPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark-blue: #00184D;
+      --elec-blue: #0051FF;
+      --neon-green: #C8FF00;
+      --bg: #060D1F;
+      --bg2: #0A1530;
+      --bg3: #0E1D3E;
+      --border: rgba(0,81,255,0.12);
+      --border2: rgba(0,81,255,0.2);
+      --text: #E8ECF4;
+      --text2: #94A3C4;
+      --text3: #5A6A8A;
+      --white: #fff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .portal-header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 0;
+    }
+    .portal-header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .portal-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .08em;
+      color: var(--elec-blue);
+    }
+    .portal-logo span { color: var(--neon-green); }
+    .portal-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border2);
+    }
+    .portal-client-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: .04em;
+      color: var(--text);
+    }
+
+    /* Client card */
+    .portal-body { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+    .client-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .client-avatar {
+      width: 56px; height: 56px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: .05em;
+      flex-shrink: 0;
+    }
+    .client-info { flex: 1; }
+    .client-info h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: .04em;
+      margin-bottom: 4px;
+    }
+    .client-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .client-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* Filter tabs */
+    .portal-filters {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 6px 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text2);
+      font-size: 12px;
+      font-family: 'Martian Mono', monospace;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .filter-tab:hover {
+      border-color: var(--elec-blue);
+      color: var(--elec-blue);
+    }
+    .filter-tab.active {
+      background: var(--elec-blue);
+      border-color: var(--elec-blue);
+      color: var(--white);
+    }
+    .portal-count {
+      font-family: 'Martian Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      margin-left: auto;
+    }
+
+    /* Content list */
+    .content-list { display: flex; flex-direction: column; gap: 10px; }
+    .content-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: border-color .15s ease;
+    }
+    .content-item:hover { border-color: var(--border2); }
+    .content-icon { font-size: 20px; flex-shrink: 0; }
+    .content-body { flex: 1; min-width: 0; }
+    .content-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .content-date {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: 'Martian Mono', monospace;
+    }
+    .content-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-portal {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      transition: all .15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-portal:hover {
+      border-color: var(--elec-blue);
+      color: var(--elec-blue);
+    }
+    .btn-portal.primary {
+      background: var(--elec-blue);
+      border-color: var(--elec-blue);
+      color: var(--white);
+    }
+    .btn-portal.primary:hover {
+      background: #0045DD;
+    }
+    .badge-approved {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(200,255,0,0.08);
+      color: var(--neon-green);
+      border: 1px solid rgba(200,255,0,0.15);
+    }
+
+    /* Empty state */
+    .portal-empty {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text3);
+    }
+    .portal-empty-icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
+    .portal-empty-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: var(--text2);
+      margin-bottom: 4px;
+    }
+
+    /* Loading */
+    .portal-loading {
+      text-align: center;
+      padding: 120px 24px;
+      color: var(--text3);
+    }
+    .portal-loading-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border2);
+      border-top-color: var(--elec-blue);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .portal-error {
+      text-align: center;
+      padding: 120px 24px;
+      color: var(--text3);
+    }
+    .portal-error-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+
+    /* Content preview modal */
+    .preview-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(6,13,31,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-overlay.open { display: flex; }
+    .preview-modal {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 720px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .preview-header h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: .04em;
+    }
+    .preview-close {
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .preview-close:hover { color: var(--text); }
+    .preview-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-family: 'Martian Mono', monospace;
+      color: var(--text2);
+    }
+
+    /* Footer */
+    .portal-footer {
+      text-align: center;
+      padding: 32px;
+      font-size: 12px;
+      color: var(--text3);
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+    .portal-footer a { color: var(--elec-blue); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .client-card { flex-direction: column; align-items: flex-start; }
+      .content-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .content-actions { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="portal-header">
+    <div class="portal-header-inner">
+      <div class="portal-logo">PROOF<span>PILOT</span></div>
+      <div class="portal-divider"></div>
+      <div class="portal-client-name" id="headerClientName">Client Portal</div>
+    </div>
+  </header>
+
+  <main class="portal-body" id="portalBody">
+    <div class="portal-loading" id="portalLoading">
+      <div class="portal-loading-spinner"></div>
+      <div>Loading your portal...</div>
+    </div>
+  </main>
+
+  <!-- Preview modal -->
+  <div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+    <div class="preview-modal">
+      <div class="preview-header">
+        <h3 id="previewTitle">Document Preview</h3>
+        <button class="preview-close" onclick="closePreview()">&times;</button>
+      </div>
+      <div class="preview-body" id="previewBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const WF_ICONS = {
+      'website-seo-audit': '🔍', 'prospect-audit': '🎯', 'keyword-gap': '📊',
+      'seo-blog-post': '✍️', 'service-page': '⚡', 'location-page': '📍',
+      'home-service-content': '🏠', 'programmatic-content': '🔄',
+      'gbp-posts': '📱', 'monthly-report': '📈',
+    };
+
+    let portalData = null;
+    let activeFilter = 'all';
+
+    function getToken() {
+      const parts = window.location.pathname.split('/');
+      return parts[parts.length - 1] || '';
+    }
+
+    async function loadPortal() {
+      const token = getToken();
+      if (!token) return showError('No portal token provided.');
+
+      try {
+        const res = await fetch('/api/portal/' + token);
+        if (!res.ok) {
+          if (res.status === 404) return showError('This portal link is not valid or has been deactivated.');
+          return showError('Failed to load portal data.');
+        }
+        portalData = await res.json();
+        renderPortal();
+      } catch (e) {
+        showError('Unable to connect to the server. Please try again later.');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('portalBody').innerHTML = `
+        <div class="portal-error">
+          <div style="font-size:48px;opacity:0.3;margin-bottom:12px;">🔒</div>
+          <div class="portal-error-title">Portal Unavailable</div>
+          <div>${msg}</div>
+        </div>`;
+    }
+
+    function renderPortal() {
+      const c = portalData.client;
+      document.getElementById('headerClientName').textContent = c.name;
+      document.title = c.name + ' — ProofPilot Portal';
+
+      const avatarBg = c.color + '20';
+      const avatarBorder = c.color + '40';
+
+      let html = `
+        <div class="client-card">
+          <div class="client-avatar" style="background:${avatarBg};border:2px solid ${avatarBorder};color:${c.color};">${c.initials || '??'}</div>
+          <div class="client-info">
+            <h2>${c.name}</h2>
+            <div class="client-meta">
+              ${c.domain ? '<span>🌐 ' + c.domain + '</span>' : ''}
+              ${c.service ? '<span>🔧 ' + c.service + '</span>' : ''}
+              ${c.location ? '<span>📍 ' + c.location + '</span>' : ''}
+              ${c.plan ? '<span>📋 ' + c.plan + '</span>' : ''}
+            </div>
+          </div>
+        </div>`;
+
+      // Filter tabs
+      const total = portalData.items.length;
+      const approvedCount = portalData.items.filter(i => i.approved).length;
+
+      html += `
+        <div class="portal-filters">
+          <button class="filter-tab ${activeFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All</button>
+          <button class="filter-tab ${activeFilter === 'reports' ? 'active' : ''}" onclick="setFilter('reports')">Reports</button>
+          <button class="filter-tab ${activeFilter === 'content' ? 'active' : ''}" onclick="setFilter('content')">Content</button>
+          <button class="filter-tab ${activeFilter === 'approved' ? 'active' : ''}" onclick="setFilter('approved')">Approved (${approvedCount})</button>
+          <span class="portal-count">${total} document${total !== 1 ? 's' : ''}</span>
+        </div>`;
+
+      // Filter items
+      let items = portalData.items;
+      if (activeFilter === 'approved') items = items.filter(i => i.approved);
+      if (activeFilter === 'reports') items = items.filter(i => ['website-seo-audit','prospect-audit','keyword-gap','monthly-report'].includes(i.workflow_id));
+      if (activeFilter === 'content') items = items.filter(i => ['seo-blog-post','service-page','location-page','home-service-content','gbp-posts','programmatic-content'].includes(i.workflow_id));
+
+      if (!items.length) {
+        html += `
+          <div class="portal-empty">
+            <div class="portal-empty-icon">📂</div>
+            <div class="portal-empty-title">No documents yet</div>
+            <div>Content and reports will appear here as they're created.</div>
+          </div>`;
+      } else {
+        html += '<div class="content-list">';
+        items.forEach(item => {
+          const icon = WF_ICONS[item.workflow_id] || '📄';
+          const approved = item.approved ? '<span class="badge-approved">✓ Approved</span>' : '';
+          const dlBtn = item.has_docx
+            ? '<a class="btn-portal primary" href="/api/download/' + item.job_id + '" target="_blank">⬇ Download</a>'
+            : '';
+          const previewBtn = '<button class="btn-portal" onclick="showPreview(\'' + item.job_id + '\')">👁 Preview</button>';
+
+          html += `
+            <div class="content-item">
+              <span class="content-icon">${icon}</span>
+              <div class="content-body">
+                <div class="content-title">${item.workflow_title}</div>
+                <div class="content-date">${item.created_at}</div>
+              </div>
+              ${approved}
+              <div class="content-actions">
+                ${previewBtn}
+                ${dlBtn}
+              </div>
+            </div>`;
+        });
+        html += '</div>';
+      }
+
+      html += `
+        <div class="portal-footer">
+          Powered by <a href="https://proofpilot.com">ProofPilot</a> — AI-powered SEO operations
+        </div>`;
+
+      document.getElementById('portalBody').innerHTML = html;
+    }
+
+    function setFilter(f) {
+      activeFilter = f;
+      renderPortal();
+    }
+
+    async function showPreview(jobId) {
+      const item = portalData.items.find(i => i.job_id === jobId);
+      if (!item) return;
+
+      document.getElementById('previewTitle').textContent = item.workflow_title;
+      document.getElementById('previewBody').textContent = 'Loading...';
+      document.getElementById('previewOverlay').classList.add('open');
+
+      try {
+        const res = await fetch('/api/jobs/' + jobId);
+        if (!res.ok) throw new Error('Failed to load');
+        const data = await res.json();
+        document.getElementById('previewBody').textContent = data.content || data.content_preview || 'No content available.';
+      } catch (e) {
+        document.getElementById('previewBody').textContent = item.preview || 'Preview unavailable.';
+      }
+    }
+
+    function closePreview() {
+      document.getElementById('previewOverlay').classList.remove('open');
+    }
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+
+    // Boot
+    loadPortal();
+  </script>
+</body>
+</html>

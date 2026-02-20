@@ -8,6 +8,7 @@ Set to a Railway volume mount path (e.g. /app/data/jobs.db) for persistence.
 import os
 import json
 import sqlite3
+import secrets
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -64,11 +65,12 @@ def init_db() -> None:
         """)
         conn.commit()
 
-        # ── Jobs table migrations ────────────────────────────────────
+        # ── Table migrations ───────────────────────────────────────
         for col_sql in [
             "ALTER TABLE jobs ADD COLUMN client_id INTEGER DEFAULT 0",
             "ALTER TABLE jobs ADD COLUMN approved INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE jobs ADD COLUMN approved_at TEXT",
+            "ALTER TABLE clients ADD COLUMN portal_token TEXT",
         ]:
             try:
                 conn.execute(col_sql)
@@ -103,6 +105,19 @@ def init_db() -> None:
                 [(name, domain, plan, status, color, initials, now, now)
                  for name, domain, plan, status, color, initials in seed_clients]
             )
+            conn.commit()
+
+        # ── Generate portal tokens for any clients missing them ───
+        rows = conn.execute(
+            "SELECT client_id FROM clients WHERE portal_token IS NULL"
+        ).fetchall()
+        for row in rows:
+            token = secrets.token_urlsafe(16)
+            conn.execute(
+                "UPDATE clients SET portal_token = ? WHERE client_id = ?",
+                (token, row["client_id"]),
+            )
+        if rows:
             conn.commit()
 
 
@@ -205,12 +220,13 @@ def create_client(data: dict) -> dict:
     name = data.get("name", "").strip()
     initials = data.get("initials", "").strip() or _auto_initials(name)
     color = data.get("color", "#0051FF")
+    token = secrets.token_urlsafe(16)
     with _connect() as conn:
         cur = conn.execute(
             """INSERT INTO clients
                (name, domain, service, location, plan, monthly_revenue, avg_job_value,
-                status, color, initials, notes, strategy_context, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                status, color, initials, notes, strategy_context, portal_token, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 name,
                 data.get("domain", ""),
@@ -224,6 +240,7 @@ def create_client(data: dict) -> dict:
                 initials,
                 data.get("notes", ""),
                 data.get("strategy_context", ""),
+                token,
                 now, now,
             ),
         )
@@ -282,3 +299,30 @@ def delete_client(client_id: int) -> bool:
         )
         conn.commit()
         return cur.rowcount > 0
+
+
+# ── Portal functions ─────────────────────────────────────────────────────────
+
+def get_client_by_token(token: str) -> Optional[dict]:
+    """Look up a client by their portal token."""
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM clients WHERE portal_token = ? AND status != 'deleted'",
+            (token,),
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def get_jobs_by_client(client_id: int) -> list:
+    """Return all jobs for a specific client, newest first."""
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM jobs WHERE client_id = ? ORDER BY created_at DESC",
+            (client_id,),
+        ).fetchall()
+        result = []
+        for row in rows:
+            d = dict(row)
+            d["inputs"] = json.loads(d["inputs"])
+            result.append(d)
+        return result

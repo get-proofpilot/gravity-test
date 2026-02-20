@@ -527,6 +527,8 @@
             <option value="service-page">Service Pages</option>
             <option value="location-page">Location Pages</option>
             <option value="programmatic-content">Programmatic Content</option>
+            <option value="gbp-posts">GBP Posts</option>
+            <option value="monthly-report">Monthly Reports</option>
           </select>
         </div>
         <div class="content-approval-tabs">
@@ -1032,6 +1034,40 @@
               <label class="wf-field-label">Notes <span class="opt">optional</span></label>
               <textarea id="wfGBPNotes" rows="3"
                 placeholder="Brand voice, topics to avoid, recent wins, holiday tie-ins..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- monthly-report inputs -->
+        <div id="modalInputsMonthlyReport" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Domain <span class="req">*</span></label>
+            <input type="text" id="wfReportDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            <div class="wf-field-hint">Auto-filled from client record — used to pull live SEO data</div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Primary Service <span class="opt">optional</span></label>
+              <input type="text" id="wfReportService" placeholder="e.g. electrician" />
+              <div class="wf-field-hint">Adds context about the business type</div>
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Location <span class="opt">optional</span></label>
+              <input type="text" id="wfReportLocation" placeholder="e.g. Chandler, AZ" />
+              <div class="wf-field-hint">Enables DataForSEO Labs data</div>
+            </div>
+          </div>
+          <!-- Optional fields section -->
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — customize the report period and add context</div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Report Month <span class="opt">optional</span></label>
+              <input type="text" id="wfReportMonth" placeholder="e.g. February 2026 — defaults to current month" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <textarea id="wfReportNotes" rows="3"
+                placeholder="Wins to highlight, client concerns to address, campaigns launched this month..."></textarea>
             </div>
           </div>
         </div>

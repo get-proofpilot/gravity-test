@@ -27,6 +27,7 @@ function mapApiClient(c) {
     initials: c.initials || _autoInitials(c.name),
     notes: c.notes || '',
     strategy_context: c.strategy_context || '',
+    portal_token: c.portal_token || '',
     // Display-only placeholders (computed from jobs in a future phase)
     score: 0,
     trend: '→',
@@ -108,8 +109,9 @@ const WORKFLOWS = [
     desc: 'Branded marketing proposals ready to send — scoped deliverables, pricing, and ProofPilot positioning built in.',
     time: '~3 min', status: 'soon', category: 'business' },
   { id: 'monthly-report', icon: '📈', title: 'Monthly Client Report',
-    desc: 'White-label client report — rankings, traffic wins, and recommendations bundled to send.',
-    time: '~3 min', status: 'soon', category: 'business' },
+    desc: 'Auto-generated report with real SEO data — rankings, traffic, deliverables, and next month\'s plan.',
+    time: '~5 min', status: 'active', skill: 'monthly-report', category: 'business',
+    preview: '# Monthly SEO Report: All Thingz Electric — February 2026\n\n## Executive Summary\nStrong month for organic visibility. Total ranked keywords increased from 287 to 342 (+19%), with estimated monthly traffic value reaching $4,200/mo. Key win: "panel upgrade Chandler AZ" moved from position #23 to #11.\n\n## Key Metrics This Month\n| Metric | Value | Change |\n|--------|-------|--------|\n| Ranked Keywords | 342 | +55 |\n| Est. Monthly Traffic | 1,840 | +320 |\n| Traffic Value | $4,200/mo | +$680 |\n\n## Work Completed This Month\n- Website & SEO Audit (Approved)\n- 4 Service Pages: panel upgrade, EV charger, rewiring, inspection\n- 8 GBP Posts (Approved)\n- Keyword Gap Analysis vs. 3 competitors' },
   { id: 'pnl-statement', icon: '💰', title: 'P&L Statement',
     desc: 'Monthly profit & loss statement generator — structured financials formatted and ready for review.',
     time: '~3 min', status: 'soon', category: 'business' },
@@ -469,6 +471,7 @@ function selectWorkflow(id) {
     'modalInputsLocationPage':  id === 'location-page',
     'modalInputsProgrammatic':  id === 'programmatic-content',
     'modalInputsGBPPosts':      id === 'gbp-posts',
+    'modalInputsMonthlyReport': id === 'monthly-report',
   };
   Object.entries(panels).forEach(([panelId, show]) => {
     const panel = document.getElementById(panelId);
@@ -492,7 +495,8 @@ function selectWorkflow(id) {
    'wfSvcBusinessType','wfSvcService','wfSvcLocation','wfSvcDifferentiators','wfSvcPriceRange','wfSvcNotes',
    'wfLocBusinessType','wfLocPrimaryService','wfLocTargetLocation','wfLocHomeBase','wfLocLocalDetails','wfLocServicesList','wfLocNotes',
    'wfProgContentType','wfProgBusinessType','wfProgPrimaryService','wfProgLocation','wfProgHomeBase','wfProgItemsList','wfProgServicesList','wfProgDifferentiators','wfProgNotes',
-   'wfGBPBusinessType','wfGBPLocation','wfGBPServices','wfGBPPromos','wfGBPNotes'].forEach(fid => {
+   'wfGBPBusinessType','wfGBPLocation','wfGBPServices','wfGBPPromos','wfGBPNotes',
+   'wfReportDomain','wfReportService','wfReportLocation','wfReportMonth','wfReportNotes'].forEach(fid => {
     const el = document.getElementById(fid);
     if (el) el.value = '';
   });
@@ -590,6 +594,11 @@ function checkRunReady() {
       ready = !!(businessType && location);
     }
 
+    if (selectedWorkflow === 'monthly-report' && ready) {
+      const domain = cleanDomain(document.getElementById('wfReportDomain')?.value || '');
+      ready = !!isValidDomain(domain);
+    }
+
     if (selectedWorkflow === 'programmatic-content' && ready) {
       const contentType  = document.getElementById('wfProgContentType')?.value;
       const businessType = document.getElementById('wfProgBusinessType')?.value.trim();
@@ -653,6 +662,13 @@ function onAuditClientChange() {
   } else if (selectedWorkflow === 'location-page') {
     const homeBaseEl = document.getElementById('wfLocHomeBase');
     if (homeBaseEl && client.location) homeBaseEl.value = client.location;
+  } else if (selectedWorkflow === 'monthly-report') {
+    const domainEl   = document.getElementById('wfReportDomain');
+    const serviceEl  = document.getElementById('wfReportService');
+    const locationEl = document.getElementById('wfReportLocation');
+    if (domainEl && client.domain) domainEl.value = client.domain;
+    if (serviceEl && client.service) serviceEl.value = client.service;
+    if (locationEl && client.location) locationEl.value = client.location;
   }
   checkRunReady();
 }
@@ -896,6 +912,14 @@ async function launchWorkflow() {
       promos:        document.getElementById('wfGBPPromos')?.value.trim() || '',
       notes:         document.getElementById('wfGBPNotes')?.value.trim() || '',
     };
+  } else if (selectedWorkflow === 'monthly-report') {
+    inputs = {
+      domain:       cleanDomain(document.getElementById('wfReportDomain')?.value || ''),
+      service:      document.getElementById('wfReportService')?.value.trim() || '',
+      location:     document.getElementById('wfReportLocation')?.value.trim() || '',
+      report_month: document.getElementById('wfReportMonth')?.value.trim() || '',
+      notes:        document.getElementById('wfReportNotes')?.value.trim() || '',
+    };
   } else if (selectedWorkflow === 'programmatic-content') {
     inputs = {
       content_type:     document.getElementById('wfProgContentType')?.value || '',
@@ -910,7 +934,7 @@ async function launchWorkflow() {
     };
   }
 
-  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page', 'programmatic-content', 'gbp-posts'];
+  const liveWorkflows = ['home-service-content', 'website-seo-audit', 'prospect-audit', 'keyword-gap', 'seo-blog-post', 'service-page', 'location-page', 'programmatic-content', 'gbp-posts', 'monthly-report'];
 
   if (liveWorkflows.includes(selectedWorkflow)) {
     const payload = {
@@ -1313,6 +1337,7 @@ function renderClientHub() {
         </div>
       </div>
       <div class="ch-header-actions">
+        ${client.portal_token ? `<button class="ch-portal-btn" onclick="copyPortalLink('${client.portal_token}')" title="Copy client portal link">🔗 Portal Link</button>` : ''}
         <button class="ch-run-btn" onclick="selectWorkflowForClient(${client.id})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="5 3 19 12 5 21 5 3"/>
@@ -1430,6 +1455,22 @@ function renderClientHub() {
       </div>
     </div>
   `;
+}
+
+function copyPortalLink(token) {
+  const url = window.location.origin + '/portal/' + token;
+  navigator.clipboard.writeText(url).then(() => {
+    // Brief visual feedback
+    const btn = event.target.closest('button');
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    }
+  }).catch(() => {
+    // Fallback: open in new tab
+    window.open('/portal/' + token, '_blank');
+  });
 }
 
 function selectWorkflowForClient(clientId) {

@@ -22,7 +22,7 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 ## Current State
 
 **Phase 1 (Core Platform): COMPLETE**
-- 9 live workflows with real-time SSE streaming
+- 10 live workflows with real-time SSE streaming
 - Branded `.docx` export on every job
 - SQLite persistence (jobs + clients) on Railway Volume
 - Content Library with client grouping, search, and filters
@@ -42,9 +42,16 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 - [x] Domain format validation on workflow launch
 - [x] TTL cleanup for `temp_docs/` (7-day retention, auto-cleans on startup)
 
+**Phase 3 (Reports + Client Portal): COMPLETE**
+- [x] Monthly Client Report workflow (SA + DFS + job history → narrative report)
+- [x] Client Portal (`/portal/{token}` — public-facing, shareable link per client)
+- [x] Portal API (`/api/portal/{token}` — client info + all deliverables)
+- [x] Portal token auto-generation for all clients
+- [x] Portal link copy button in Client Hub
+- [x] Content type filters for GBP Posts + Monthly Reports
+
 **What's NOT built yet (high priority per growth plan):**
-- Monthly Client Report workflow (Month 1 — justifies retainers)
-- Google Drive integration (Phase 3 — zero-friction content handoff to Jo Paula)
+- Google Drive integration (Phase 4 — zero-friction content handoff to Jo Paula)
 - Scheduled automations / cron (makes the platform run without Matthew)
 
 ---
@@ -55,11 +62,11 @@ Ordered by business impact. Each item maps to the master growth plan at `~/Agenc
 
 | Priority | Feature | Why | Effort |
 |----------|---------|-----|--------|
-| 1 | **Monthly Client Report** | Auto-pull SA + DFS data + job history → narrative report. Stops clients from forgetting what we do. | Medium |
-| 2 | **Google Drive Integration** | Approved content auto-uploads to client folders. Jo Paula's inbox becomes zero-friction. | Medium |
-| 3 | **On-Page Technical Audit** | Async DFS crawl → ranked issue list. Sells as one-time audit or recurring monitoring. | Medium |
-| 4 | **Scheduled Automations** | Monthly reports on the 1st, GBP posts on the 28th, competitor monitoring daily. | High |
-| 5 | **WordPress Direct Publish** | Push approved content straight to client WordPress sites as drafts. | Medium |
+| 1 | **Google Drive Integration** | Approved content auto-uploads to client folders. Jo Paula's inbox becomes zero-friction. | Medium |
+| 2 | **On-Page Technical Audit** | Async DFS crawl → ranked issue list. Sells as one-time audit or recurring monitoring. | Medium |
+| 3 | **Scheduled Automations** | Monthly reports on the 1st, GBP posts on the 28th, competitor monitoring daily. | High |
+| 4 | **WordPress Direct Publish** | Push approved content straight to client WordPress sites as drafts. | Medium |
+| 5 | **Portal Auth + Branding** | Add optional password protection, custom logo upload, and branded portal themes. | Medium |
 
 Full roadmap with implementation details: `ROADMAP.md`
 
@@ -182,10 +189,12 @@ backend/
     home_service_content.py — Home service article (Claude only)
     programmatic_content.py — Bulk generation agent (batch mode)
     gbp_posts.py         — GBP post batch generator (Claude only)
+    monthly_report.py    — Monthly client report (SA + DFS + job history)
   static/
     index.html           — Full SPA markup (all views, modals)
     script.js            — WORKFLOWS array, view routing, SSE streaming, workflow launch
     style.css            — Dark theme with ProofPilot brand system
+    portal.html          — Client portal (standalone, public-facing)
 ```
 
 ---
@@ -214,7 +223,7 @@ backend/
 
 ---
 
-## Live Workflows (9 Active)
+## Live Workflows (10 Active)
 
 | Workflow ID | Title | Data Sources | File |
 |-------------|-------|-------------|------|
@@ -227,6 +236,7 @@ backend/
 | `location-page` | Location Page | Claude only | `workflows/location_page.py` |
 | `programmatic-content` | Programmatic Content Agent | Claude + optional DFS | `workflows/programmatic_content.py` |
 | `gbp-posts` | GBP Posts | Claude only | `workflows/gbp_posts.py` |
+| `monthly-report` | Monthly Client Report | SA + DFS Labs + Job History | `workflows/monthly_report.py` |
 
 ### How Workflows Work
 1. Frontend POSTs to `/api/run-workflow` with `workflow_id`, `client_name`, `inputs`, `strategy_context`
@@ -311,6 +321,8 @@ Add a `div#modalInputs{Name}` with input fields matching the workflow's input sc
 | `/api/clients/{id}` | PATCH | Update client fields |
 | `/api/clients/{id}` | DELETE | Soft-delete client |
 | `/api/discover-cities` | POST | Find nearby cities (Haiku-powered) |
+| `/api/portal/{token}` | GET | Client portal data (client info + jobs) |
+| `/portal/{token}` | GET | Client portal page (public-facing) |
 
 ### SSE Event Types
 ```
@@ -367,6 +379,12 @@ type: "error" → { type, message }
 ```json
 { "business_type": "electrician", "location": "Chandler, AZ", "post_count": "8",
   "services": "panel upgrade, EV charger", "promos": "10% off panel upgrades", "notes": "optional" }
+```
+
+### `monthly-report`
+```json
+{ "domain": "allthingzelectric.com", "service": "electrician", "location": "Chandler, AZ",
+  "report_month": "February 2026", "notes": "optional" }
 ```
 
 ---

@@ -27,11 +27,13 @@ from workflows.service_page import run_service_page
 from workflows.location_page import run_location_page
 from workflows.programmatic_content import run_programmatic_content
 from workflows.gbp_posts import run_gbp_posts
+from workflows.monthly_report import run_monthly_report
 from utils.docx_generator import generate_docx, TEMP_DIR
 from utils.db import (
     init_db, save_job, update_docx_path, get_job as db_get_job, get_all_jobs,
     create_client, get_client as db_get_client, get_all_clients,
     update_client, delete_client, approve_job, unapprove_job,
+    get_client_by_token, get_jobs_by_client,
 )
 
 # ── App setup ─────────────────────────────────────────────
@@ -90,6 +92,7 @@ WORKFLOW_TITLES = {
     "lovable-prompting":      "Lovable App Builder",
     "programmatic-content":   "Programmatic Content Agent",
     "gbp-posts":              "GBP Posts",
+    "monthly-report":         "Monthly Client Report",
 }
 
 
@@ -324,6 +327,14 @@ async def run_workflow(req: WorkflowRequest):
                     strategy_context=req.strategy_context or "",
                     client_name=req.client_name,
                 )
+            elif req.workflow_id == "monthly-report":
+                generator = run_monthly_report(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                    client_id=req.client_id,
+                )
             else:
                 msg = f'Workflow "{req.workflow_id}" is not yet wired up.'
                 yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
@@ -435,7 +446,57 @@ def get_job_detail(job_id: str):
 # ── Serve frontend ────────────────────────────────────────────────
 # Explicit routes instead of StaticFiles mount — prevents the mount from
 # intercepting /api/* routes (known FastAPI/Starlette issue with root mounts).
+# ── Portal API ─────────────────────────────────────────────
+
+@app.get("/api/portal/{token}")
+async def portal_data(token: str):
+    """Return client info + all their jobs for the client portal."""
+    client_info = await asyncio.to_thread(get_client_by_token, token)
+    if not client_info:
+        raise HTTPException(status_code=404, detail="Portal not found")
+
+    jobs = await asyncio.to_thread(get_jobs_by_client, client_info["client_id"])
+
+    items = []
+    for job in jobs:
+        content_str = job.get("content", "")
+        if not content_str:
+            continue
+        items.append({
+            "job_id": job["job_id"],
+            "workflow_title": job.get("workflow_title", ""),
+            "workflow_id": job.get("workflow_id", ""),
+            "has_docx": bool(job.get("docx_path")),
+            "approved": bool(job.get("approved", 0)),
+            "created_at": job.get("created_at", "")[:10],
+            "preview": content_str[:300] + "..." if len(content_str) > 300 else content_str,
+        })
+
+    return {
+        "client": {
+            "name": client_info["name"],
+            "domain": client_info.get("domain", ""),
+            "service": client_info.get("service", ""),
+            "location": client_info.get("location", ""),
+            "plan": client_info.get("plan", ""),
+            "initials": client_info.get("initials", ""),
+            "color": client_info.get("color", "#0051FF"),
+        },
+        "items": items,
+    }
+
+
+# ── Static files ──────────────────────────────────────────
 static_dir = Path(__file__).parent / "static"
+
+@app.get("/portal/{token}")
+async def serve_portal(token: str):
+    """Serve the client portal page."""
+    f = static_dir / "portal.html"
+    if f.exists():
+        return FileResponse(f)
+    raise HTTPException(status_code=404, detail="Portal page not found")
+
 
 @app.get("/")
 async def serve_index():
