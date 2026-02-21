@@ -1529,6 +1529,206 @@
         </div>
       </div>
 
+        <!-- geo-content-audit inputs -->
+        <div id="modalInputsGeoAudit" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Content to Audit <span class="req">*</span></label>
+            <textarea id="wfGEOContent" rows="8" placeholder="Paste the full page content, blog post, or service page copy here..." oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint">Paste markdown or plain text — the more complete, the better the audit</div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Target Queries <span class="req">*</span></label>
+            <textarea id="wfGEOQueries" rows="3" placeholder="Queries this content should answer in ChatGPT, Perplexity, Claude — one per line&#10;e.g. how much does a panel upgrade cost in Chandler AZ" oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint">List 2-5 AI search queries this content should be cited for</div>
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — improves analysis quality</div>
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Business Type <span class="opt">optional</span></label>
+                <input type="text" id="wfGEOBizType" placeholder="e.g. electrician, plumber" />
+              </div>
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Location <span class="opt">optional</span></label>
+                <input type="text" id="wfGEOLocation" placeholder="e.g. Chandler, AZ" />
+              </div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Competitor URLs Getting Cited Instead <span class="opt">optional</span></label>
+              <input type="text" id="wfGEOCompUrls" placeholder="URLs of content AI models cite for your target queries instead of yours" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Focus Areas <span class="opt">optional</span></label>
+              <textarea id="wfGEONotes" rows="2" placeholder="Any specific areas to focus on or context about this content..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- seo-content-audit inputs -->
+        <div id="modalInputsSEOContentAudit" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Page Content <span class="req">*</span></label>
+            <textarea id="wfSCAContent" rows="8" placeholder="Paste the full page content here — service page, blog post, location page..." oninput="checkRunReady()"></textarea>
+            <div class="wf-field-hint">Paste markdown or plain text. The more complete, the better the audit.</div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Primary Target Keyword <span class="req">*</span></label>
+            <input type="text" id="wfSCAKeyword" placeholder="e.g. electrician chandler az, panel upgrade cost phoenix" oninput="checkRunReady()" />
+            <div class="wf-field-hint">The main keyword this page should rank for</div>
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — include for a more complete audit</div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Title Tag <span class="opt">optional</span></label>
+              <input type="text" id="wfSCATitleTag" placeholder="Current title tag exactly as it appears in the browser tab" />
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Meta Description <span class="opt">optional</span></label>
+              <input type="text" id="wfSCAMetaDesc" placeholder="Current meta description" />
+            </div>
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Page URL <span class="opt">optional</span></label>
+                <input type="text" id="wfSCAUrl" placeholder="e.g. /services/panel-upgrade" />
+              </div>
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Business Type <span class="opt">optional</span></label>
+                <input type="text" id="wfSCABizType" placeholder="e.g. electrician" />
+              </div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <textarea id="wfSCANotes" rows="2" placeholder="Known issues, focus areas, what you want fixed first..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- technical-seo-review inputs -->
+        <div id="modalInputsTechSEO" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Domain <span class="req">*</span></label>
+            <input type="text" id="wfTSRDomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            <div class="wf-field-hint">Auto-filled from client record — edit if different</div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Platform / CMS <span class="req">*</span></label>
+              <input type="text" id="wfTSRPlatform" placeholder="e.g. WordPress, Shopify, Webflow, Wix, custom" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Type <span class="req">*</span></label>
+              <input type="text" id="wfTSRBizType" placeholder="e.g. electrician, plumber, HVAC" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Location <span class="req">*</span></label>
+            <input type="text" id="wfTSRLocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — improves recommendations</div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Pages Needing Schema <span class="opt">optional</span></label>
+              <input type="text" id="wfTSRPageTypes" placeholder="e.g. homepage, service pages, blog posts, location pages" />
+              <div class="wf-field-hint">Defaults to homepage, service pages, and blog posts</div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Known Issues <span class="opt">optional</span></label>
+              <textarea id="wfTSRKnownIssues" rows="3" placeholder="Any technical issues already identified — slow speed, indexing problems, schema errors, redirect issues..."></textarea>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <textarea id="wfTSRNotes" rows="2" placeholder="Additional context or focus areas..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- programmatic-seo-strategy inputs -->
+        <div id="modalInputsProgSEOStrategy" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Business Type <span class="req">*</span></label>
+              <input type="text" id="wfPSSBizType" placeholder="e.g. electrician, plumber, HVAC" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Primary Service <span class="req">*</span></label>
+              <input type="text" id="wfPSSService" placeholder="e.g. panel upgrade, water heater, AC repair" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Base Location <span class="req">*</span></label>
+            <input type="text" id="wfPSSLocation" placeholder="e.g. Phoenix, AZ" oninput="checkRunReady()" />
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Page Type to Build <span class="req">*</span></label>
+            <select id="wfPSSPageType" oninput="checkRunReady()" onchange="checkRunReady()">
+              <option value="">— Select page type —</option>
+              <option value="location-pages">Location Pages — "[Service] in [City, State]"</option>
+              <option value="comparison-pages">Comparison Pages — "[Option A] vs [Option B]"</option>
+              <option value="best-x-for-y">Best X for Y — "Best [Product] for [Use Case]"</option>
+              <option value="alternatives-pages">Alternatives Pages — "Alternatives to [Competitor]"</option>
+              <option value="glossary-pages">Glossary Pages — "What is [Industry Term]"</option>
+              <option value="cost-guide-pages">Cost Guide Pages — "How Much Does [Service] Cost"</option>
+            </select>
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional — shapes the strategy</div>
+            <div class="wf-modal-2col">
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Target Scale <span class="opt">optional</span></label>
+                <input type="text" id="wfPSSScale" placeholder="e.g. 50 pages, 200 city pages" />
+              </div>
+              <div class="wf-modal-field optional">
+                <label class="wf-field-label">Competitors Doing This <span class="opt">optional</span></label>
+                <input type="text" id="wfPSSCompetitors" placeholder="Domains already running programmatic SEO in this space" />
+              </div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Data Assets Available <span class="opt">optional</span></label>
+              <textarea id="wfPSSDataAssets" rows="2" placeholder="Any data you already have — spreadsheets, pricing data, city lists, product databases..."></textarea>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Notes <span class="opt">optional</span></label>
+              <textarea id="wfPSSNotes" rows="2" placeholder="Goals, constraints, timeline, what's been tried before..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- competitor-seo-analysis inputs -->
+        <div id="modalInputsCompSEOAnalysis" style="display:none; flex-direction:column; gap:16px;">
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Your Domain <span class="req">*</span></label>
+            <input type="text" id="wfCSADomain" placeholder="e.g. allthingzelectric.com" oninput="checkRunReady()" />
+            <div class="wf-field-hint">Auto-filled from client record — edit if different</div>
+          </div>
+          <div class="wf-modal-field">
+            <label class="wf-field-label">Competitor Domains <span class="req">*</span></label>
+            <input type="text" id="wfCSACompetitors" placeholder="competitor1.com, competitor2.com, competitor3.com" oninput="checkRunReady()" />
+            <div class="wf-field-hint">Up to 3 competitors — comma separated</div>
+          </div>
+          <div class="wf-modal-2col">
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Primary Service <span class="req">*</span></label>
+              <input type="text" id="wfCSAService" placeholder="e.g. electrician, plumber" oninput="checkRunReady()" />
+            </div>
+            <div class="wf-modal-field">
+              <label class="wf-field-label">Service Area <span class="req">*</span></label>
+              <input type="text" id="wfCSALocation" placeholder="e.g. Chandler, AZ" oninput="checkRunReady()" />
+            </div>
+          </div>
+          <div class="wf-modal-optional-section">
+            <div class="wf-modal-optional-label">Optional</div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Target Keywords <span class="opt">optional</span></label>
+              <textarea id="wfCSAKeywords" rows="3" placeholder="Keywords you most want to rank for — one per line or comma separated"></textarea>
+              <div class="wf-field-hint">Focuses the gap analysis on your highest-priority terms</div>
+            </div>
+            <div class="wf-modal-field optional">
+              <label class="wf-field-label">Context / Focus <span class="opt">optional</span></label>
+              <textarea id="wfCSANotes" rows="2" placeholder="What you already know about the competitive landscape, specific pages losing rankings, etc."></textarea>
+            </div>
+          </div>
+        </div>
+
         <!-- Shared strategy context — auto-fills from client profile -->
         <div id="wfStrategyCtxWrap" class="wf-modal-field wf-strategy-section">
           <label class="wf-field-label">Strategy Context <span class="opt">optional</span></label>

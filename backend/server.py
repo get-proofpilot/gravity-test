@@ -38,6 +38,11 @@ from workflows.content_strategy import run_content_strategy
 from workflows.pnl_statement import run_pnl_statement
 from workflows.property_mgmt_strategy import run_property_mgmt_strategy
 from workflows.page_design import run_page_design
+from workflows.geo_content_audit import run_geo_content_audit
+from workflows.seo_content_audit import run_seo_content_audit
+from workflows.technical_seo_review import run_technical_seo_review
+from workflows.programmatic_seo_strategy import run_programmatic_seo_strategy
+from workflows.competitor_seo_analysis import run_competitor_seo_analysis
 from utils.docx_generator import generate_docx
 from utils.db import (
     init_db, save_job, update_docx_path, update_job_content,
@@ -82,6 +87,11 @@ WORKFLOW_TITLES = {
     "pnl-statement":             "P&L Statement",
     "property-mgmt-strategy":    "Property Mgmt Strategy",
     "page-design":               "Page Design Agent",
+    "geo-content-audit":         "GEO Content Citability Audit",
+    "seo-content-audit":         "SEO Content Audit",
+    "technical-seo-review":      "Technical SEO Review",
+    "programmatic-seo-strategy": "Programmatic SEO Strategy",
+    "competitor-seo-analysis":   "Competitor SEO Analysis",
 }
 
 
@@ -401,6 +411,41 @@ async def run_workflow(req: WorkflowRequest):
                 )
             elif req.workflow_id == "page-design":
                 generator = run_page_design(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "geo-content-audit":
+                generator = run_geo_content_audit(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "seo-content-audit":
+                generator = run_seo_content_audit(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "technical-seo-review":
+                generator = run_technical_seo_review(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "programmatic-seo-strategy":
+                generator = run_programmatic_seo_strategy(
+                    client=client,
+                    inputs=req.inputs,
+                    strategy_context=req.strategy_context or "",
+                    client_name=req.client_name,
+                )
+            elif req.workflow_id == "competitor-seo-analysis":
+                generator = run_competitor_seo_analysis(
                     client=client,
                     inputs=req.inputs,
                     strategy_context=req.strategy_context or "",
