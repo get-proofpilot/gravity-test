@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code — v21 (Standalone Page Design Agent + GEMINI_API_KEY)
+# Copy application code — v22 (Anti-AI writing post-processing for location pages)
 COPY . .
 
 # Install Node.js dependencies (docx npm package for branded DOCX output)
