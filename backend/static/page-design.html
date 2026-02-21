@@ -257,13 +257,12 @@
       </div>
       <div class="form-body">
         <!-- Client -->
-        <div class="client-row">
-          <div class="field">
-            <label>Client <span class="req">*</span></label>
-            <select id="clientSelect" onchange="checkReady()">
-              <option value="">-- Select client --</option>
-            </select>
-          </div>
+        <div class="field">
+          <label>Client <span class="opt">optional</span></label>
+          <select id="clientSelect" onchange="onClientChange()">
+            <option value="">No client — enter details manually</option>
+          </select>
+          <div class="hint">Select a client to auto-fill their info, or leave blank for a custom build</div>
         </div>
 
         <!-- Required -->
@@ -393,6 +392,7 @@
   let jobId = null;
   let htmlContent = '';
   let isRunning = false;
+  let clientsData = []; // Store full client objects for auto-fill
 
   /* ── Load clients ── */
   async function loadClients() {
@@ -400,8 +400,9 @@
       const res = await fetch(`${API}/api/clients`);
       if (!res.ok) return;
       const data = await res.json();
+      clientsData = data.clients.filter(c => c.status === 'active');
       const sel = document.getElementById('clientSelect');
-      data.clients.filter(c => c.status === 'active').forEach(c => {
+      clientsData.forEach(c => {
         const opt = document.createElement('option');
         opt.value = `${c.client_id}|${c.name}`;
         opt.textContent = c.name;
@@ -411,15 +412,35 @@
   }
   loadClients();
 
+  /* ── Client selection auto-fill ── */
+  function onClientChange() {
+    const val = document.getElementById('clientSelect').value;
+    if (!val) {
+      // No client selected — clear auto-filled fields
+      checkReady();
+      return;
+    }
+    const clientId = parseInt(val.split('|')[0]);
+    const client = clientsData.find(c => c.client_id === clientId);
+    if (!client) { checkReady(); return; }
+
+    // Auto-fill from client data
+    if (client.domain) document.getElementById('domain').value = client.domain;
+    if (client.service) document.getElementById('bizType').value = client.service;
+    if (client.location) document.getElementById('location').value = client.location;
+    if (client.name) document.getElementById('bizName').value = client.name;
+
+    checkReady();
+  }
+
   /* ── Validation ── */
   function checkReady() {
     const btn = document.getElementById('runBtn');
-    const client = document.getElementById('clientSelect').value;
     const pt = document.getElementById('pageType').value;
     const bt = document.getElementById('bizType').value.trim();
     const svc = document.getElementById('service').value.trim();
     const loc = document.getElementById('location').value.trim();
-    btn.disabled = isRunning || !client || !pt || !bt || !svc || !loc;
+    btn.disabled = isRunning || !pt || !bt || !svc || !loc;
   }
 
   /* ── Generate ── */
@@ -447,11 +468,18 @@
     document.getElementById('previewLink').style.display = 'none';
     document.getElementById('terminalStatus').textContent = 'Generating...';
 
-    const [clientId, clientName] = document.getElementById('clientSelect').value.split('|');
+    const clientVal = document.getElementById('clientSelect').value;
+    let clientId = 0;
+    let clientName = document.getElementById('bizName').value.trim() || 'Custom Build';
+    if (clientVal) {
+      const parts = clientVal.split('|');
+      clientId = parseInt(parts[0]);
+      clientName = parts[1];
+    }
 
     const payload = {
       workflow_id: 'page-design',
-      client_id: parseInt(clientId),
+      client_id: clientId,
       client_name: clientName,
       inputs: {
         page_type:       document.getElementById('pageType').value,
