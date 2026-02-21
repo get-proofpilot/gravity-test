@@ -7,6 +7,9 @@ backend/*.pyc
 backend/temp_docs/
 backend/.env
 
+# Node
+backend/node_modules/
+
 # macOS
 .DS_Store
 

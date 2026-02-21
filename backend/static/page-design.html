@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Design Agent — ProofPilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=Martian+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET + VARS ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --dark-blue: #00184D;
+      --elec-blue: #0051FF;
+      --neon-green: #C8FF00;
+      --bg: #060D1F;
+      --bg2: #0A1530;
+      --bg3: #0E1D3E;
+      --border: rgba(0,81,255,0.12);
+      --border2: rgba(0,81,255,0.25);
+      --text: #E2E8F0;
+      --text2: #94A3B8;
+      --text3: #64748B;
+      --green-ui: #16a34a;
+      --display: 'Bebas Neue', sans-serif;
+      --mono: 'Martian Mono', monospace;
+      --body: 'Inter', sans-serif;
+      --t-fast: 0.15s ease;
+      --t-med: 0.22s ease;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--body); }
+    body { display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px; background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-icon {
+      width: 36px; height: 36px; background: var(--elec-blue); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .topbar-title { font-family: var(--display); font-size: 22px; letter-spacing: 1px; color: #fff; }
+    .topbar-sub { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-link {
+      color: var(--text3); text-decoration: none; font-size: 13px; font-family: var(--mono);
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px;
+      transition: all var(--t-fast);
+    }
+    .topbar-link:hover { color: var(--text); border-color: var(--border2); background: var(--bg3); }
+
+    /* ── MAIN LAYOUT ── */
+    .main { display: flex; flex: 1; min-height: 0; }
+
+    /* ── LEFT PANEL (Form) ── */
+    .form-panel {
+      width: 380px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .form-header {
+      padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    }
+    .form-header h2 {
+      font-family: var(--display); font-size: 18px; letter-spacing: 0.5px; color: #fff; margin-bottom: 4px;
+    }
+    .form-header p { font-size: 12px; color: var(--text3); }
+    .form-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .form-body::-webkit-scrollbar { width: 6px; }
+    .form-body::-webkit-scrollbar-track { background: transparent; }
+    .form-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ── FORM FIELDS ── */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field label {
+      font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase;
+      letter-spacing: 0.5px; font-family: var(--mono);
+    }
+    .field label .req { color: #ef4444; }
+    .field label .opt { color: var(--text3); font-weight: 400; text-transform: none; font-size: 10px; }
+    .field input, .field select, .field textarea {
+      background: var(--bg); border: 1px solid var(--border2); border-radius: 6px;
+      padding: 9px 12px; color: var(--text); font-family: var(--body); font-size: 13px;
+      transition: border-color var(--t-fast);
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--elec-blue);
+    }
+    .field select { cursor: pointer; }
+    .field textarea { resize: vertical; min-height: 60px; }
+    .field .hint { font-size: 11px; color: var(--text3); margin-top: -2px; }
+    .optional-divider {
+      font-size: 11px; color: var(--text3); font-family: var(--mono);
+      padding: 8px 0 4px; border-top: 1px solid var(--border); margin-top: 4px;
+    }
+
+    /* Client row */
+    .client-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+
+    /* ── RUN BUTTON ── */
+    .run-btn {
+      margin-top: auto; padding: 12px; background: var(--elec-blue); color: #fff;
+      border: none; border-radius: 8px; font-family: var(--display); font-size: 18px;
+      letter-spacing: 1px; cursor: pointer; transition: all var(--t-fast);
+      flex-shrink: 0;
+    }
+    .run-btn:hover:not(:disabled) { background: #0046dd; transform: translateY(-1px); }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .run-btn.running {
+      background: var(--bg3); color: var(--neon-green); border: 1px solid rgba(200,255,0,0.3);
+      animation: pulse-border 2s ease infinite;
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(200,255,0,0.2); }
+      50% { border-color: rgba(200,255,0,0.5); }
+    }
+
+    /* ── RIGHT PANEL (Preview) ── */
+    .preview-panel {
+      flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg);
+    }
+
+    /* Viewport toggle */
+    .vp-bar {
+      display: none; align-items: center; justify-content: space-between;
+      padding: 10px 20px; background: var(--bg2); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .vp-bar.visible { display: flex; }
+    .vp-btns { display: flex; gap: 2px; }
+    .vp-btn {
+      padding: 5px 14px; font-family: var(--mono); font-size: 11px; font-weight: 500;
+      color: var(--text3); background: transparent; border: 1px solid var(--border2);
+      cursor: pointer; transition: all var(--t-fast);
+    }
+    .vp-btn:first-child { border-radius: 4px 0 0 4px; }
+    .vp-btn:last-child { border-radius: 0 4px 4px 0; }
+    .vp-btn:not(:first-child) { border-left: none; }
+    .vp-btn.active { background: var(--elec-blue); color: #fff; border-color: var(--elec-blue); }
+    .vp-btn:not(.active):hover { background: var(--bg3); color: var(--text); }
+    .vp-actions { display: flex; gap: 10px; align-items: center; }
+    .vp-action-btn {
+      padding: 5px 14px; font-family: var(--mono); font-size: 11px; font-weight: 500;
+      color: var(--green-ui); background: transparent; border: 1px solid rgba(22,163,74,0.3);
+      border-radius: 4px; cursor: pointer; text-decoration: none; transition: all var(--t-fast);
+    }
+    .vp-action-btn:hover { background: rgba(22,163,74,0.08); }
+
+    /* Iframe preview area */
+    .preview-iframe-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #fff; border-radius: 0; min-height: 0; overflow: hidden;
+    }
+    .preview-iframe-wrap iframe {
+      width: 100%; height: 100%; border: none; background: #fff;
+      transition: width 0.3s ease;
+    }
+
+    /* Empty state */
+    .preview-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; color: var(--text3);
+    }
+    .preview-empty-icon { font-size: 48px; opacity: 0.3; }
+    .preview-empty h3 { font-family: var(--display); font-size: 24px; color: var(--text2); letter-spacing: 1px; }
+    .preview-empty p { font-size: 13px; max-width: 340px; text-align: center; line-height: 1.6; }
+
+    /* Terminal log */
+    .terminal-wrap {
+      display: none; flex: 1; flex-direction: column; min-height: 0;
+    }
+    .terminal-wrap.visible { display: flex; }
+    .terminal-header {
+      display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+      background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .terminal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon-green); animation: blink 1.2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .terminal-header span { font-family: var(--mono); font-size: 12px; color: var(--neon-green); }
+    .terminal-body {
+      flex: 1; overflow-y: auto; padding: 16px 20px; font-family: var(--mono);
+      font-size: 12px; line-height: 1.8; background: var(--bg);
+    }
+    .terminal-body::-webkit-scrollbar { width: 6px; }
+    .terminal-body::-webkit-scrollbar-track { background: transparent; }
+    .terminal-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    .tl-status { color: var(--neon-green); }
+    .tl-chunk { color: var(--text3); }
+    .tl-ok { color: var(--green-ui); font-weight: 600; }
+    .tl-err { color: #ef4444; }
+
+    /* ── EDIT BAR ── */
+    .edit-bar {
+      display: none; align-items: center; gap: 10px; padding: 10px 20px;
+      background: var(--bg2); border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .edit-bar.visible { display: flex; }
+    .edit-bar input {
+      flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 6px;
+      padding: 8px 12px; color: var(--text); font-family: var(--body); font-size: 13px;
+    }
+    .edit-bar input:focus { outline: none; border-color: var(--elec-blue); }
+    .edit-bar button {
+      padding: 8px 18px; background: var(--elec-blue); color: #fff; border: none;
+      border-radius: 6px; font-family: var(--mono); font-size: 12px; cursor: pointer;
+      transition: background var(--t-fast);
+    }
+    .edit-bar button:hover { background: #0046dd; }
+    .edit-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: var(--bg3);
+      border: 1px solid var(--border2); color: var(--text); padding: 10px 20px;
+      border-radius: 8px; font-family: var(--mono); font-size: 12px;
+      opacity: 0; transform: translateY(10px); transition: all 0.3s ease;
+      pointer-events: none; z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .form-panel { width: 100%; max-height: 50vh; border-right: none; border-bottom: 1px solid var(--border); }
+      .preview-panel { min-height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ TOP BAR ═══ -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">🎨</div>
+      <div>
+        <div class="topbar-title">PAGE DESIGN AGENT</div>
+        <div class="topbar-sub">Claude + Gemini two-pass pipeline</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="/" class="topbar-link">Dashboard</a>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- ── LEFT: Form ── -->
+    <div class="form-panel">
+      <div class="form-header">
+        <h2>CONFIGURE PAGE</h2>
+        <p>Fill in the details and hit Generate. Auto-detects brand colors from the website.</p>
+      </div>
+      <div class="form-body">
+        <!-- Client -->
+        <div class="client-row">
+          <div class="field">
+            <label>Client <span class="req">*</span></label>
+            <select id="clientSelect" onchange="checkReady()">
+              <option value="">-- Select client --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Required -->
+        <div class="field-row">
+          <div class="field">
+            <label>Page Type <span class="req">*</span></label>
+            <select id="pageType" onchange="checkReady()">
+              <option value="">-- Select --</option>
+              <option value="service">Service Page</option>
+              <option value="landing">Landing Page</option>
+              <option value="location">Location Page</option>
+              <option value="about">About Page</option>
+              <option value="homepage">Homepage</option>
+              <option value="contact">Contact Page</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Business Type <span class="req">*</span></label>
+            <input type="text" id="bizType" placeholder="e.g. HVAC, plumber" oninput="checkReady()" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Service / Focus <span class="req">*</span></label>
+            <input type="text" id="service" placeholder="e.g. AC repair" oninput="checkReady()" />
+          </div>
+          <div class="field">
+            <label>Location <span class="req">*</span></label>
+            <input type="text" id="location" placeholder="e.g. Minneapolis, MN" oninput="checkReady()" />
+          </div>
+        </div>
+
+        <div class="optional-divider">OPTIONAL — enhances design quality</div>
+
+        <!-- Domain -->
+        <div class="field">
+          <label>Client Website <span class="opt">optional</span></label>
+          <input type="text" id="domain" placeholder="e.g. genzryan.com" />
+          <div class="hint">Auto-extracts brand colors & style from their site</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Business Name <span class="opt">optional</span></label>
+            <input type="text" id="bizName" placeholder="e.g. Genz-Ryan" />
+          </div>
+          <div class="field">
+            <label>Phone <span class="opt">optional</span></label>
+            <input type="text" id="phone" placeholder="(612) 260-5859" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Brand Colors <span class="opt">optional</span></label>
+            <input type="text" id="brandColors" placeholder="Auto-detected, or enter hex" />
+          </div>
+          <div class="field">
+            <label>Style Direction <span class="opt">optional</span></label>
+            <input type="text" id="style" placeholder="Auto-detected, or describe" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Existing Copy <span class="opt">optional</span></label>
+          <textarea id="existingCopy" rows="3" placeholder="Paste existing copy to design around..."></textarea>
+        </div>
+        <div class="field">
+          <label>Notes <span class="opt">optional</span></label>
+          <textarea id="notes" rows="2" placeholder="Specific sections, competitor reference..."></textarea>
+        </div>
+      </div>
+      <div style="padding: 16px 20px; border-top: 1px solid var(--border);">
+        <button class="run-btn" id="runBtn" disabled onclick="generate()">GENERATE PAGE</button>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Preview ── -->
+    <div class="preview-panel">
+      <!-- Viewport bar (hidden until content loads) -->
+      <div class="vp-bar" id="vpBar">
+        <div class="vp-btns">
+          <button class="vp-btn active" onclick="setVP('100%', this)">Desktop</button>
+          <button class="vp-btn" onclick="setVP('768px', this)">Tablet</button>
+          <button class="vp-btn" onclick="setVP('375px', this)">Mobile</button>
+        </div>
+        <div class="vp-actions">
+          <a class="vp-action-btn" id="previewLink" href="#" target="_blank" style="display:none;">Open in New Tab</a>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="preview-empty" id="emptyState">
+        <div class="preview-empty-icon">🎨</div>
+        <h3>READY TO DESIGN</h3>
+        <p>Fill in the form and hit Generate. The agent will scan the client's website, extract brand colors, generate content with Claude, then polish the design with Gemini.</p>
+      </div>
+
+      <!-- Terminal (shown during generation) -->
+      <div class="terminal-wrap" id="terminalWrap">
+        <div class="terminal-header">
+          <div class="terminal-dot"></div>
+          <span id="terminalStatus">Generating...</span>
+        </div>
+        <div class="terminal-body" id="terminal"></div>
+      </div>
+
+      <!-- Iframe preview (shown after completion) -->
+      <div class="preview-iframe-wrap" id="iframeWrap" style="display:none;">
+        <iframe id="previewIframe" sandbox="allow-same-origin allow-scripts"></iframe>
+      </div>
+
+      <!-- Edit bar -->
+      <div class="edit-bar" id="editBar">
+        <input type="text" id="editInput" placeholder="Tell the agent what to change..." onkeydown="if(event.key==='Enter')doEdit()" />
+        <button id="editBtn" onclick="doEdit()">Apply Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* ═══════════════════════════════════════════
+     PAGE DESIGN AGENT — Standalone Controller
+  ═══════════════════════════════════════════ */
+
+  const API = '';
+  let jobId = null;
+  let htmlContent = '';
+  let isRunning = false;
+
+  /* ── Load clients ── */
+  async function loadClients() {
+    try {
+      const res = await fetch(`${API}/api/clients`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const sel = document.getElementById('clientSelect');
+      data.clients.filter(c => c.status === 'active').forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = `${c.client_id}|${c.name}`;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    } catch (e) { /* offline */ }
+  }
+  loadClients();
+
+  /* ── Validation ── */
+  function checkReady() {
+    const btn = document.getElementById('runBtn');
+    const client = document.getElementById('clientSelect').value;
+    const pt = document.getElementById('pageType').value;
+    const bt = document.getElementById('bizType').value.trim();
+    const svc = document.getElementById('service').value.trim();
+    const loc = document.getElementById('location').value.trim();
+    btn.disabled = isRunning || !client || !pt || !bt || !svc || !loc;
+  }
+
+  /* ── Generate ── */
+  async function generate() {
+    if (isRunning) return;
+    isRunning = true;
+
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.classList.add('running');
+    btn.textContent = 'GENERATING...';
+
+    // Reset state
+    jobId = null;
+    htmlContent = '';
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML = '';
+
+    // Show terminal, hide empty + iframe
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('terminalWrap').classList.add('visible');
+    document.getElementById('iframeWrap').style.display = 'none';
+    document.getElementById('vpBar').classList.remove('visible');
+    document.getElementById('editBar').classList.remove('visible');
+    document.getElementById('previewLink').style.display = 'none';
+    document.getElementById('terminalStatus').textContent = 'Generating...';
+
+    const [clientId, clientName] = document.getElementById('clientSelect').value.split('|');
+
+    const payload = {
+      workflow_id: 'page-design',
+      client_id: parseInt(clientId),
+      client_name: clientName,
+      inputs: {
+        page_type:       document.getElementById('pageType').value,
+        business_type:   document.getElementById('bizType').value.trim(),
+        service:         document.getElementById('service').value.trim(),
+        location:        document.getElementById('location').value.trim(),
+        domain:          document.getElementById('domain').value.trim(),
+        business_name:   document.getElementById('bizName').value.trim(),
+        phone:           document.getElementById('phone').value.trim(),
+        brand_colors:    document.getElementById('brandColors').value.trim(),
+        style_direction: document.getElementById('style').value.trim(),
+        existing_copy:   document.getElementById('existingCopy').value.trim(),
+        notes:           document.getElementById('notes').value.trim(),
+      },
+      strategy_context: '',
+    };
+
+    try {
+      const response = await fetch(`${API}/api/run-workflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let sseBuffer = '';
+      let htmlChunks = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split('\n');
+        sseBuffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+
+            if (data.type === 'token') {
+              const text = data.text;
+              if (text.startsWith('>')) {
+                // Status message
+                const div = document.createElement('div');
+                div.className = 'tl-status';
+                div.textContent = text.replace(/^\>\s*/, '').replace(/\*\*/g, '');
+                terminal.appendChild(div);
+                terminal.scrollTop = terminal.scrollHeight;
+              } else {
+                htmlChunks.push(text);
+              }
+
+            } else if (data.type === 'done') {
+              jobId = data.job_id;
+              htmlContent = htmlChunks.join('');
+
+              // Clean up — find actual HTML start
+              let idx = htmlContent.indexOf('<!DOCTYPE');
+              if (idx < 0) idx = htmlContent.indexOf('<html');
+              if (idx > 0) htmlContent = htmlContent.slice(idx);
+              // Clean trailing markdown fences
+              htmlContent = htmlContent.replace(/\n```\s*$/, '');
+              const endIdx = htmlContent.lastIndexOf('</html>');
+              if (endIdx > 0) htmlContent = htmlContent.slice(0, endIdx + '</html>'.length);
+
+              // Switch to preview
+              document.getElementById('terminalWrap').classList.remove('visible');
+              document.getElementById('iframeWrap').style.display = 'flex';
+              document.getElementById('vpBar').classList.add('visible');
+              document.getElementById('editBar').classList.add('visible');
+
+              const iframe = document.getElementById('previewIframe');
+              iframe.srcdoc = htmlContent;
+
+              const pl = document.getElementById('previewLink');
+              pl.href = `${API}/api/preview/${jobId}`;
+              pl.style.display = '';
+
+              showToast('Page generated successfully');
+
+              // Done line in terminal
+              const okDiv = document.createElement('div');
+              okDiv.className = 'tl-ok';
+              okDiv.textContent = `Complete — Job ${jobId}`;
+              terminal.appendChild(okDiv);
+
+            } else if (data.type === 'error') {
+              const errDiv = document.createElement('div');
+              errDiv.className = 'tl-err';
+              errDiv.textContent = `Error: ${data.message}`;
+              terminal.appendChild(errDiv);
+              terminal.scrollTop = terminal.scrollHeight;
+              showToast(`Error: ${data.message}`);
+            }
+          } catch (e) { /* skip malformed */ }
+        }
+      }
+
+    } catch (err) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'tl-err';
+      errDiv.textContent = `Connection error: ${err.message}`;
+      terminal.appendChild(errDiv);
+      showToast(`Error: ${err.message}`);
+    }
+
+    isRunning = false;
+    btn.classList.remove('running');
+    btn.textContent = 'GENERATE PAGE';
+    checkReady();
+  }
+
+  /* ── Viewport toggle ── */
+  function setVP(width, btn) {
+    const iframe = document.getElementById('previewIframe');
+    if (iframe) iframe.style.width = width;
+    document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
+
+  /* ── Edit ── */
+  async function doEdit() {
+    if (!jobId || !htmlContent) return;
+    const input = document.getElementById('editInput');
+    const instruction = input.value.trim();
+    if (!instruction) return;
+
+    const editBtn = document.getElementById('editBtn');
+    editBtn.disabled = true;
+    editBtn.textContent = 'Editing...';
+    input.value = '';
+
+    let editBuffer = '';
+    let renderTimer = null;
+    const iframe = document.getElementById('previewIframe');
+
+    function renderEdit() {
+      if (iframe) iframe.srcdoc = editBuffer;
+    }
+
+    try {
+      const response = await fetch(`${API}/api/edit-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: jobId,
+          instruction,
+          current_content: htmlContent,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let sseEditBuf = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        sseEditBuf += decoder.decode(value, { stream: true });
+        const lines = sseEditBuf.split('\n');
+        sseEditBuf = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'token') {
+              editBuffer += data.text;
+              if (!renderTimer) {
+                renderTimer = setTimeout(() => { renderTimer = null; renderEdit(); }, 500);
+              }
+            } else if (data.type === 'done') {
+              if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
+              htmlContent = editBuffer;
+              renderEdit();
+              showToast('Edit applied');
+            } else if (data.type === 'error') {
+              showToast(`Edit failed: ${data.message}`);
+            }
+          } catch (e) { /* skip */ }
+        }
+      }
+
+    } catch (err) {
+      showToast(`Edit error: ${err.message}`);
+    }
+
+    editBtn.disabled = false;
+    editBtn.textContent = 'Apply Edit';
+  }
+
+  /* ── Toast ── */
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  /* ── Init ── */
+  checkReady();
+  </script>
+</body>
+</html>

@@ -703,6 +703,11 @@ async def serve_script():
 async def serve_style():
     return FileResponse(static_dir / "style.css", media_type="text/css")
 
+@app.get("/page-design")
+async def serve_page_design():
+    """Standalone Page Design Agent interface."""
+    return FileResponse(static_dir / "page-design.html")
+
 @app.get("/{spa_path:path}")
 async def serve_spa(spa_path: str):
     """Catch-all for SPA client-side routing. API routes are matched first."""
