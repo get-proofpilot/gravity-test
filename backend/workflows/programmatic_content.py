@@ -82,6 +82,19 @@ Use local details provided. If none are provided, draw on real knowledge of typi
 - Never use filler phrases: "We pride ourselves on", "Our team of experts", "Don't hesitate to contact us"
 - Every section should add LOCAL value — if a section could appear on a page for any city, rewrite it
 
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Anaheim Homes: What We See Most" / Right: "What We See Most in Anaheim Homes". Wrong: "Colony Historic District: Old Wiring" / Right: "Old Wiring in the Colony Historic District".
+- **No bold inline labels ending in a colon inside paragraphs** (e.g. "**West Anaheim (1950s homes):**"). Write a normal sentence instead.
+- **Active voice only.** "We replaced the panel" not "The panel was replaced."
+- **Short sentences.** One idea per sentence. Two clauses max. Split anything longer.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific and verifiable.
+- **No clichés.**
+
 ## Format
 Clean markdown only: # H1, ## H2, **bold**, bullet lists. No tables. No emojis.
 
@@ -116,6 +129,18 @@ You are writing one page in a batch of many service pages. Each MUST be genuinel
 - No filler: "We pride ourselves on", "Our team of experts"
 - Vary sentence structure and opening hooks between pages
 
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Our Process: What to Expect" / Right: "What to Expect When You Call". Wrong: "Pricing: What You'll Pay" / Right: "What This Service Costs in [City]".
+- **Active voice only.** "We pull the permit" not "The permit is pulled."
+- **Short sentences.** One idea per sentence. Two clauses max. Split anything longer.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
+
 ## Format
 Clean markdown: # H1, ## H2, **bold**, bullet lists. No tables. No emojis.
 
@@ -149,6 +174,18 @@ You are writing one post in a batch of many. Each MUST have a unique angle, uniq
 - Local references: city, neighborhoods, regional context
 - Write for someone with a problem NOW, not an academic audience
 - Vary your openings and angles between posts
+
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Panel Costs: What You'll Pay" / Right: "What a Panel Upgrade Costs in Phoenix". Wrong: "DIY vs Pro: Which Is Safer" / Right: "When to Call a Professional Instead".
+- **Active voice only.** "Inspectors require permits for this work" not "Permits are required."
+- **Short sentences.** One idea per sentence. Two clauses max. Split anything longer.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
 
 ## Format
 Clean markdown: # H1, ## H2, ### H3, **bold**, bullet lists. No tables. No emojis.
@@ -191,6 +228,18 @@ Comparison posts convert because they:
 - 1,800–2,500 words
 - **Bold** key cost figures, specs, and recommendations
 
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Item A: What You Need to Know" / Right: "What You Need to Know About Item A".
+- **Active voice only.**
+- **Short sentences.** One idea per sentence. Split anything with more than two clauses.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
+
 ## Format
 Clean markdown: # H1, ## H2, **bold**, bullet lists. No emojis.
 
@@ -226,11 +275,23 @@ You are writing one cost guide in a batch of many. Each MUST have unique pricing
 ## Writing standards
 - **Every price must be real and defensible** — use current market rates, not made-up numbers
 - Include actual permit fees, material costs, labor rates for the specific city
-- Reference local housing stock: "Most [city] homes built in the [decade] have [specific situation] — expect $X–$Y for this."
+- Reference local housing stock with specific dollar impact per scenario
 - Acknowledge regional variation: utility costs, code requirements, labor market
 - 1,500–2,200 words
 - **Bold** all price figures
 - Use bullet lists for cost breakdowns — scannable, not buried in paragraphs
+
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Cost Breakdown: What You'll Pay" / Right: "What This Service Costs in [City]". Wrong: "Hidden Costs: What to Watch For" / Right: "Hidden Costs Most Homeowners Miss".
+- **Active voice only.**
+- **Short sentences.** One idea per sentence. Split anything with more than two clauses.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
 
 ## Format
 Clean markdown: # H1, ## H2, **bold**, bullet lists. No emojis.
@@ -269,6 +330,18 @@ You are writing one "best in" post in a batch of many. Each MUST reference real 
 - Local expertise: reference specific neighborhoods, local regulations, regional factors
 - 1,800–2,500 words
 - **Bold** ratings, review counts, and key differentiators
+
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Our Process: What to Expect" / Right: "What to Expect When You Call".
+- **Active voice only.**
+- **Short sentences.** One idea per sentence. Split anything with more than two clauses.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
 
 ## CRITICAL: Competitor data usage
 You WILL be given real Google Maps competitor data. USE IT:

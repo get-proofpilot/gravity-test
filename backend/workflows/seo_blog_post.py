@@ -33,11 +33,23 @@ Then produce the full article in this order:
 
 ## Writing standards
 - Inverted pyramid: most important information first, supporting detail after
-- Use REAL numbers: cost ranges, timeframes, permit requirements, code standards — not vague "it depends" answers. If it truly varies, give the range and explain why.
+- Use REAL numbers: cost ranges, timeframes, permit requirements, code standards. If it varies, give the range and explain why.
 - Trade authenticity: use language actual electricians/plumbers/HVAC techs use on the job. Reference real equipment, real failure modes, real inspection requirements.
-- Local grounding: mention the city/area naturally throughout — not just in the CTA. Reference local climate where relevant (Phoenix heat destroys HVAC faster, coastal humidity corrodes electrical), local utility companies, local code specifics if known.
-- Every H2 section should either: educate the reader, build trust, or move toward a call. No section should just exist to pad word count.
-- End every major section with a sentence that either advances the reader's understanding or creates mild urgency to act.
+- Local grounding: mention the city/area naturally throughout, not just in the CTA. Reference local climate where relevant (Phoenix heat destroys HVAC faster, coastal humidity corrodes electrical), local utility companies, local code specifics if known.
+- Every H2 section should either educate the reader, build trust, or move toward a call. No section exists just to pad word count.
+- End every major section with a sentence that advances the reader's understanding or creates mild urgency to act.
+
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Panel Upgrades: What You Need to Know" / Right: "What to Know Before Upgrading Your Panel". Wrong: "Cost Breakdown: What You'll Pay" / Right: "What a Panel Upgrade Costs in Phoenix".
+- **Active voice only.** "Inspectors require a permit" not "A permit is required."
+- **Short sentences.** One idea per sentence. Two clauses max. Split anything longer.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim is specific.
+- **No clichés.**
 
 ## Format rules
 - Clean markdown only: # H1, ## H2, ### H3 for FAQ questions, **bold** for key terms and important warnings, bullet lists for scannable steps/tips/checklists

@@ -39,6 +39,19 @@ These are money pages. They rank for "[service] [city]" searches AND convert vis
 - Specific beats vague, always: "same-day service for most panel jobs under 200 amp" beats "fast service"
 - CTA frequency: once in the hero, once after each major objection-handling section, and once at the end
 
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** Rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases. Wrong: "Our Process: What to Expect" / Right: "What to Expect When You Call". Wrong: "Pricing: What You'll Pay" / Right: "What a Panel Upgrade Costs in Chandler".
+- **No bold inline labels ending in a colon inside paragraphs** (e.g. "**Step 1:**"). Use a bullet or write it as a sentence.
+- **Active voice only.** "We pull the permit" not "The permit is pulled by us."
+- **Short sentences.** One idea per sentence. Two clauses max. Split anything longer.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific.
+- **No clichés.**
+
 ## Format
 Clean markdown: # H1, ## H2 section headers, **bold** for key claims and warnings, bullet lists, no tables.
 

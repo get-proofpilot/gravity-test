@@ -48,6 +48,19 @@ Use local details provided. If none are provided, draw on real knowledge of typi
 - Every section should add LOCAL value — if a section could appear on a page for any city, rewrite it
 - The FAQ questions must use the target city name and sound like something someone would actually type
 
+## Anti-AI writing rules — enforced on every word
+- **No em dashes (—) anywhere. Not one.** If you feel the urge to use one, rewrite the sentence with a comma or period instead.
+- **No colons in H2 or H3 headlines.** Headlines must read as natural phrases, not "Label: Description". Wrong: "Anaheim Homes: What We See Most" / Right: "What We See Most in Anaheim Homes". Wrong: "Colony Historic District: Old Wiring" / Right: "Old Wiring in the Colony Historic District".
+- **No bold inline labels ending in a colon inside paragraphs** (e.g. "**West Anaheim (1950s homes):**"). Write a normal sentence instead.
+- **Active voice only.** "We replaced the panel" not "The panel was replaced."
+- **Short sentences.** One idea per sentence. If a sentence runs past two clauses, split it.
+- **No semicolons.**
+- **No "not just X, but also Y"** or "not only X, but Y" constructions.
+- **No filler words:** very, really, just, actually, basically, certainly, probably.
+- **Never use these words:** utilize, leverage, seamless, cutting-edge, world-class, furthermore, hence, moreover, game-changer, unlock, boost, powerful, exciting, groundbreaking, remarkable, ever-evolving, landscape, testament, pivotal, harness, craft, crafting, delve, embark, unveil, intricate, illuminate.
+- **No generalizations.** Every claim must be specific and verifiable.
+- **No clichés.** If a phrase sounds like something you've read a hundred times, rewrite it.
+
 ## Format
 Clean markdown only: # H1, ## H2, **bold**, bullet lists. No tables. No emojis.
 
