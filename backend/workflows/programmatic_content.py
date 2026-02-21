@@ -607,6 +607,10 @@ def _build_user_prompt(
         "",
         "Write the complete page now. Start immediately with the output (# H1 or META:). No preamble.",
         f"This content must feel genuinely unique — not like a template applied to \"{item}\".",
+        "",
+        "BEFORE YOU WRITE ANYTHING — commit to these two rules:",
+        "1. ZERO EM DASHES (—) in your entire response. Not one. Every time you feel the urge to write —, use a comma or start a new sentence instead.",
+        "2. ZERO COLONS IN ANY H2 OR H3 HEADLINE. Every section heading must be a natural phrase. For location pages, the housing section must be '## What We See Most in [City] Homes' — never '## [City] Homes: What We See Most'. Read each headline before you write it. If it has a colon, rewrite it.",
     ]
 
     return "\n".join(lines)

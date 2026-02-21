@@ -136,6 +136,10 @@ async def run_location_page(
         "",
         "Write the complete location page now. Start immediately with the # H1. No preamble.",
         f"This page must feel like it was written by someone who actually knows {target_location} — not a template.",
+        "",
+        "BEFORE YOU WRITE ANYTHING — commit to these two rules:",
+        "1. ZERO EM DASHES (—) in your entire response. Not one. Every time you feel the urge to write —, use a comma or start a new sentence instead.",
+        "2. ZERO COLONS IN ANY H2 OR H3 HEADLINE. Every section heading must be a natural phrase. The housing section must be written as '## What We See Most in [City] Homes' — never '## [City] Homes: What We See Most'. Read each headline before you write it. If it has a colon, rewrite it.",
     ]
 
     user_prompt = "\n".join(lines)
