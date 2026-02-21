@@ -22,7 +22,7 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 ## Current State
 
 **Phase 1 (Core Platform): COMPLETE**
-- 20 live workflows with real-time SSE streaming
+- 25 live workflows with real-time SSE streaming
 - Branded `.docx` export on every job
 - SQLite persistence (jobs + clients) on Railway Volume
 - Content Library with client grouping, search, and filters
@@ -45,6 +45,11 @@ ProofPilot Agent Hub exists to **remove Matthew from the fulfillment bottleneck*
 - AI Search Visibility Report (AI Overviews, featured snippets, knowledge panels)
 - Backlink Audit (full backlink health with competitor comparison)
 - On-Page Technical Audit (60+ metrics per page)
+- GEO Content Citability Audit (CITE framework: Citable Structure, Information Density, Topical Authority, Entity Clarity)
+- SEO Content Audit (paste content + keyword → full on-page analysis, no live URL needed)
+- Technical SEO Review (crawl checklist + ready-to-paste JSON-LD schemas for any page type/platform)
+- Programmatic SEO Strategy (template design, data sources, quality tiers, staged launch plan)
+- Competitor SEO Analysis (Why-They-Win root cause + content/SERP feature gaps + 90-day action plan)
 
 **Phase 2 (Client Data Layer): ~80% DONE**
 - [x] Client CRUD API + SQLite table
@@ -237,7 +242,7 @@ backend/
 
 ---
 
-## Live Workflows (20 Active)
+## Live Workflows (25 Active)
 
 | Workflow ID | Title | Data Sources | File |
 |-------------|-------|-------------|------|
@@ -247,6 +252,11 @@ backend/
 | `ai-search-report` | AI Search Visibility Report | DFS SERP AI Overviews + Keywords + Trends | `workflows/ai_search_report.py` |
 | `backlink-audit` | Backlink Audit | DFS Backlinks + Labs competitors | `workflows/backlink_audit.py` |
 | `onpage-audit` | On-Page Technical Audit | DFS On-Page + SERP + Keywords | `workflows/onpage_audit.py` |
+| `geo-content-audit` | GEO Content Citability Audit | Claude only | `workflows/geo_content_audit.py` |
+| `seo-content-audit` | SEO Content Audit | Claude only | `workflows/seo_content_audit.py` |
+| `technical-seo-review` | Technical SEO Review | Claude only | `workflows/technical_seo_review.py` |
+| `programmatic-seo-strategy` | Programmatic SEO Strategy | Claude only | `workflows/programmatic_seo_strategy.py` |
+| `competitor-seo-analysis` | Competitor SEO Analysis | Claude only | `workflows/competitor_seo_analysis.py` |
 | `seo-research` | SEO Research & Content Strategy | DFS Labs + Keywords + AI + Trends + Backlinks | `workflows/seo_research_agent.py` |
 | `competitor-intel` | Competitor Intelligence Report | DFS Labs + Backlinks + SERP + Keywords | `workflows/competitor_intel.py` |
 | `schema-generator` | Schema Generator | Claude only | `workflows/schema_generator.py` |
@@ -395,6 +405,38 @@ type: "error" → { type, message }
 ```json
 { "business_type": "plumber", "primary_service": "plumbing repair", "target_location": "Mesa, AZ",
   "home_base": "Chandler, AZ", "local_details": "optional local context", "services_list": "optional", "notes": "optional" }
+```
+
+### `geo-content-audit`
+```json
+{ "content": "full page content (paste)", "target_queries": "queries AI should cite this for",
+  "business_type": "optional", "location": "optional", "competitor_urls": "optional", "notes": "optional" }
+```
+
+### `seo-content-audit`
+```json
+{ "content": "full page content (paste)", "keyword": "primary target keyword",
+  "title_tag": "optional", "meta_description": "optional", "url": "optional",
+  "business_type": "optional", "notes": "optional" }
+```
+
+### `technical-seo-review`
+```json
+{ "domain": "allthingzelectric.com", "platform": "WordPress", "business_type": "electrician",
+  "location": "Chandler, AZ", "page_types": "optional", "known_issues": "optional", "notes": "optional" }
+```
+
+### `programmatic-seo-strategy`
+```json
+{ "business_type": "electrician", "service": "panel upgrade", "location": "Phoenix, AZ",
+  "page_type": "location-pages", "scale": "optional", "data_assets": "optional",
+  "competitors": "optional", "notes": "optional" }
+```
+
+### `competitor-seo-analysis`
+```json
+{ "domain": "allthingzelectric.com", "competitors": "comp1.com, comp2.com", "service": "electrician",
+  "location": "Chandler, AZ", "keywords": "optional", "notes": "optional" }
 ```
 
 ---

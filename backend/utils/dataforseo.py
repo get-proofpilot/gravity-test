@@ -285,7 +285,6 @@ async def get_domain_ranked_keywords(
         "location_name": location_name,
         "language_name": "English",
         "limit": limit,
-        "order_by": ["etv,desc"],
     }])
 
     try:
@@ -307,6 +306,8 @@ async def get_domain_ranked_keywords(
             "url":              se_item.get("url", ""),
         })
 
+    # Sort by search volume descending (DFS Labs doesn't support order_by on this endpoint)
+    results.sort(key=lambda x: (x.get("search_volume") or 0), reverse=True)
     return results
 
 
