@@ -54,6 +54,7 @@ Use local details provided. If none are provided, draw on real knowledge of typi
 **COLONS IN HEADLINES ARE BANNED.** Every H2 and H3 must be a natural flowing phrase. Never "Label: Description" format. Examples: Wrong: "Anaheim Homes: What We See Most" / Correct: "What We See Most in Anaheim Homes". Wrong: "Our Process: Step by Step" / Correct: "How the Process Works". Wrong: "Colony Historic District: Old Wiring" / Correct: "Old Wiring in the Colony Historic District". Read every headline before writing it. If it has a colon, rewrite it.
 
 - **No bold inline labels ending in a colon inside paragraphs** (e.g. "**West Anaheim (1950s homes):**"). Write a normal sentence instead.
+- **In bullet lists, never use an em dash after the bold label.** Wrong: "**Panel Upgrades** — Replacing outdated panels..." / Correct: "**Panel Upgrades.** We replace outdated 60-amp panels with modern 200-amp service." End the bold label with a period, then write a new sentence.
 - **Active voice only.** "We replaced the panel" not "The panel was replaced."
 - **Short sentences.** One idea per sentence. If a sentence runs past two clauses, split it.
 - **No semicolons.**
