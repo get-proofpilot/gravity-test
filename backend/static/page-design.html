@@ -364,6 +364,7 @@
         <div class="terminal-header">
           <div class="terminal-dot"></div>
           <span id="terminalStatus">Generating...</span>
+          <span id="terminalTimer" style="margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text3);">0:00</span>
         </div>
         <div class="terminal-body" id="terminal"></div>
       </div>
@@ -393,6 +394,8 @@
   let htmlContent = '';
   let isRunning = false;
   let clientsData = []; // Store full client objects for auto-fill
+  let timerInterval = null;
+  let timerStart = 0;
 
   /* ── Load clients ── */
   async function loadClients() {
@@ -443,6 +446,22 @@
     btn.disabled = isRunning || !pt || !bt || !svc || !loc;
   }
 
+  /* ── Timer ── */
+  function startTimer() {
+    timerStart = Date.now();
+    const el = document.getElementById('terminalTimer');
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const secs = Math.floor((Date.now() - timerStart) / 1000);
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      if (el) el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    }, 1000);
+  }
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
   /* ── Generate ── */
   async function generate() {
     if (isRunning) return;
@@ -467,6 +486,7 @@
     document.getElementById('editBar').classList.remove('visible');
     document.getElementById('previewLink').style.display = 'none';
     document.getElementById('terminalStatus').textContent = 'Generating...';
+    startTimer();
 
     const clientVal = document.getElementById('clientSelect').value;
     let clientId = 0;
@@ -563,12 +583,17 @@
               pl.href = `${API}/api/preview/${jobId}`;
               pl.style.display = '';
 
+              stopTimer();
+              document.getElementById('terminalStatus').textContent = 'Complete';
               showToast('Page generated successfully');
 
               // Done line in terminal
+              const totalSecs = Math.floor((Date.now() - timerStart) / 1000);
+              const tm = Math.floor(totalSecs / 60);
+              const ts = totalSecs % 60;
               const okDiv = document.createElement('div');
               okDiv.className = 'tl-ok';
-              okDiv.textContent = `Complete — Job ${jobId}`;
+              okDiv.textContent = `Complete — Job ${jobId} (${tm}:${String(ts).padStart(2, '0')})`;
               terminal.appendChild(okDiv);
 
             } else if (data.type === 'error') {
@@ -577,6 +602,7 @@
               errDiv.textContent = `Error: ${data.message}`;
               terminal.appendChild(errDiv);
               terminal.scrollTop = terminal.scrollHeight;
+              stopTimer();
               showToast(`Error: ${data.message}`);
             }
           } catch (e) { /* skip malformed */ }
@@ -584,6 +610,7 @@
       }
 
     } catch (err) {
+      stopTimer();
       const errDiv = document.createElement('div');
       errDiv.className = 'tl-err';
       errDiv.textContent = `Connection error: ${err.message}`;

@@ -1470,6 +1470,10 @@ async def run_page_design(
 
     # ── Pass 1: Claude Opus generates the full page ──
     claude_chunks = []
+    last_progress_kb = 0
+    import time as _time
+    pass1_start = _time.time()
+
     async with client.messages.stream(
         model="claude-opus-4-6",
         max_tokens=64000,
@@ -1480,38 +1484,50 @@ async def run_page_design(
         async for text in stream.text_stream:
             claude_chunks.append(text)
             if not use_gemini:
-                # No Gemini — stream Claude's output directly
                 yield text
+            else:
+                # Send periodic progress during silent generation
+                total_bytes = sum(len(c) for c in claude_chunks)
+                current_kb = total_bytes // 1024
+                if current_kb >= last_progress_kb + 10:
+                    elapsed = int(_time.time() - pass1_start)
+                    yield f"> Writing HTML... ({current_kb}KB, {elapsed}s)\n"
+                    last_progress_kb = current_kb
 
     if not use_gemini:
         return
 
     claude_html = _extract_html("".join(claude_chunks))
+    pass1_elapsed = int(_time.time() - pass1_start)
 
     # Quick stats for the status message
     import re
     sections = len(re.findall(r'<section', claude_html))
     headings = len(re.findall(r'<h[1-6]', claude_html))
-    yield f"> Content ready — {len(claude_html)//1024}KB, {sections} sections, {headings} headings\n"
+    yield f"> Pass 1 complete — {len(claude_html)//1024}KB, {sections} sections, {headings} headings ({pass1_elapsed}s)\n"
     yield f"> **Pass 2:** Polishing design with Gemini 3.1 Pro...\n\n"
 
     # ── Pass 2: Gemini 3.1 Pro redesigns the visual layer ──
     brand_colors = inputs.get("brand_colors", "").strip()
+    pass2_start = _time.time()
     gemini_chunks = await asyncio.to_thread(_run_gemini_design_pass, claude_html, brand_colors)
+    pass2_elapsed = int(_time.time() - pass2_start)
 
     if not gemini_chunks:
-        # Gemini failed — fall back to Claude's output
         yield "> Gemini unavailable — using Claude's design.\n\n"
         yield claude_html
         return
 
     gemini_html = _extract_html("".join(gemini_chunks))
+    yield f"> Pass 2 complete — {len(gemini_html)//1024}KB ({pass2_elapsed}s)\n"
 
     # Verify Gemini produced complete HTML
     if not gemini_html.rstrip().endswith("</html>"):
         yield "> Gemini output incomplete — using Claude's design.\n\n"
         yield claude_html
         return
+
+    yield "> Rendering preview...\n\n"
 
     # Stream Gemini's polished output
     yield gemini_html
