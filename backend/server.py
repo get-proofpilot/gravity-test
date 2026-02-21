@@ -204,7 +204,7 @@ async def unapprove_content(job_id: str):
 # ── Routes ────────────────────────────────────────────────
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "ProofPilot Agency Hub API"}
+    return {"status": "ok", "service": "ProofPilot Agency Hub API", "version": "v22"}
 
 
 @app.post("/api/discover-cities")
