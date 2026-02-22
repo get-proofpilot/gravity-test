@@ -120,6 +120,124 @@ cp .env.example .env   # ANTHROPIC_API_KEY, SEARCHATLAS_API_KEY, DATAFORSEO_LOGI
 
 ---
 
+## Development Workflow
+
+When adding or modifying workflows, invoke superpowers skills in this order:
+
+| Situation | Invoke | Before... |
+|-----------|--------|-----------|
+| Adding a new workflow or dashboard feature | `superpowers:brainstorming` | Any code changes |
+| You have a ROADMAP.md spec and need implementation steps | `superpowers:writing-plans` | Writing code |
+| Executing a plan (server.py + workflow file + frontend = 3 files) | `superpowers:executing-plans` | Starting implementation |
+| Workflow errors, SSE failures, API issues | `superpowers:systematic-debugging` | Guessing at fixes |
+| Adding test coverage (keyword gap, docx gen) | `superpowers:test-driven-development` | Writing implementation |
+| Risky change before Railway push (auto-deploys on merge) | `superpowers:using-git-worktrees` | Starting the work |
+| Building frontend + backend changes in parallel | `superpowers:dispatching-parallel-agents` | Sequential work |
+| About to push to main | `superpowers:verification-before-completion` | Any git push |
+
+---
+
+## Lovable.dev Workflow
+
+When building apps, landing pages, client portals, or tools on Lovable.dev — invoke the `lovable-prompting` skill before writing any prompt. This skill is loaded automatically whenever you mention Lovable, ask for help building something in Lovable, or need a prompt written for vibe coding.
+
+**Skill trigger:** Invoke `lovable-prompting` any time you're working with Lovable.
+
+### Core Principles (Always Apply)
+
+1. **Be explicit.** "Build a login page" is weak. "Create a login page using React with Supabase auth and JWT handling" is strong.
+2. **One task at a time.** Five tasks at once causes hallucinations. Build page by page, section by section.
+3. **Front-load what matters.** Critical requirements go at the top of the prompt. Nice-to-haves go at the end.
+
+### Build Sequence
+
+1. First prompt = high-level vision + UI only (no backend)
+2. Connect Supabase before adding backend features
+3. Build frontend page by page
+4. Plug in backend via Supabase
+5. UX/UI refinement after core functionality works
+6. External integrations (webhooks, make.com, n8n) last
+
+### Chat Mode vs Default Mode
+
+| Mode | Use For |
+|------|---------|
+| **Default Mode** | Writing code — building features |
+| **Chat Mode** (enable in Settings > Labs) | Planning, debugging, brainstorming — NO code changes |
+
+Always debug in Chat Mode first. Debugging in Default Mode burns credits and creates regressions.
+
+### Knowledge Base Setup
+
+Set up a Knowledge Base in project settings early. Include:
+- **PRD:** App overview, features, tech stack, scope
+- **User flow:** How users move through the app
+- **Frontend guidelines:** Colors, typography, layouts
+- **Backend structure:** Auth, DB schema, API endpoints
+
+### Prompt Templates (Copy-Paste Ready)
+
+**New project kickoff:**
+```
+I need a [type] application with:
+
+Tech stack:
+- Frontend: React, Tailwind, ShadCN
+- Auth: Supabase Auth
+- Database: Supabase / Postgres
+
+Core features:
+- [Feature 1]
+- [Feature 2]
+
+Start with the main page containing:
+[Detailed page requirements]
+```
+
+**Safe modification (Diff & Select):**
+```
+Implement modifications to the feature while ensuring core functionality, other
+features, and processes remain unaffected. Evaluate dependencies to identify
+potential risks. Test thoroughly for regressions. Pause if uncertain.
+```
+
+**Lock files:**
+```
+Do not alter pages X or Y. Focus changes solely on page Z.
+```
+
+**Visual-only changes:**
+```
+Make solely visual enhancements. Ensure functionality and logic remain unaffected.
+Stop all actions if there is any uncertainty regarding unintended consequences.
+```
+
+### Debugging Escalation
+
+Use in order — don't skip levels:
+
+1. Click **"Try to Fix"** button (free, no credits) — up to 3x
+2. Check DevTools Console + Network tabs, paste error into Chat Mode
+3. Level 1 → 5 debugging prompts (see `lovable-prompting` skill)
+4. Screenshot error → paste into external reasoning model (GPT-4o, Claude) → bring solution back
+
+### Supabase RLS Warning
+
+RLS is the #1 silent bug source. When users need to see shared data or files, explicitly state:
+- "Disable RLS on the [table_name] table" OR
+- "Add an RLS policy that allows authenticated users to read all rows"
+
+Leaving security unmentioned defaults to "hide everything" which breaks things silently.
+
+### Full Reference
+
+The `lovable-prompting` skill includes complete prompt libraries:
+- `references/prompt-library.md` — Design, mobile-first, 8-stage refactoring, Stripe, component preservation
+- `references/debugging-flow.md` — 10-step escalation ladder, developer tools, preventing errors
+- `references/integrations-guide.md` — make.com, n8n, edge functions, webhook patterns
+
+---
+
 ## Agent Playbook
 
 Use these patterns to work faster and smarter in Claude Code sessions.
